@@ -1,0 +1,20 @@
+# Caddy terminates TLS and reverse-proxies to the web container.
+# Static files are WhiteNoise's job, inside the web container — deliberately no
+# file_server here.
+#
+# {$VAR} is substituted from the environment when the config loads; both come
+# from .env via the caddy service's env_file.
+{
+	email {$CADDY_EMAIL}
+}
+
+{$CADDY_DOMAIN} {
+	encode zstd gzip
+
+	reverse_proxy web:8000
+
+	log {
+		output stdout
+		format console
+	}
+}

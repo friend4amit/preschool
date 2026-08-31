@@ -1,0 +1,38 @@
+[project]
+name = "aaroham"
+version = "0.1.0"
+description = "Aaroham — preschool management platform and public website"
+requires-python = ">=3.13"
+dependencies = [
+    "django>=5.2,<5.3",            # LTS — see docs/plan.md
+    "django-environ>=0.12",
+    "psycopg[binary]>=3.2",
+    "gunicorn>=23.0",
+    "whitenoise>=6.8",
+    "django-tasks>=0.12",         # ships dummy + immediate backends only...
+    "django-tasks-db>=0.1",       # ...the DB backend is a separate distribution
+    "django-storages[s3]>=1.14",
+    "sentry-sdk[django]>=2.20",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-django>=4.9",
+    "factory-boy>=3.3",
+    "ruff>=0.9",
+    "import-linter>=2.3",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+extend-exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "DJ", "C4", "SIM"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py"]
+addopts = "--strict-markers"

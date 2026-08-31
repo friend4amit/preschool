@@ -1,0 +1,78 @@
+# Local development: postgres + web + worker.
+# Copy .env.example to .env, then `docker compose up` — it comes up cold, migrated,
+# and working. Nothing else to run first.
+
+name: aaroham
+
+# web and worker are the same image with different commands; the anchor keeps
+# them from drifting apart. depends_on differs, so it lives on each service.
+x-app: &app
+  build:
+    context: .
+    target: dev
+  image: aaroham:dev
+  env_file: .env
+  environment:
+    # Overrides .env so DATABASE_URL there can stay pointed at localhost for
+    # host-run manage.py and pytest. Inside compose the host is the service name.
+    DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+  volumes:
+    - .:/app
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:17-bookworm
+    env_file: .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      # Dev publishes the port so psql / a GUI client can reach it from the host.
+      - "5432:5432"
+    healthcheck:
+      # $$ escapes compose interpolation — these expand inside the container.
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  web:
+    <<: *app
+    # Migrations run here and only here. The worker waits for web to report
+    # healthy rather than racing it to a schema that doesn't exist yet — which is
+    # exactly what a cold `up` does otherwise, and it fails confusingly.
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # No curl in the slim image; urllib is already there.
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request;urllib.request.urlopen('http://localhost:8000/healthz')",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+  worker:
+    <<: *app
+    command: python manage.py db_worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
