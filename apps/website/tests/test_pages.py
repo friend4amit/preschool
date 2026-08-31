@@ -133,3 +133,17 @@ def test_every_public_page_can_reach_every_other(client, branch, name):
     content = client.get(reverse(name)).content.decode()
     for target in PUBLIC_PAGES:
         assert f'href="{reverse(target)}"' in content
+
+
+@pytest.mark.parametrize("name", PUBLIC_PAGES)
+def test_no_template_syntax_leaks_into_the_page(client, branch, name):
+    """Unrendered template syntax means a tag the lexer never matched.
+
+    The specific trap is that {# #} is single-line ONLY: split a comment across
+    two lines and Django emits it as literal text, in the header, to parents.
+    {% comment %} is the multi-line form. Nothing here checks prose, so this is
+    the only thing standing between a stray brace and the live site.
+    """
+    content = client.get(reverse(name)).content.decode()
+    for token in ("{#", "#}", "{%", "%}", "{{", "}}"):
+        assert token not in content, f"unrendered {token!r} on {name}"
