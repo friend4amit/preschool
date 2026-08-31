@@ -100,7 +100,7 @@ Prose lives in templates. Only the repeating cards live in the database, editabl
 
 ### Pages
 
-`Home` · `About Us` · `Our Team` · `Programs` · `Our Approach` (Montessori method) · `Special Education Awareness` · `Contact`
+`Home` · `About Us` · `Our Team` · `Programs` · `Our Approach` (Montessori method) · `Thoughtful Education` · `Contact`
 
 ### Also build
 
