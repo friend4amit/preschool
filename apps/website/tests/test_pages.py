@@ -112,3 +112,24 @@ def test_robots_points_at_the_sitemap_and_hides_private_areas(client):
     assert "sitemap.xml" in content
     for private in ("/admin/", "/staff/", "/portal/"):
         assert f"Disallow: {private}" in content
+
+
+def test_the_header_menu_actually_goes_somewhere(client, branch):
+    """Phase 0 wrote the nav with href="#" and Phase 1 added the pages without rewiring it.
+
+    Nothing else in the suite looks at the layout, which is exactly how four dead
+    links survived a phase. The staff and parent layouts still use "#" on purpose —
+    their screens arrive in Phase 2 onwards and have no URL names to reverse yet.
+    """
+    content = client.get(reverse("home")).content.decode()
+    assert 'href="#"' not in content
+    for target in PUBLIC_PAGES:
+        assert f'href="{reverse(target)}"' in content
+
+
+@pytest.mark.parametrize("name", PUBLIC_PAGES)
+def test_every_public_page_can_reach_every_other(client, branch, name):
+    """The menu is in the shared layout, so a page that renders without it is a dead end."""
+    content = client.get(reverse(name)).content.decode()
+    for target in PUBLIC_PAGES:
+        assert f'href="{reverse(target)}"' in content
