@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# Django
+*.sqlite3
+/media/
+/staticfiles/
+
+# Build output — Tailwind writes here, never hand-edit
+/static/css/app.css
+
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local agent/session state
+.claude/*.local.md
+.claude/settings.local.json
+
+# OS
+.DS_Store
+Thumbs.db
