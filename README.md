@@ -27,13 +27,11 @@ Working on the host instead of in containers? `uv sync`, point `DATABASE_URL` at
 
 ## Deploy
 
-Run from the **repo root**, so `.env` is used for interpolation as well as for the
-containers:
+The production stack runs locally today (and on a server later — same commands):
 
 ```sh
 docker compose --env-file .env -f deploy/docker-compose.prod.yml up -d --build
 ```
 
-The prod stack forces `DJANGO_SETTINGS_MODULE=config.settings.prod` and the database
-host itself, rather than trusting `.env` — a `.env` copied from `.env.example` still
-says `dev`, and one forgotten line would otherwise run production with `DEBUG=True`.
+See **[`docs/deploy.md`](docs/deploy.md)** for first boot, the localhost certificate
+warning, switching to a real domain, and what is not production-ready yet.
