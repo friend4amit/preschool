@@ -24,3 +24,16 @@ docker compose exec web python manage.py seed
 
 Working on the host instead of in containers? `uv sync`, point `DATABASE_URL` at
 `localhost`, and use `uv run python manage.py ...`. See `CLAUDE.md`.
+
+## Deploy
+
+Run from the **repo root**, so `.env` is used for interpolation as well as for the
+containers:
+
+```sh
+docker compose --env-file .env -f deploy/docker-compose.prod.yml up -d --build
+```
+
+The prod stack forces `DJANGO_SETTINGS_MODULE=config.settings.prod` and the database
+host itself, rather than trusting `.env` — a `.env` copied from `.env.example` still
+says `dev`, and one forgotten line would otherwise run production with `DEBUG=True`.

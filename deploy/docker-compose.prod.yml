@@ -5,6 +5,13 @@
 # exists only on the server. Relative paths resolve against this file's
 # directory, hence `..` for the build context and `../.env` for the env file.
 
+# Deploy from the REPO ROOT so .env is used for interpolation as well as for the
+# containers:
+#
+#   docker compose --env-file .env -f deploy/docker-compose.prod.yml up -d --build
+#
+# Without --env-file, ${POSTGRES_*} interpolation would resolve empty; the required
+# variable syntax below turns that into a loud error instead of a broken database URL.
 name: aaroham-prod
 
 x-app: &app
@@ -13,6 +20,17 @@ x-app: &app
     target: prod
   image: aaroham:prod
   env_file: ../.env
+  environment:
+    # Forced here, never taken from .env. A .env copied from .env.example still
+    # says config.settings.dev, and one forgotten line would run production with
+    # DEBUG=True — leaking tracebacks and disabling every security setting in
+    # prod.py. Compose `environment` wins over `env_file`, so this cannot be
+    # wrong by omission.
+    DJANGO_SETTINGS_MODULE: config.settings.prod
+    # Same reasoning: this stack runs its own postgres service, so the host is
+    # always `postgres`. Taking it from .env would inherit whatever a developer
+    # left pointed at localhost and fail to connect on first boot.
+    DATABASE_URL: "postgres://${POSTGRES_USER:?see the deploy command in the header comment}:${POSTGRES_PASSWORD:?missing POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:?missing POSTGRES_DB}"
   depends_on:
     postgres:
       condition: service_healthy
