@@ -13,6 +13,8 @@ dependencies = [
     "django-tasks-db>=0.1",       # ...the DB backend is a separate distribution
     "django-storages[s3]>=1.14",
     "sentry-sdk[django]>=2.20",
+    "requests>=2.34.2",
+    "pillow>=12.3.0",
 ]
 
 [dependency-groups]
@@ -35,4 +37,7 @@ select = ["E", "F", "I", "UP", "B", "DJ", "C4", "SIM"]
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 python_files = ["test_*.py"]
+# Function-style tests only. Without this, model classes whose names start with
+# "Test" (Testimonial) get collected as test classes and warn on every run.
+python_classes = []
 addopts = "--strict-markers"

@@ -1,0 +1,51 @@
+{% extends "layouts/public.html" %}
+
+{% block title %}Programmes{% endblock %}
+{% block meta_description %}Playgroup, Nursery, LKG, UKG and daycare — a gentle learning journey for every stage.{% endblock %}
+
+{% block content %}
+  <h1 class="font-display text-ink text-3xl leading-tight font-semibold text-balance md:text-5xl">
+    A gentle learning journey for every stage
+  </h1>
+  <p class="text-muted mt-5 max-w-prose text-lg">
+    Children move up when they are ready, not on a date. If you are unsure which stage suits
+    your child, ask us — we will tell you honestly.
+  </p>
+
+  <div class="mt-12 space-y-5">
+    {% for program in programs %}
+      <article class="border-line bg-raised rounded-2xl border p-6 md:flex md:items-start md:gap-8 md:p-8">
+        <div class="md:w-44 md:shrink-0">
+          <p class="text-marigold text-xs font-medium tracking-widest uppercase">{{ program.age_range_display }}</p>
+          <h2 class="font-display text-ink mt-1 text-xl font-semibold">{{ program.name }}</h2>
+        </div>
+        <div class="mt-3 md:mt-0">
+          {% if program.summary %}
+            <p class="text-ink leading-relaxed">{{ program.summary }}</p>
+          {% endif %}
+          {% if program.description %}
+            <p class="text-muted mt-3 leading-relaxed">{{ program.description|linebreaksbr }}</p>
+          {% endif %}
+        </div>
+      </article>
+    {% empty %}
+      <p class="text-muted">
+        Our programmes are being finalised.
+        <a class="text-clay hover:underline" href="{% url 'contact' %}">Get in touch</a>
+        and we will talk you through them.
+      </p>
+    {% endfor %}
+  </div>
+
+  <section class="bg-sage-wash mt-14 rounded-3xl p-8 md:p-12">
+    <h2 class="font-display text-ink text-2xl font-semibold">Not sure where your child fits?</h2>
+    <p class="text-muted mt-3 max-w-prose">
+      Tell us their age and a little about them. We will suggest a stage — and say so if we
+      think another school suits them better.
+    </p>
+    <a href="{% url 'contact' %}"
+       class="bg-clay text-on-clay hover:bg-clay-deep mt-6 inline-flex items-center rounded-xl px-6 py-3 font-medium transition">
+      Ask us
+    </a>
+  </section>
+{% endblock %}

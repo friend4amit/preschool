@@ -49,3 +49,12 @@ def staff_at(branch: Branch) -> QuerySet[User]:
         memberships__branch=branch,
         memberships__role__in=[Role.BRANCH_ADMIN, Role.TEACHER, Role.ACCOUNTANT],
     ).distinct()
+
+
+def current_branch_fallback() -> Branch | None:
+    """The single branch, for commands and seeds that have no user.
+
+    Distinct from `branches_for_user`: this one deliberately has no scoping because
+    it has no request and no user. Never call it from a view.
+    """
+    return Branch.objects.filter(is_active=True).order_by("pk").first()

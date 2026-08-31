@@ -35,6 +35,8 @@
   --color-sage:         #40614f;  /* calm secondary */
   --color-sage-wash:    #e3ece5;
   --color-marigold:     #c98a1e;  /* highlight, never a large field */
+  --color-stop:         #a33a2b;  /* form errors — semantic, never the accent */
+  --color-stop-wash:    #f9e7e4;
   --color-on-clay:      #ffffff;  /* text on a filled clay button */
 
   /* Type. One display face, one body face, both with real fallbacks. */
@@ -121,5 +123,41 @@
 
   .skip-link:focus {
     top: 0.75rem;
+  }
+}
+
+@layer components {
+  /* Form controls. Styled once here rather than by hanging Tailwind classes off
+     every widget in forms.py — Django renders the inputs, and presentation is
+     the stylesheet's job, not the form's. */
+  .prose-form input[type="text"],
+  .prose-form input[type="email"],
+  .prose-form input[type="tel"],
+  .prose-form input[type="date"],
+  .prose-form select,
+  .prose-form textarea {
+    margin-top: --spacing(1.5);
+    display: block;
+    width: 100%;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-line);
+    background-color: var(--color-raised);
+    padding: --spacing(3) --spacing(4);
+    color: var(--color-ink);
+    font-size: 1rem;
+    /* 16px minimum: anything smaller makes iOS Safari zoom on focus, which on a
+       phone throws the whole form off-screen mid-entry. */
+  }
+
+  .prose-form input:focus-visible,
+  .prose-form select:focus-visible,
+  .prose-form textarea:focus-visible {
+    outline: 2px solid var(--color-clay);
+    outline-offset: 2px;
+    border-color: var(--color-clay);
+  }
+
+  .prose-form ::placeholder {
+    color: color-mix(in oklab, var(--color-muted) 60%, transparent);
   }
 }

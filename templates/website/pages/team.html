@@ -1,0 +1,33 @@
+{% extends "layouts/public.html" %}
+
+{% block title %}Our team{% endblock %}
+{% block meta_description %}The educators at Aaroham — trained to guide young children through play, exploration and imaginative learning.{% endblock %}
+
+{% block content %}
+  <h1 class="font-display text-ink text-3xl leading-tight font-semibold text-balance md:text-5xl">
+    A thoughtfully crafted preschool experience
+  </h1>
+  <p class="text-muted mt-5 max-w-prose text-lg">
+    Our educators are trained specifically for the early years — equipping them to guide
+    children through joyful play, hands-on exploration and imaginative learning that sparks
+    curiosity.
+  </p>
+
+  <div class="mt-12 grid gap-6 sm:grid-cols-2">
+    {% for member in team %}
+      <article class="border-line bg-raised rounded-2xl border p-6">
+        {% if member.photo %}
+          <img src="{{ member.photo.url }}" alt=""
+               class="mb-4 h-24 w-24 rounded-full object-cover"
+               width="96" height="96" loading="lazy">
+        {% endif %}
+        <h2 class="font-display text-ink text-lg font-semibold">{{ member.name }}</h2>
+        {% if member.role %}<p class="text-clay text-sm font-medium">{{ member.role }}</p>{% endif %}
+        {% if member.credentials %}<p class="text-muted mt-1 text-xs">{{ member.credentials }}</p>{% endif %}
+        {% if member.bio %}<p class="text-muted mt-3 text-sm leading-relaxed">{{ member.bio }}</p>{% endif %}
+      </article>
+    {% empty %}
+      <p class="text-muted">We are introducing our team here shortly.</p>
+    {% endfor %}
+  </div>
+{% endblock %}

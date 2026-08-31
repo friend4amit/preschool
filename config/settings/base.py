@@ -23,9 +23,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
+    "django.contrib.sitemaps",
     "django_tasks",
     "django_tasks_db",
     "apps.core",
+    "apps.website",
 ]
 
 MIDDLEWARE = [
@@ -92,3 +95,13 @@ SESSION_SAVE_EVERY_REQUEST = True
 
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "/"
+
+# Cloudflare Turnstile. Cloudflare publishes always-passing test keys for dev.
+TURNSTILE_SITE_KEY = env("TURNSTILE_SITE_KEY", default="")
+TURNSTILE_SECRET_KEY = env("TURNSTILE_SECRET_KEY", default="")
+
+# Where enquiry notifications go. Falls back to the branch email in SiteSettings.
+ENQUIRY_NOTIFICATION_EMAIL = env("ENQUIRY_NOTIFICATION_EMAIL", default="")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@aaroham.local")
+
+SITE_ID = 1
