@@ -1,0 +1,41 @@
+# Keep the build context to what the image actually needs. `static/` is NOT
+# excluded — WhiteNoise serves vendored htmx and built CSS from it in prod.
+
+.git/
+.github/
+.gitignore
+
+# Local virtualenv; the image builds its own at /opt/venv.
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Secrets and local state — never bake into a layer.
+.env
+.env.*
+!.env.example
+.claude/
+
+# Tooling caches and test output.
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Not application code.
+docs/
+README.md
+Claude.md
+resume.txt
+
+# Compose files and deploy config are read from the host, not the image.
+docker-compose.yml
+deploy/
+
+# Runtime artefacts, regenerated in the container.
+media/
+staticfiles/
+
+.DS_Store
+Thumbs.db

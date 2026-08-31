@@ -1,0 +1,163 @@
+/* Aaroham — Tailwind v4 source.
+   Built with the standalone CLI into static/css/app.css (build output, gitignored).
+   See assets/README-frontend.md for the commands. */
+
+@import "tailwindcss" source(none);
+
+/* Explicit, CWD-independent scan roots. `source(none)` above turns off
+   automatic detection so the Docker build scans the same files the dev
+   machine does. Paths resolve relative to this file. */
+@source "../../templates";
+@source "../../apps";
+
+/* ---------------------------------------------------------------------------
+   Design tokens.
+
+   "Aaroham" is Sanskrit for ascent. The palette is warm and grounded — paper,
+   clay, sage, marigold — rather than primary-colour nursery brights. Every
+   colour is a CSS custom property so the dark scheme below can re-point the
+   same token and every generated utility follows.
+--------------------------------------------------------------------------- */
+
+@theme {
+  /* Surfaces and text */
+  --color-surface:      #fbf7f1;  /* page background — warm paper */
+  --color-raised:       #ffffff;  /* cards, sheets */
+  --color-sunken:       #f3ece2;  /* wells, inset rows */
+  --color-line:         #e7ddd0;  /* hairline borders */
+  --color-ink:          #241e1a;  /* primary text */
+  --color-muted:        #6b5f55;  /* secondary text */
+
+  /* Brand */
+  --color-clay:         #b4542e;  /* primary action, links */
+  --color-clay-deep:    #8e3f20;  /* hover / pressed */
+  --color-clay-wash:    #f6e5da;  /* tinted panels */
+  --color-sage:         #40614f;  /* calm secondary */
+  --color-sage-wash:    #e3ece5;
+  --color-marigold:     #c98a1e;  /* highlight, never a large field */
+  --color-stop:         #a33a2b;  /* form errors — semantic, never the accent */
+  --color-stop-wash:    #f9e7e4;
+  --color-on-clay:      #ffffff;  /* text on a filled clay button */
+
+  /* Type. One display face, one body face, both with real fallbacks. */
+  --font-display: "Fraunces", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --font-sans: "Karla", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Type scale — mobile sizes; larger steps get md:/lg: overrides in markup. */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-display: 2.25rem;
+  --text-display--line-height: 1.1;
+  --text-display--letter-spacing: -0.02em;
+  --text-display-lg: 3.5rem;
+  --text-display-lg--line-height: 1.05;
+  --text-display-lg--letter-spacing: -0.025em;
+
+  /* Layout */
+  --radius-card: 0.875rem;
+}
+
+/* Dark scheme. `@theme` must stay top-level, so the dark values re-point the
+   same custom properties from an ordinary media block — the utilities
+   generated above read the var, so they follow automatically. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-surface:    #16120f;
+    --color-raised:     #211c18;
+    --color-sunken:     #1b1713;
+    --color-line:       #362e27;
+    --color-ink:        #f2ebe3;
+    --color-muted:      #a99b8d;
+
+    --color-clay:       #e08757;
+    --color-clay-deep:  #f0a077;
+    --color-clay-wash:  #33241b;
+    --color-sage:       #8fb79e;
+    --color-sage-wash:  #1f2a23;
+    --color-marigold:   #e0b055;
+    --color-on-clay:    #20150f;
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: light dark;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+  }
+
+  /* Keyboard focus stays visible everywhere, in both schemes. */
+  :focus-visible {
+    outline: 2px solid var(--color-clay);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* The skip link: off-screen until focused. Used by base.html. */
+  .skip-link {
+    position: absolute;
+    left: 0.75rem;
+    top: -3rem;
+    z-index: 50;
+    border-radius: 0.5rem;
+    background-color: var(--color-clay);
+    padding: 0.5rem 0.875rem;
+    color: var(--color-on-clay);
+    transition: top 150ms ease;
+  }
+
+  .skip-link:focus {
+    top: 0.75rem;
+  }
+}
+
+@layer components {
+  /* Form controls. Styled once here rather than by hanging Tailwind classes off
+     every widget in forms.py — Django renders the inputs, and presentation is
+     the stylesheet's job, not the form's. */
+  .prose-form input[type="text"],
+  .prose-form input[type="email"],
+  .prose-form input[type="tel"],
+  .prose-form input[type="date"],
+  .prose-form select,
+  .prose-form textarea {
+    margin-top: --spacing(1.5);
+    display: block;
+    width: 100%;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-line);
+    background-color: var(--color-raised);
+    padding: --spacing(3) --spacing(4);
+    color: var(--color-ink);
+    font-size: 1rem;
+    /* 16px minimum: anything smaller makes iOS Safari zoom on focus, which on a
+       phone throws the whole form off-screen mid-entry. */
+  }
+
+  .prose-form input:focus-visible,
+  .prose-form select:focus-visible,
+  .prose-form textarea:focus-visible {
+    outline: 2px solid var(--color-clay);
+    outline-offset: 2px;
+    border-color: var(--color-clay);
+  }
+
+  .prose-form ::placeholder {
+    color: color-mix(in oklab, var(--color-muted) 60%, transparent);
+  }
+}

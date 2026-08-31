@@ -1,0 +1,118 @@
+# Production: caddy + web + worker + postgres on one VPS.
+#   docker compose -f deploy/docker-compose.prod.yml up -d --build
+#
+# No secrets in this file — everything comes from .env at the repo root, which
+# exists only on the server. Relative paths resolve against this file's
+# directory, hence `..` for the build context and `../.env` for the env file.
+
+# Deploy from the REPO ROOT so .env is used for interpolation as well as for the
+# containers:
+#
+#   docker compose --env-file .env -f deploy/docker-compose.prod.yml up -d --build
+#
+# Without --env-file, ${POSTGRES_*} interpolation would resolve empty; the required
+# variable syntax below turns that into a loud error instead of a broken database URL.
+name: aaroham-prod
+
+x-app: &app
+  build:
+    context: ..
+    target: prod
+  image: aaroham:prod
+  env_file: ../.env
+  environment:
+    # Forced here, never taken from .env. A .env copied from .env.example still
+    # says config.settings.dev, and one forgotten line would run production with
+    # DEBUG=True — leaking tracebacks and disabling every security setting in
+    # prod.py. Compose `environment` wins over `env_file`, so this cannot be
+    # wrong by omission.
+    DJANGO_SETTINGS_MODULE: config.settings.prod
+    # Same reasoning: this stack runs its own postgres service, so the host is
+    # always `postgres`. Taking it from .env would inherit whatever a developer
+    # left pointed at localhost and fail to connect on first boot.
+    DATABASE_URL: "postgres://${POSTGRES_USER:?see the deploy command in the header comment}:${POSTGRES_PASSWORD:?missing POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:?missing POSTGRES_DB}"
+  depends_on:
+    postgres:
+      condition: service_healthy
+  restart: unless-stopped
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+      # HTTP/3.
+      - "443:443/udp"
+    env_file: ../.env
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Certificates and ACME account state. Losing caddy_data means
+      # re-issuing certs and burning Let's Encrypt rate limit.
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      web:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    <<: *app
+    # Migrations and collectstatic run here rather than in the image CMD so a
+    # plain `up -d` is a complete deploy. WhiteNoise's manifest storage needs
+    # collectstatic to have run before the first request.
+    command: >
+      sh -c "python manage.py migrate --noinput
+      && python manage.py collectstatic --noinput
+      && exec gunicorn config.wsgi:application
+      --bind 0.0.0.0:8000 --workers 3 --timeout 60
+      --access-logfile - --error-logfile -"
+    expose:
+      # Reachable only on the compose network — Caddy is the only way in.
+      - "8000"
+    healthcheck:
+      # No curl in the slim image; urllib is always there. The Host header comes
+      # from CADDY_DOMAIN because ALLOWED_HOSTS is the real domain, not 127.0.0.1.
+      # start_period covers migrate + collectstatic before gunicorn binds.
+      test:
+        - CMD-SHELL
+        - >-
+          python -c "import os, sys, urllib.request;
+          r = urllib.request.Request('http://127.0.0.1:8000/healthz',
+          headers={'Host': os.environ['CADDY_DOMAIN']});
+          sys.exit(0 if urllib.request.urlopen(r, timeout=5).status == 200 else 1)"
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+  worker:
+    <<: *app
+    command: python manage.py db_worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      # Gives web a head start on migrations; `restart: unless-stopped` covers
+      # the gap if the worker loses the race (service_started does not wait for
+      # migrate to finish).
+      web:
+        condition: service_started
+
+  postgres:
+    image: postgres:17-bookworm
+    env_file: ../.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Deliberately no `ports:` — the database is not reachable from the internet.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:

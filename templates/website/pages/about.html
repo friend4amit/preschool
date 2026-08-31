@@ -1,0 +1,68 @@
+{% extends "layouts/public.html" %}
+
+{% block title %}About Aaroham{% endblock %}
+{% block meta_description %}Our story, our mission, and what we believe about how young children learn best.{% endblock %}
+
+{% block content %}
+  <h1 class="font-display text-ink text-3xl leading-tight font-semibold text-balance md:text-5xl">
+    A caring start for every little champion
+  </h1>
+
+  <section class="mt-10">
+    <h2 class="font-display text-ink text-2xl font-semibold">Our mission</h2>
+    <p class="text-muted mt-4 max-w-prose leading-relaxed">
+      Our mission is to provide an inclusive and nurturing preschool environment where
+      children are encouraged to explore, imagine, and create. We aim to spark curiosity
+      through play-based learning, foster confidence by valuing each child's voice, and
+      build a foundation of empathy and collaboration. By integrating creativity into
+      everyday experiences, we empower children to express their unique ideas and
+      perspectives while developing essential skills for lifelong learning.
+    </p>
+  </section>
+
+  <section class="mt-14">
+    <h2 class="font-display text-ink text-2xl font-semibold">Core values &amp; beliefs</h2>
+    <div class="mt-6 grid gap-5 md:grid-cols-2">
+      <div class="border-line bg-raised rounded-2xl border p-6">
+        <h3 class="font-display text-ink text-lg font-semibold">Capable &amp; unique</h3>
+        <p class="text-muted mt-2 text-sm leading-relaxed">
+          Every child is strong, capable and full of potential, with their own learning style
+          and interests. We start from what a child can already do.
+        </p>
+      </div>
+      <div class="border-line bg-raised rounded-2xl border p-6">
+        <h3 class="font-display text-ink text-lg font-semibold">Play is the work</h3>
+        <p class="text-muted mt-2 text-sm leading-relaxed">
+          Play is not a break from learning at this age — it is how learning happens. The
+          classroom is a joyful, engaging space by design.
+        </p>
+      </div>
+      <div class="border-line bg-raised rounded-2xl border p-6">
+        <h3 class="font-display text-ink text-lg font-semibold">Head, heart and hands</h3>
+        <p class="text-muted mt-2 text-sm leading-relaxed">
+          We look for growth in all three: intellectual, emotional and physical. A confident
+          child matters as much as a capable one.
+        </p>
+      </div>
+      <div class="border-line bg-raised rounded-2xl border p-6">
+        <h3 class="font-display text-ink text-lg font-semibold">Childhood, protected</h3>
+        <p class="text-muted mt-2 text-sm leading-relaxed">
+          In a world shaped by screens and academic pressure, we honour the natural pace of
+          the early years and keep them unhurried.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-sage-wash mt-14 rounded-3xl p-8 md:p-12">
+    <h2 class="font-display text-ink text-2xl font-semibold">Come and see</h2>
+    <p class="text-muted mt-3 max-w-prose">
+      The best way to understand a preschool is to stand in it. Visits are unhurried, and
+      there is no obligation.
+    </p>
+    <a href="{% url 'contact' %}"
+       class="bg-clay text-on-clay hover:bg-clay-deep mt-6 inline-flex items-center rounded-xl px-6 py-3 font-medium transition">
+      Book a visit
+    </a>
+  </section>
+{% endblock %}

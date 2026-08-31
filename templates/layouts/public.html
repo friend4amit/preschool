@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% comment %} Public marketing shell: prospective parents, mostly on a phone.
+   Wide, generous, and the only layout with a full footer. {% endcomment %}
+
+{% block main_class %}mx-auto w-full max-w-3xl px-5 py-10 md:px-8 md:py-16 lg:max-w-5xl{% endblock %}
+
+{% block header %}
+  <header class="border-b border-line bg-raised/80 backdrop-blur">
+    <div class="mx-auto flex w-full max-w-3xl flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-8 lg:max-w-5xl">
+      <a href="{% url 'home' %}" class="font-display text-xl font-semibold text-ink">
+        Aaroham<span class="text-clay">.</span>
+      </a>
+
+      {% comment %} Reverse by name, never a literal path: a typo then fails loudly at render
+         instead of shipping a dead link, which is how these last broke. {% endcomment %}
+      <nav aria-label="Primary" class="-mx-1 overflow-x-auto">
+        <ul class="flex items-center gap-1 text-sm whitespace-nowrap">
+          <li><a href="{% url 'about' %}" class="rounded-lg px-3 py-2 text-muted hover:bg-clay-wash hover:text-clay">About</a></li>
+          <li><a href="{% url 'programs' %}" class="rounded-lg px-3 py-2 text-muted hover:bg-clay-wash hover:text-clay">Programmes</a></li>
+          <li><a href="{% url 'approach' %}" class="rounded-lg px-3 py-2 text-muted hover:bg-clay-wash hover:text-clay">Our approach</a></li>
+          <li><a href="{% url 'team' %}" class="rounded-lg px-3 py-2 text-muted hover:bg-clay-wash hover:text-clay">Our team</a></li>
+          <li><a href="{% url 'special_education' %}" class="rounded-lg px-3 py-2 text-muted hover:bg-clay-wash hover:text-clay">Thoughtful education</a></li>
+          <li><a href="{% url 'contact' %}" class="rounded-lg px-3 py-2 text-muted hover:bg-clay-wash hover:text-clay">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+{% endblock %}
+
+{% block footer %}
+  <footer class="mt-auto border-t border-line bg-sunken">
+    <div class="mx-auto w-full max-w-3xl px-5 py-8 text-sm text-muted md:px-8 lg:max-w-5xl">
+      <p class="font-display text-base text-ink">Aaroham</p>
+      <p class="mt-1">Preschool and daycare.</p>
+      <p class="mt-4 text-2xs uppercase tracking-widest">&copy; Aaroham</p>
+    </div>
+  </footer>
+{% endblock %}

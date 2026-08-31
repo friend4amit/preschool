@@ -1,0 +1,30 @@
+# The layer contract from docs/plan.md, enforced in CI.
+# Dependencies point downward only. Break one of these and the build goes red —
+# which is the entire point of writing it down in phase 0 rather than month eight.
+
+[importlinter]
+root_packages =
+    apps
+    config
+    integrations
+
+[importlinter:contract:app-layers]
+name = Views -> services -> selectors -> models, never upward
+type = layers
+containers =
+    apps.core
+layers =
+    views
+    services
+    selectors
+    models
+exhaustive = false
+
+[importlinter:contract:integrations-standalone]
+name = Integrations wrap vendors and must not import domain code
+type = forbidden
+source_modules =
+    integrations
+forbidden_modules =
+    apps
+    config

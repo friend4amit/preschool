@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% comment %} Staff console shell: teachers and office staff, laptop-first in practice.
+   Base classes are still the phone layout — the desk gets a wider container
+   and a denser bar at lg:, it never inverts the breakpoint direction. {% endcomment %}
+
+{% block main_class %}mx-auto w-full max-w-2xl px-4 py-6 md:px-6 md:py-8 lg:max-w-7xl{% endblock %}
+
+{% block header %}
+  <header class="border-b border-line bg-raised">
+    <div class="mx-auto flex w-full max-w-2xl flex-col gap-2 px-4 py-3 md:px-6 lg:max-w-7xl lg:flex-row lg:items-center lg:justify-between lg:py-2">
+      <div class="flex items-baseline gap-3">
+        <a href="/" class="font-display text-base font-semibold text-ink">Aaroham</a>
+        <span class="text-2xs uppercase tracking-[0.18em] text-muted">Staff</span>
+      </div>
+
+      <nav aria-label="Staff" class="-mx-1 overflow-x-auto">
+        <ul class="flex items-center gap-0.5 text-sm whitespace-nowrap">
+          <li><a href="#" class="rounded-md px-2.5 py-1.5 text-muted hover:bg-sunken hover:text-ink">Students</a></li>
+          <li><a href="#" class="rounded-md px-2.5 py-1.5 text-muted hover:bg-sunken hover:text-ink">Attendance</a></li>
+          <li><a href="#" class="rounded-md px-2.5 py-1.5 text-muted hover:bg-sunken hover:text-ink">Activities</a></li>
+          <li><a href="#" class="rounded-md px-2.5 py-1.5 text-muted hover:bg-sunken hover:text-ink">Billing</a></li>
+          <li><a href="#" class="rounded-md px-2.5 py-1.5 text-muted hover:bg-sunken hover:text-ink">Enquiries</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+{% endblock %}

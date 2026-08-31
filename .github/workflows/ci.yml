@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: aaroham
+          POSTGRES_USER: aaroham
+          POSTGRES_PASSWORD: aaroham
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U aaroham -d aaroham"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # Service containers are published on the runner's localhost, not on a
+      # service hostname.
+      DATABASE_URL: postgres://aaroham:aaroham@localhost:5432/aaroham
+      SECRET_KEY: ci-only-not-a-real-secret
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      # DJANGO_SETTINGS_MODULE is deliberately unset — pytest-django reads it
+      # from [tool.pytest.ini_options] in pyproject.toml.
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.13"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: ruff check
+        run: uv run ruff check .
+
+      - name: ruff format
+        run: uv run ruff format --check .
+
+      # The layer contract. Breaking it must turn CI red — no continue-on-error.
+      - name: import-linter
+        run: uv run lint-imports
+
+      - name: pytest
+        run: uv run pytest
