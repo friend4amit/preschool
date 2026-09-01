@@ -221,9 +221,19 @@ Let's Encrypt rate limit. Therefore:
   starting it again and finding the data still there.
 - Both scripts run unmodified in Git Bash on Windows and on a Linux host.
 
+### Added during the build
+
+**`scripts/test.sh`** — runs `pytest` inside the `aaroham:dev` image. `uv run pytest`
+on the host stays the documented command and is right on Linux and in CI, but it does
+not currently work on this Windows machine: Application Control blocks the SSL DLL
+that psycopg's binary wheel loads, and pytest dies at import. The container has its
+own libpq. Not planned; added because the alternative was retyping a `docker run` with
+four environment variables before every test run, which is the exact thing this phase
+exists to remove.
+
 ### Not in scope
 
-No Makefile, no `just`, no task runner, no new dependency. Two shell scripts and a
+No Makefile, no `just`, no task runner, no new dependency. Three shell scripts and a
 `.gitattributes` line.
 
 ---
@@ -234,8 +244,15 @@ No Makefile, no `just`, no task runner, no new dependency. Two shell scripts and
 
 ### Models
 
-- `apps/people`: `Student`, `Guardian`, `StudentGuardian` (M2M through, with `relationship` and `is_primary`), `Staff`, `Document`.
-- `apps/core` additions: `AcademicYear`, `Classroom`, `Enrollment` (student × classroom × year, with join/leave dates).
+- `apps/people`: `Student`, `Guardian`, `StudentGuardian` (M2M through, with `relationship` and `is_primary`), `Staff`, `Document`, `Enrollment` (student × classroom × year, with join/leave dates).
+- `apps/core` additions: `AcademicYear`, `Classroom`.
+
+`Enrollment` sits in `people`, not `core`. An earlier draft of this line put it in
+`core` and contradicted the repo layout in [`plan.md`](./plan.md) — `core` was wrong.
+`AcademicYear` and `Classroom` hang off `Branch` and exist before any child does, so
+they belong to the organisation; `Enrollment` is a fact about a student. Putting it in
+`core` would make `core` depend on `people`, which already depends on `core` for
+`BranchScopedModel` — the dependency has to point one way.
 
 `Document` — per student: birth certificate, immunisation record, guardian ID. A file in R2, a type, an uploader, and an expiry where one applies. Small, but every school needs it, and it's far easier to add now than to retrofit into a settled `Student` page later.
 

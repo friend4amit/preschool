@@ -22,7 +22,13 @@ uv run lint-imports                       # layer contract
 ./scripts/start.sh prod                   # prod stack: caddy + web + worker + postgres
 ./scripts/start.sh testdb                 # postgres alone, for host-run pytest
 ./scripts/stop.sh [dev|prod|testdb]       # halt. --down removes containers, --destroy volumes
+./scripts/test.sh                         # pytest inside the dev image; args pass through
 ```
+
+`test.sh` exists because `uv run pytest` on the host currently fails on this Windows
+machine — Application Control blocks the SSL DLL psycopg's binary wheel loads, and
+pytest dies at import. The container carries its own libpq. On Linux and in CI the
+plain `uv run pytest` is still the command.
 
 The scripts are the convenience; the commands below are the documentation, and they
 still work. Reach for the scripts because they preflight Docker and `.env`, refuse a

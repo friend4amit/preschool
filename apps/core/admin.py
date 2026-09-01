@@ -1,6 +1,14 @@
 from django.contrib import admin
 
-from apps.core.models import Branch, BranchMembership, Consent, Organization, User
+from apps.core.models import (
+    AcademicYear,
+    Branch,
+    BranchMembership,
+    Classroom,
+    Consent,
+    Organization,
+    User,
+)
 
 
 class BranchMembershipInline(admin.TabularInline):
@@ -32,3 +40,18 @@ class ConsentAdmin(admin.ModelAdmin):
     list_display = ("guardian", "purpose", "granted", "version", "granted_at", "revoked_at")
     list_filter = ("purpose", "granted", "branch")
     search_fields = ("guardian__phone", "guardian__full_name")
+
+
+@admin.register(AcademicYear)
+class AcademicYearAdmin(admin.ModelAdmin):
+    list_display = ("name", "start_date", "end_date", "is_current", "branch")
+    list_filter = ("branch", "is_current")
+    # Required by the autocomplete_fields on people's Enrollment admin.
+    search_fields = ("name",)
+
+
+@admin.register(Classroom)
+class ClassroomAdmin(admin.ModelAdmin):
+    list_display = ("name", "capacity", "is_active", "branch")
+    list_filter = ("branch", "is_active")
+    search_fields = ("name",)

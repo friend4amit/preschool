@@ -208,3 +208,58 @@ class Consent(BranchScopedModel):
     def revoke(self) -> None:
         self.granted = False
         self.revoked_at = timezone.now()
+
+
+class AcademicYear(BranchScopedModel):
+    """A school year — "2026-27". Phase 2.
+
+    Lives in core rather than people because it belongs to the organisation: it
+    exists before any child is enrolled, and it still exists when none are. The
+    same reasoning puts Classroom here and Enrollment in apps/people.
+    """
+
+    name = models.CharField(max_length=20)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    # Explicit rather than derived from today's date: a school is mid-admissions
+    # for next year while this year is still running, and "current" is a decision
+    # the office makes, not a calendar fact.
+    is_current = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-start_date"]
+        constraints = [
+            models.UniqueConstraint(fields=["branch", "name"], name="uniq_year_name_per_branch"),
+            models.CheckConstraint(
+                condition=models.Q(end_date__gt=models.F("start_date")),
+                name="year_ends_after_it_starts",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class Classroom(BranchScopedModel):
+    """A room and the group in it — "Nursery A".
+
+    Deliberately not tied to an academic year: the room outlives the cohort. What
+    changes yearly is who is enrolled in it, which is what Enrollment records.
+    """
+
+    name = models.CharField(max_length=100)
+    capacity = models.PositiveSmallIntegerField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["branch", "name"], name="uniq_classroom_name_per_branch"
+            )
+        ]
+
+    def __str__(self) -> str:
+        return self.name
