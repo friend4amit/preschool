@@ -12,7 +12,8 @@ typed again.
 from django.db import transaction
 from django.utils import timezone
 
-from apps.core.models import AcademicYear, Branch, Classroom, User
+from apps.core import services as core_services
+from apps.core.models import AcademicYear, Branch, Classroom, Consent, Role, User
 from apps.people.models import (
     AuthorizedPickup,
     Document,
@@ -169,7 +170,12 @@ def admit_student(
 
     Takes the enquiry's *values*, not the enquiry. Marking it converted belongs to
     `apps.website`, which owns that model, and this layer does not reach sideways
-    into another app's status field. The conversion view calls both.
+    into another app's status field — `website.services.convert_enquiry` composes
+    the two inside one transaction.
+
+    Deliberately does not create a login or ask for consent. `admit_family` wraps
+    this and does both; this one stays available for the back-office case of
+    recording a child whose paperwork is still in progress.
     """
     first, _, last = child_name.strip().partition(" ")
     student = create_student(
@@ -208,3 +214,169 @@ def attach_document(
         uploaded_by=uploaded_by,
         expires_on=expires_on,
     )
+
+
+@transaction.atomic
+def create_portal_account(*, guardian: Guardian, role: str = Role.PARENT) -> User:
+    """Give a guardian a login, using the phone number already on their record.
+
+    Separate from `create_guardian` because the two are genuinely separate events: a
+    guardian exists from the moment the office writes them down, and an account
+    exists from the moment somebody hands over a link. Most guardians spend a while
+    in between, and a nullable `Guardian.user` is what records that honestly.
+    """
+    user = core_services.create_account(
+        phone=guardian.phone,
+        full_name=guardian.full_name,
+        email=guardian.email,
+        branch=guardian.branch,
+        role=role,
+    )
+    if guardian.user_id != user.pk:
+        guardian.user = user
+        guardian.save(update_fields=["user"])
+    return user
+
+
+@transaction.atomic
+def record_consents(
+    *, guardian: Guardian, answers: dict[str, bool], recorded_by: User | None = None
+) -> list[Consent]:
+    """Write a guardian's answers to the consent questions.
+
+    Requires an account, because `Consent.guardian` is a `User` — consent is given by
+    a person who can later revoke it, and revoking needs somewhere to sign in. That is
+    why admission creates the account at the same desk rather than later.
+
+    Only the purposes actually asked about are written. An absent row is a "no", so
+    silence and refusal record identically, which is the DPDP default we want.
+    """
+    if guardian.user_id is None:
+        raise ValueError("Consent is recorded against an account. Create one first.")
+    return [
+        core_services.record_consent(
+            guardian=guardian.user,
+            branch=guardian.branch,
+            purpose=purpose,
+            granted=granted,
+            recorded_by=recorded_by,
+        )
+        for purpose, granted in answers.items()
+    ]
+
+
+@transaction.atomic
+def admit_family(
+    *,
+    branch: Branch,
+    child_name: str,
+    date_of_birth,
+    guardian_name: str,
+    guardian_phone: str,
+    relationship: str = Relationship.MOTHER,
+    classroom: Classroom | None = None,
+    academic_year: AcademicYear | None = None,
+    consents: dict[str, bool] | None = None,
+    open_portal_account: bool = True,
+    recorded_by: User | None = None,
+    **student_fields,
+) -> Student:
+    """One admission, end to end: child, guardian, login, consent, enrolment.
+
+    All of it in one transaction on purpose. A half-admitted family — a student row
+    with no guardian, or a consent answer against an account that failed to save — is
+    worse than no row at all, because the office cannot see that it is broken.
+
+    `open_portal_account` exists for the family who decline one. They still get a
+    student record; they just cannot be asked for consent, which is why the two
+    switches are wired together rather than independent.
+    """
+    student = admit_student(
+        branch=branch,
+        child_name=child_name,
+        date_of_birth=date_of_birth,
+        guardian_name=guardian_name,
+        guardian_phone=guardian_phone,
+        relationship=relationship,
+        classroom=classroom,
+        academic_year=academic_year,
+        **student_fields,
+    )
+    guardian = student.guardian_links.get(is_primary=True).guardian
+
+    if open_portal_account:
+        create_portal_account(guardian=guardian)
+        if consents:
+            record_consents(guardian=guardian, answers=consents, recorded_by=recorded_by)
+
+    return student
+
+
+@transaction.atomic
+def update_student(*, student: Student, **fields) -> Student:
+    """Field-by-field so the caller cannot set `branch` by posting one.
+
+    A student does not change branch through an edit form, and the day there are two
+    branches, accepting one from a POST is how a child ends up in the wrong school.
+    """
+    editable = {k: v for k, v in fields.items() if k not in {"branch", "id", "pk"}}
+    for name, value in editable.items():
+        setattr(student, name, value.strip() if isinstance(value, str) else value)
+    student.save()
+    return student
+
+
+@transaction.atomic
+def update_guardian(*, guardian: Guardian, **fields) -> Guardian:
+    """`user` is excluded for the same reason `branch` is on students: an account is
+    attached by `create_portal_account`, deliberately, not by editing a contact."""
+    editable = {k: v for k, v in fields.items() if k not in {"branch", "user", "id", "pk"}}
+    for name, value in editable.items():
+        setattr(guardian, name, value.strip() if isinstance(value, str) else value)
+    guardian.save()
+    return guardian
+
+
+@transaction.atomic
+def add_guardian_to_student(
+    *,
+    student: Student,
+    full_name: str,
+    phone: str,
+    relationship: str,
+    is_primary: bool = False,
+    **fields,
+) -> StudentGuardian:
+    """Create a guardian and attach them in one step, in the child's branch.
+
+    Goes through `create_guardian`, so typing in a mother who already exists on a
+    sibling's record links the existing row instead of splitting the family in two.
+    """
+    guardian = create_guardian(branch=student.branch, full_name=full_name, phone=phone, **fields)
+    return link_guardian(
+        student=student, guardian=guardian, relationship=relationship, is_primary=is_primary
+    )
+
+
+@transaction.atomic
+def update_staff_profile(*, staff: Staff, **fields) -> Staff:
+    editable = {k: v for k, v in fields.items() if k not in {"branch", "user", "id", "pk"}}
+    for name, value in editable.items():
+        setattr(staff, name, value.strip() if isinstance(value, str) else value)
+    staff.save()
+    return staff
+
+
+@transaction.atomic
+def onboard_staff(
+    *, branch: Branch, phone: str, full_name: str, role: str, email: str = "", **fields
+) -> Staff:
+    """A teacher's account and profile in one call.
+
+    The same `User` a parent gets — one account system, one login form, one
+    set-password link. What differs is the BranchMembership role.
+    """
+    user = core_services.create_account(
+        phone=phone, full_name=full_name, email=email, branch=branch, role=role
+    )
+    return create_staff_profile(branch=branch, user=user, **fields)

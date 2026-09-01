@@ -1,0 +1,49 @@
+{% extends "layouts/staff.html" %}
+
+{% block title %}Enquiries — Aaroham{% endblock %}
+
+{% block staff_content %}
+  <h1 class="font-display text-2xl font-semibold text-ink">Enquiries</h1>
+  <p class="mt-1 text-sm text-muted">
+    The front of the admissions funnel. Admitted and lost enquiries drop off this list.
+  </p>
+
+  {% if enquiries %}
+    <ul class="mt-5 divide-y divide-line overflow-hidden rounded-card border border-line bg-raised">
+      {% for enquiry in enquiries %}
+        <li class="px-4 py-3">
+          <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <span>
+              <span class="font-medium text-ink">{{ enquiry.guardian_name }}</span>
+              <span class="text-sm text-muted"> · {{ enquiry.phone }}</span>
+            </span>
+            <span class="text-2xs uppercase tracking-widest text-muted">
+              {{ enquiry.get_status_display }} · {{ enquiry.created_at|date:"j M Y" }}
+            </span>
+          </div>
+
+          {% if enquiry.child_name or enquiry.program %}
+            <p class="mt-1 text-sm text-muted">
+              {{ enquiry.child_name }}{% if enquiry.program %} · {{ enquiry.program.name }}{% endif %}
+            </p>
+          {% endif %}
+
+          {% if enquiry.message %}
+            <p class="mt-1 text-sm text-muted">{{ enquiry.message|truncatewords:30 }}</p>
+          {% endif %}
+
+          <p class="mt-2">
+            <a href="{% url 'enquiry_convert' enquiry.pk %}"
+               class="text-sm font-medium text-clay hover:text-clay-deep">
+              Admit this family &rarr;
+            </a>
+          </p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="mt-5 rounded-card border border-dashed border-line px-4 py-8 text-center text-sm text-muted">
+      Nothing waiting. New enquiries from the contact form land here.
+    </p>
+  {% endif %}
+{% endblock %}

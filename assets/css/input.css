@@ -134,6 +134,10 @@
   .prose-form input[type="email"],
   .prose-form input[type="tel"],
   .prose-form input[type="date"],
+  .prose-form input[type="password"],
+  .prose-form input[type="search"],
+  .prose-form input[type="number"],
+  .prose-form input[type="file"],
   .prose-form select,
   .prose-form textarea {
     margin-top: --spacing(1.5);
@@ -155,6 +159,16 @@
     outline: 2px solid var(--color-clay);
     outline-offset: 2px;
     border-color: var(--color-clay);
+  }
+
+  /* Checkboxes opt out of the block above: they are laid out beside their label by
+     the field partial, and a full-width 3rem-tall checkbox is not a checkbox. */
+  .prose-form input[type="checkbox"] {
+    margin-top: --spacing(1);
+    height: 1.15rem;
+    width: 1.15rem;
+    flex-shrink: 0;
+    accent-color: var(--color-clay);
   }
 
   .prose-form ::placeholder {

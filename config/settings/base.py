@@ -95,7 +95,13 @@ SESSION_COOKIE_AGE = 60 * 60 * 24 * 30
 SESSION_SAVE_EVERY_REQUEST = True
 
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "/"
+# Staff and parents share one login form and belong in different consoles, so the
+# redirect target is a view that asks which. See apps/core/views.py.
+LOGIN_REDIRECT_URL = "after_login"
+
+# Set-password links are handed over in person or over the school's WhatsApp group,
+# not emailed, so they need to survive a weekend. Django's default is 3 days.
+PASSWORD_RESET_TIMEOUT = 60 * 60 * 24 * 7
 
 # Cloudflare Turnstile. Cloudflare publishes always-passing test keys for dev.
 TURNSTILE_SITE_KEY = env("TURNSTILE_SITE_KEY", default="")

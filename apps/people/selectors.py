@@ -13,8 +13,8 @@ The view layer turns an empty result into a 404, never a 403 — see
 from django.db.models import Prefetch, QuerySet
 from django.utils import timezone
 
-from apps.core.models import Branch, Role, User
-from apps.core.selectors import branches_for_user
+from apps.core.models import Branch, User
+from apps.core.selectors import STAFF_ROLES, branches_for_user
 from apps.people.models import (
     AuthorizedPickup,
     Document,
@@ -25,8 +25,6 @@ from apps.people.models import (
     Student,
     StudentGuardian,
 )
-
-STAFF_ROLES = [Role.BRANCH_ADMIN, Role.TEACHER, Role.ACCOUNTANT]
 
 
 def students_for_user(user: User) -> QuerySet[Student]:
@@ -179,3 +177,33 @@ def staff_for_user(user: User) -> QuerySet[Staff]:
         return Staff.objects.filter(branch__in=branches_for_user(user)).select_related("user")
     # A parent has no business reading the staff list.
     return Staff.objects.none()
+
+
+def guardian_detail_for_user(user: User, guardian_id: int) -> Guardian | None:
+    return guardians_for_user(user).select_related("user", "branch").filter(pk=guardian_id).first()
+
+
+def staff_detail_for_user(user: User, staff_id: int) -> Staff | None:
+    return staff_for_user(user).select_related("user", "branch").filter(pk=staff_id).first()
+
+
+def enrollment_history(student: Student) -> QuerySet[Enrollment]:
+    """Every room the child has been in, newest first. Open rows sort to the top
+    because "where is this child now" is the question being asked nine times in ten."""
+    return (
+        Enrollment.objects.filter(student=student)
+        .select_related("classroom", "academic_year")
+        .order_by("-joined_on", "-pk")
+    )
+
+
+def unlinked_guardians_for(student: Student, *, user: User) -> QuerySet[Guardian]:
+    """Guardians in scope who are not already attached to this child — the choices
+    for "link an existing guardian", which is how a sibling reaches their mother."""
+    return guardians_for_user(user).exclude(student_links__student=student).order_by("full_name")
+
+
+def children_of_guardian(guardian: Guardian) -> QuerySet[Student]:
+    """Every child on this guardian's record — the sibling view, and the reason
+    `create_guardian` matches on phone rather than creating a second row."""
+    return Student.objects.filter(guardian_links__guardian=guardian).distinct()

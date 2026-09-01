@@ -1,0 +1,24 @@
+{% extends "layouts/staff.html" %}
+
+{% block title %}{{ member.user.full_name|default:member.user.phone }} — Aaroham{% endblock %}
+
+{% block staff_content %}
+  <p class="text-2xs uppercase tracking-widest text-muted">
+    <a href="{% url 'staff_list' %}" class="hover:text-ink">Staff</a>
+  </p>
+
+  <h1 class="mt-1 font-display text-2xl font-semibold text-ink">
+    {{ member.user.full_name|default:member.user.phone }}
+  </h1>
+  <p class="mt-1 text-sm text-muted">
+    {{ member.user.phone }}
+    {% if member.designation %} · {{ member.designation }}{% endif %}
+    {% if not member.is_current %} · no longer working here{% endif %}
+  </p>
+
+  <form method="post" class="prose-form mt-6 max-w-xl space-y-4">
+    {% csrf_token %}
+    {% include "partials/form_fields.html" with form=form %}
+    <button type="submit" class="rounded-xl bg-clay px-5 py-3 font-medium text-on-clay hover:bg-clay-deep">Save</button>
+  </form>
+{% endblock %}

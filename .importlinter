@@ -14,11 +14,9 @@ type = layers
 containers =
     apps.core
     apps.people
-# Parenthesised layers are optional — the contract holds for the ones that exist.
-# apps.people has no views yet: its screens arrive later in Phase 2, and an empty
-# views.py written only to satisfy a linter is dead code pretending to be structure.
+    apps.website
 layers =
-    (views)
+    views
     services
     selectors
     models

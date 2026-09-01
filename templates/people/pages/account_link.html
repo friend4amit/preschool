@@ -1,0 +1,26 @@
+{% extends "layouts/staff.html" %}
+
+{% block title %}Hand over this link — Aaroham{% endblock %}
+
+{% block staff_content %}
+  <h1 class="font-display text-2xl font-semibold text-ink">Account created</h1>
+  <p class="mt-1 text-sm text-muted">
+    For {{ account.full_name|default:account.phone }} ({{ account.phone }}).
+  </p>
+
+  {% comment %} Shown once and never stored. The link is a credential: it works one time,
+     it expires in a week, and there is no email address to re-send it to — that is the
+     trade that lets the whole system work with no SMS vendor and no DLT registration. {% endcomment %}
+  <div class="mt-5 max-w-xl rounded-card border border-line bg-raised p-4">
+    <p class="text-sm font-medium text-ink">Send this link to them now</p>
+    <p class="mt-2 break-all rounded-xl bg-sunken px-3 py-3 font-mono text-xs text-ink">{{ link }}</p>
+    <p class="mt-3 text-2xs text-muted">
+      It works once, and it expires in a week. This page is the only place it appears —
+      if it is lost, create a new one from the guardian's record.
+    </p>
+  </div>
+
+  <p class="mt-5">
+    <a href="{% url 'student_list' %}" class="text-sm font-medium text-clay hover:text-clay-deep">Back to students</a>
+  </p>
+{% endblock %}

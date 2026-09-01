@@ -1,0 +1,49 @@
+{% extends "layouts/staff.html" %}
+
+{% block title %}Students — Aaroham{% endblock %}
+
+{% block staff_content %}
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h1 class="font-display text-2xl font-semibold text-ink">Students</h1>
+    <a href="{% url 'student_new' %}"
+       class="rounded-xl bg-clay px-4 py-2.5 text-sm font-medium text-on-clay hover:bg-clay-deep">
+      Admit a student
+    </a>
+  </div>
+
+  {% comment %} A real GET form first, htmx second. The hx-* attributes below only
+     upgrade what already works: with JavaScript off the submit button posts the same
+     query string to the same URL and the whole page re-renders. That is the
+     progressive-enhancement check in docs/plan.md, and it is why the search input
+     lives in a <form> rather than being wired up in script. {% endcomment %}
+  <form method="get" action="{% url 'student_list' %}"
+        hx-get="{% url 'student_list' %}"
+        hx-trigger="submit, input delay:300ms, change"
+        hx-target="#student-rows"
+        hx-swap="outerHTML"
+        hx-push-url="true"
+        hx-indicator="#searching"
+        class="prose-form mt-5 grid gap-3 md:grid-cols-[2fr_1fr_1fr_auto] md:items-end">
+    {% for field in form %}
+      <div>
+        <label for="{{ field.id_for_label }}" class="text-sm font-medium text-ink">{{ field.label }}</label>
+        {{ field }}
+      </div>
+    {% endfor %}
+
+    {% comment %} Visible without htmx, hidden once htmx is driving the same form. {% endcomment %}
+    <noscript>
+      <button type="submit" class="rounded-xl bg-clay px-4 py-3 font-medium text-on-clay">Search</button>
+    </noscript>
+    <button type="submit"
+            class="hidden rounded-xl border border-line bg-raised px-4 py-3 text-sm font-medium text-ink md:block">
+      Search
+    </button>
+  </form>
+
+  <p id="searching" class="mt-2 text-2xs text-muted opacity-0 transition-opacity [&.htmx-request]:opacity-100">
+    Searching…
+  </p>
+
+  {% include "people/partials/student_rows.html" %}
+{% endblock %}
