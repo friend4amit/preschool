@@ -24,6 +24,7 @@ from apps.core.models import Role
 from apps.people import forms, selectors, services
 from apps.website import selectors as website_selectors
 from apps.website import services as website_services
+from apps.website.models import EnquiryStatus
 
 # A parent who reaches a staff URL is sent to the login page rather than shown a
 # 403 — same reasoning as the 404s below: say as little as possible.
@@ -103,7 +104,14 @@ def student_edit(request: HttpRequest, student_id: int) -> HttpResponse:
 @staff_required
 def student_new(request: HttpRequest) -> HttpResponse:
     """A walk-in admission — the same screen as the enquiry conversion, without an
-    enquiry behind it. Families do turn up at the gate."""
+    enquiry behind it. Families do turn up at the gate.
+
+    No double-submit guard here, unlike the conversion: there is no enquiry to have
+    already been converted, and nothing else identifies "the same child" — two
+    siblings can share a name in the same family. The redirect-after-POST covers the
+    accidental refresh; a determined double-click makes two records, and the office
+    deletes one. Inventing a uniqueness rule for children's names would be worse.
+    """
     branch = core_selectors.branches_for_user(request.user).first()
     if branch is None:
         raise Http404("No branch.")
@@ -209,6 +217,17 @@ def enquiry_convert(request: HttpRequest, enquiry_id: int) -> HttpResponse:
     enquiry = website_selectors.enquiry_detail_for_user(request.user, enquiry_id)
     if enquiry is None:
         raise Http404("No such enquiry.")
+
+    # An already-converted enquiry is refused rather than converted again. Two POSTs
+    # to this URL is not a hypothetical: a double-click, a back-then-resubmit, or the
+    # office working the queue in two tabs. The guardian would be reused, because
+    # create_guardian matches on phone — but the child would not, and a duplicate
+    # student with its own enrolment is silent until somebody notices two of the
+    # same name on a register.
+    if enquiry.status == EnquiryStatus.ADMITTED:
+        messages.info(request, f"{enquiry.guardian_name}'s family has already been admitted.")
+        return redirect("enquiry_list")
+
     return _render_admission(request, branch=enquiry.branch, enquiry=enquiry)
 
 

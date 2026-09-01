@@ -542,3 +542,35 @@ def test_a_guardians_children_are_listed_on_their_record(teacher, family, branch
 def test_a_parent_cannot_edit_a_guardian_record(parent, family):
     _, guardian = family
     assert parent.get(reverse("guardian_edit", args=[guardian.pk])).status_code == 302
+
+
+def test_converting_the_same_enquiry_twice_does_not_admit_two_children(teacher, branch):
+    """A double-click, a back-then-resubmit, or the queue open in two tabs. The
+    guardian would be reused — create_guardian matches on phone — but the child
+    would not, and a duplicate student is silent until two of the same name turn up
+    on a register."""
+    from apps.website.models import EnquiryStatus
+    from apps.website.services import create_enquiry
+
+    enquiry = create_enquiry(branch=branch, guardian_name="Priya Sharma", phone="9876543210")
+    url = reverse("enquiry_convert", args=[enquiry.pk])
+
+    teacher.post(url, admission_payload())
+    second = teacher.post(url, admission_payload())
+
+    assert Student.objects.filter(first_name="Aarav").count() == 1
+    assert second.status_code == 302
+    assert second.url == reverse("enquiry_list")
+
+    enquiry.refresh_from_db()
+    assert enquiry.status == EnquiryStatus.ADMITTED
+
+
+def test_an_admitted_enquiry_no_longer_offers_the_admit_link(teacher, branch):
+    from apps.website.services import create_enquiry
+
+    enquiry = create_enquiry(branch=branch, guardian_name="Priya Sharma", phone="9876543210")
+    teacher.post(reverse("enquiry_convert", args=[enquiry.pk]), admission_payload())
+
+    listing = teacher.get(reverse("enquiry_list"))
+    assert b"Nothing waiting" in listing.content

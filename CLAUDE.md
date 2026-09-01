@@ -162,3 +162,11 @@ These cost hours now and weeks later. They are decided; don't relitigate them in
 - **R2 is unconfigured on this machine**, so `backup_database` refuses. That is the
   intended behaviour, not a bug: a backup that silently no-ops is worse than one that
   fails. `./scripts/backup-local.sh` covers the local case.
+- **The Phase 2 screens have never been seen below ~1218px.** Chrome on Windows will
+  not size a window narrower than that, so the phone layout is written but unverified —
+  the plan's "renders at 390px" check is outstanding. The one to look at first is the
+  student list: its filter bar is `md:grid-cols-[2fr_1fr_1fr_auto]`, so on a phone it
+  stacks into four full-width rows before the first student appears, and that may want
+  collapsing behind a summary. Check it on a real cheap Android over mobile data rather
+  than in a device emulator — `plan.md` is right that emulated viewports hide
+  touch-target size, font scaling and slow-network behaviour.
