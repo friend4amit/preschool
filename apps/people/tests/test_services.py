@@ -140,7 +140,6 @@ def test_an_enquiry_becomes_an_enrolled_student_without_retyping_anything(branch
         guardian_phone=enquiry.phone,
         classroom=classroom,
         academic_year=year,
-        enquiry=enquiry,
     )
 
     assert student.first_name == "Aarav"

@@ -162,16 +162,14 @@ def admit_student(
     relationship: str = Relationship.MOTHER,
     classroom: Classroom | None = None,
     academic_year: AcademicYear | None = None,
-    enquiry=None,
     **student_fields,
 ) -> Student:
     """Enquiry to enrolled student in one call — the join between the two halves of
     the product.
 
-    Takes the enquiry as an object rather than an id so the service stays free of
-    lookups it cannot scope; the caller has already decided this enquiry is theirs.
-    Marking it converted is the caller's job too, because `apps.website` owns that
-    model and this layer does not reach sideways into another app's status field.
+    Takes the enquiry's *values*, not the enquiry. Marking it converted belongs to
+    `apps.website`, which owns that model, and this layer does not reach sideways
+    into another app's status field. The conversion view calls both.
     """
     first, _, last = child_name.strip().partition(" ")
     student = create_student(
