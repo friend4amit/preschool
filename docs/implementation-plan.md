@@ -33,6 +33,7 @@ Each phase ends in something **deployed and usable by a real person**, not a bra
 |---|---|---|---|
 | 0 | [Foundations](#phase-0--foundations) | 4–5 | Nobody (but it's live) |
 | 1 | [Public website](#phase-1--public-website) | 7–9 | Prospective parents |
+| 1-a | [Container start/stop scripts](#phase-1-a--container-startstop-scripts) | 0.5–1 | The developer (not in the total) |
 | 2 | [People & enrolment](#phase-2--people--enrolment) | 10–12 | Office staff |
 | 3 | [Attendance](#phase-3--attendance) | 6–7 | Teachers |
 | 4 | [Daily activities & photos](#phase-4--daily-activities--photos) | 12–14 | **Parents** |
@@ -145,6 +146,85 @@ It does not make the content section easy, though, and it's worth being clear wh
 **Media — the one place ownership isn't the whole answer.** Room photos, materials, and staff portraits from the Udgam uploads can be reused freely; they're yours and nobody's consent is engaged.
 
 **Photographs of children are different.** Owning the file and having consent to publish it are separate questions, and under the DPDP Act consent is bound to the purpose it was given for — a parent agreeing to photos on Udgam's site didn't agree to a different school's marketing. So: for children still enrolled, re-ask under Aaroham's `photos_in_marketing` consent, which the Phase 2 flow captures anyway. For children who have left, don't publish the photograph — the parent isn't reachable and the consent can't be refreshed. In practice a preschool marketing site needs far fewer child photos than people expect, and rooms, materials, and hands-at-work carry most of it.
+
+---
+
+## Phase 1-a — Container start/stop scripts
+
+**0.5–1 day · Goal: starting and stopping the stack is one command that cannot be got wrong.**
+
+Not a product phase and not counted in the phase totals above — a half-day of tooling
+that pays for itself in Phase 2, the first phase that starts and stops the stack many
+times a day: new models, repeated migrations, and a restore rehearsal.
+
+### Why now
+
+| Today | What it costs |
+|---|---|
+| `docker compose --env-file .env -f deploy/docker-compose.prod.yml up -d --build` | `--env-file` is **required**, and omitting it produces a broken `DATABASE_URL`. CLAUDE.md guards this with a paragraph of prose — prose does not run. |
+| `docker run -d --name aaroham-pg …` copied out of CLAUDE.md | Retyped from the docs before every host-run `pytest` whenever the container has been pruned. Already cost a two-minute test timeout once. |
+| Docker Desktop not running | Each command fails differently, and none of them says "start Docker". |
+
+### There are three container situations, not one
+
+This is the fact the scripts have to encode, and the reason a single "start everything"
+script would be wrong:
+
+| Target | Command today | Publishes | Postgres reachable from the host? |
+|---|---|---|---|
+| **dev** | `docker compose up` (project `aaroham`) | 8000, `${POSTGRES_HOST_PORT:-5432}` | Yes |
+| **prod** | `--env-file .env -f deploy/docker-compose.prod.yml` (project `aaroham-prod`) | 80, 443, 443/udp | **No — deliberately** |
+| **testdb** | `docker run --name aaroham-pg -p 5432:5432` | 5432 | Yes |
+
+**dev and testdb collide on 5432.** prod and testdb do not — which is exactly why
+`aaroham-pg` exists: the prod stack's database is unpublished by design, so host-run
+`pytest` has nothing to connect to. The escape hatch is already in `docker-compose.yml`
+as `POSTGRES_HOST_PORT`; the scripts use it rather than inventing anything.
+
+### The hard rule: `stop` never destroys a volume
+
+`docker compose down -v` on the prod stack destroys `postgres_data` **and**
+`caddy_data` — and losing `caddy_data` means re-issuing certificates and burning
+Let's Encrypt rate limit. Therefore:
+
+- `stop` defaults to `docker compose stop` — containers halt, volumes and data untouched.
+- `--down` removes containers and networks. Volumes survive.
+- `--destroy` removes volumes, and **only** after a typed confirmation naming the
+  target. Never reachable as a silent combination of flags.
+
+### Deliverables
+
+- **`scripts/start.sh`** and **`scripts/stop.sh`**, POSIX `sh`, taking a target:
+  `dev` (default) | `prod` | `testdb`. One implementation, not two — `sh` runs in Git
+  Bash on the Windows dev machine and natively on the VPS; a PowerShell twin would
+  drift within a month.
+- **Preflight in both**, cheap and worth it: Docker daemon reachable (`docker info`),
+  `.env` present, target port free — with the fix named in the error, not just the fault.
+- **`--env-file .env` baked into the prod path**, so the one flag that must never be
+  forgotten cannot be.
+- **`.gitattributes`** forcing LF on `scripts/*.sh`. A CRLF checkout gives
+  `bad interpreter: /bin/sh^M` on the server — silent on Windows, fatal on Linux.
+- **The exec bit committed**, via `git update-index --chmod=+x`; `chmod` alone does not
+  survive a Windows checkout.
+- **Docs follow through**: the CLAUDE.md commands block and the README quick start point
+  at the scripts, with the raw `docker compose` lines kept underneath. The scripts are
+  the convenience; the commands stay the documentation.
+
+### Done when
+
+- `./scripts/start.sh dev` on a machine with Docker stopped prints what to do about it,
+  and on a running one brings up a migrated stack.
+- `./scripts/start.sh prod` produces a working `DATABASE_URL` with no `--env-file` typed
+  by hand.
+- `./scripts/start.sh testdb` followed by `uv run pytest` passes with no other setup.
+- `./scripts/stop.sh prod` leaves `postgres_data` and `caddy_data` intact — proven by
+  starting it again and finding the data still there.
+- Both scripts run unmodified in Git Bash on Windows and on a Linux host.
+
+### Not in scope
+
+No Makefile, no `just`, no task runner, no new dependency. Two shell scripts and a
+`.gitattributes` line.
 
 ---
 
