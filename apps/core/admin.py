@@ -1,4 +1,5 @@
 from django.contrib import admin
+from simple_history.admin import SimpleHistoryAdmin
 
 from apps.core.models import (
     AcademicYear,
@@ -36,7 +37,7 @@ class BranchAdmin(admin.ModelAdmin):
 
 
 @admin.register(Consent)
-class ConsentAdmin(admin.ModelAdmin):
+class ConsentAdmin(SimpleHistoryAdmin):
     list_display = ("guardian", "purpose", "granted", "version", "granted_at", "revoked_at")
     list_filter = ("purpose", "granted", "branch")
     search_fields = ("guardian__phone", "guardian__full_name")

@@ -17,6 +17,7 @@ which have a request.
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils import timezone
+from simple_history.models import HistoricalRecords
 
 
 class UserManager(BaseUserManager):
@@ -189,6 +190,11 @@ class Consent(BranchScopedModel):
         User, on_delete=models.PROTECT, related_name="consents_recorded", null=True, blank=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # Versioning the row records *what* the current answer is. The history records
+    # every answer that was ever given and when — which is what a consent record has
+    # to be able to show, under the DPDP Act and to a parent who asks.
+    history = HistoricalRecords()
 
     class Meta:
         constraints = [

@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     "django.contrib.sitemaps",
     "django_tasks",
     "django_tasks_db",
+    "simple_history",
     "apps.core",
     "apps.people",
     "apps.website",
@@ -41,6 +42,12 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Stamps the acting user onto history rows. This is a thread-local, and the
+    # non-negotiable in docs/plan.md bans thread-locals for *scoping* — for the
+    # good reason that migrations, loaddata, shell sessions and background tasks
+    # have no request and would silently see nothing. Attribution fails safe the
+    # other way: no request means history_user is null, which is honest.
+    "simple_history.middleware.HistoryRequestMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"

@@ -15,6 +15,7 @@ dependencies = [
     "sentry-sdk[django]>=2.20",
     "requests>=2.34.2",
     "pillow>=12.3.0",
+    "django-simple-history>=3.7",
 ]
 
 [dependency-groups]

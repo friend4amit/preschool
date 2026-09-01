@@ -41,23 +41,24 @@ def record_consent(
     and when, has to survive being changed. Revoking stamps revoked_at so the record
     shows a withdrawal rather than an absence.
     """
-    consent, created = Consent.objects.select_for_update().get_or_create(
-        guardian=guardian,
-        branch=branch,
-        purpose=purpose,
-        defaults={"granted": granted, "recorded_by": recorded_by},
-    )
-    if not created:
-        consent.version += 1
-        consent.granted = granted
-        consent.recorded_by = recorded_by
+    consent = (
+        Consent.objects.select_for_update()
+        .filter(guardian=guardian, branch=branch, purpose=purpose)
+        .first()
+    ) or Consent(guardian=guardian, branch=branch, purpose=purpose, version=0)
 
+    consent.version += 1
+    consent.granted = granted
+    consent.recorded_by = recorded_by
     if granted:
         consent.granted_at = timezone.now()
         consent.revoked_at = None
     else:
         consent.revoked_at = timezone.now()
 
+    # Exactly one save, so exactly one history row per answer. get_or_create with a
+    # follow-up save would write two on the first answer and leave the audit trail
+    # showing a change nobody made.
     consent.save()
     return consent
 

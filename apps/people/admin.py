@@ -6,6 +6,7 @@ screens later in this phase; this is here so the owner can fix data at 9pm.
 """
 
 from django.contrib import admin
+from simple_history.admin import SimpleHistoryAdmin
 
 from apps.people.models import (
     AuthorizedPickup,
@@ -37,7 +38,7 @@ class EnrollmentInline(admin.TabularInline):
 
 
 @admin.register(Student)
-class StudentAdmin(admin.ModelAdmin):
+class StudentAdmin(SimpleHistoryAdmin):
     list_display = ("display_name", "date_of_birth", "status", "has_medical_flags", "branch")
     list_filter = ("status", "branch")
     search_fields = ("first_name", "last_name", "preferred_name", "admission_number")

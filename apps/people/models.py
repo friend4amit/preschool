@@ -23,6 +23,7 @@ themselves — `for_user()` in selectors.py does that, explicitly, at each call 
 
 from django.db import models
 from django.utils import timezone
+from simple_history.models import HistoricalRecords
 
 from apps.core.models import AcademicYear, BranchScopedModel, Classroom, User
 
@@ -75,6 +76,12 @@ class Student(BranchScopedModel):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    # History on Student and Consent only, not everywhere. These are the two a
+    # parent might one day dispute — "you changed my child's allergy record" and
+    # "I never agreed to that" — and a table of every edit to every model is a
+    # cost with no reader. Payment joins them in Phase 6.
+    history = HistoricalRecords()
 
     class Meta:
         ordering = ["first_name", "last_name"]
