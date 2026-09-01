@@ -18,6 +18,17 @@ uv run pytest                             # tests — needs Postgres on :5432
 uv run ruff check . && uv run ruff format .
 uv run lint-imports                       # layer contract
 
+./scripts/start.sh                        # dev stack: postgres + web + worker
+./scripts/start.sh prod                   # prod stack: caddy + web + worker + postgres
+./scripts/start.sh testdb                 # postgres alone, for host-run pytest
+./scripts/stop.sh [dev|prod|testdb]       # halt. --down removes containers, --destroy volumes
+```
+
+The scripts are the convenience; the commands below are the documentation, and they
+still work. Reach for the scripts because they preflight Docker and `.env`, refuse a
+port collision with an explanation, and cannot forget `--env-file`.
+
+```sh
 docker compose up                         # dev: postgres + web + worker, migrated on boot
 
 # prod — from the REPO ROOT. --env-file is required: without it the ${POSTGRES_*}
@@ -30,12 +41,23 @@ The prod stack **forces** `DJANGO_SETTINGS_MODULE` and the database host in the 
 says `config.settings.dev`, and one forgotten line would otherwise run production with
 `DEBUG=True`. Don't "simplify" that back into `.env`.
 
-Postgres for host-run tests, if you aren't using compose:
+Postgres for host-run tests, if you aren't using compose — `./scripts/start.sh testdb`,
+or by hand:
 
 ```sh
 docker run -d --name aaroham-pg -e POSTGRES_USER=aaroham -e POSTGRES_PASSWORD=aaroham \
-  -e POSTGRES_DB=aaroham -p 5432:5432 postgres:17-alpine
+  -e POSTGRES_DB=aaroham -p 5432:5432 postgres:17-bookworm
 ```
+
+Those hardcoded credentials only work if `.env` still uses them; the script reads the
+real `POSTGRES_*` instead, so the `DATABASE_URL` already in `.env` connects. **The dev
+stack and `aaroham-pg` both want port 5432** and cannot run together — the dev stack's
+own postgres serves host-run tests equally well, so `testdb` is for when you don't want
+the whole stack. `POSTGRES_HOST_PORT` moves the dev stack if you need both.
+
+Scripts are POSIX `sh`, one implementation for Git Bash on Windows and the Linux VPS.
+`.gitattributes` pins them to LF: with `core.autocrlf=true` a CRLF checkout gives
+`bad interpreter: /bin/sh^M` on the server — invisible on Windows, fatal there.
 
 Tailwind is the **standalone CLI** — no Node, no `package.json`, no PostCSS. See
 `assets/README-frontend.md`. `static/css/app.css` is build output, gitignored, and built
