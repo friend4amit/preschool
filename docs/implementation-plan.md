@@ -284,7 +284,19 @@ A preschool system that can't answer *"is this child allergic to peanuts"* or *"
 
 - `Consent` capture as part of admission — per guardian, per purpose, defaulting to **off**.
 - `django-simple-history` on `Student` and `Consent`.
-- Re-rehearse the restore from Phase 1 now that the schema is substantially bigger.
+- ~~Re-rehearse the restore from Phase 1 now that the schema is substantially bigger.~~
+  **The backup itself was built here, not in Phase 1.** Phase 1 listed the nightly
+  `pg_dump` → R2 and shipped without it — R2 media storage was wired, the backup was
+  not. The plan's sequencing was right ("personal data arrives in Phase 1, so backups
+  do too") and the code was a phase behind it, which is worth writing down rather than
+  quietly correcting: Phase 1 ran live with an enquiry form and no backups.
+
+  What exists now: `integrations/postgres.py` and `integrations/storage_r2.py` as
+  vendor wrappers, `apps/core/backups.py` for dump-upload-prune, a
+  `backup_database` management command (cron cannot enqueue a task), and
+  `./scripts/restore.sh`, which restores into a scratch database and counts the rows
+  that come back. The rehearsal is a script rather than an afternoon, so the next
+  phase that grows the schema can re-run it in one command.
 
 ### Done when
 

@@ -119,3 +119,15 @@ ENQUIRY_NOTIFICATION_EMAIL = env("ENQUIRY_NOTIFICATION_EMAIL", default="")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@aaroham.local")
 
 SITE_ID = 1
+
+# --- Backups ------------------------------------------------------------------------
+# Read here rather than only in prod.py so the backup service can be exercised from
+# the dev stack. Without credentials the task refuses loudly instead of no-opping,
+# which is the difference between "no backup" and "a backup you think you have".
+R2_ACCESS_KEY_ID = env("R2_ACCESS_KEY_ID", default="")
+R2_SECRET_ACCESS_KEY = env("R2_SECRET_ACCESS_KEY", default="")
+R2_BUCKET = env("R2_BUCKET", default="")
+R2_ENDPOINT_URL = env("R2_ENDPOINT_URL", default="")
+
+BACKUP_PREFIX = env("BACKUP_PREFIX", default="backups/postgres/")
+BACKUP_RETENTION_DAYS = env.int("BACKUP_RETENTION_DAYS", default=30)

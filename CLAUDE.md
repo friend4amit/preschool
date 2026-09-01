@@ -23,7 +23,22 @@ uv run lint-imports                       # layer contract
 ./scripts/start.sh testdb                 # postgres alone, for host-run pytest
 ./scripts/stop.sh [dev|prod|testdb]       # halt. --down removes containers, --destroy volumes
 ./scripts/test.sh                         # pytest inside the dev image; args pass through
+
+./scripts/backup-local.sh                 # pg_dump to backups/ (gitignored)
+./scripts/restore.sh [DUMP]               # rehearse a restore into a scratch database
+uv run python manage.py backup_database   # the nightly one: pg_dump -> R2, then prune
+uv run python manage.py backup_database --list
 ```
+
+`restore.sh` never touches the live database — it creates `aaroham_restore_check`,
+restores into that, counts what came back, and drops it. Run it after every phase that
+grows the schema. An untested backup is not a backup, and a restore that produces an
+empty schema looks exactly like one that worked.
+
+`backup_database` is a management command rather than only a task because the thing
+that schedules it is cron on the VPS, and cron cannot enqueue. The image carries
+`postgresql-client-17` from PGDG rather than Debian's 15 — `pg_dump` refuses to talk
+to a newer server than itself, so that pin moves with `postgres:17-bookworm`.
 
 `test.sh` exists because `uv run pytest` on the host currently fails on this Windows
 machine — Application Control blocks the SSL DLL psycopg's binary wheel loads, and
@@ -137,4 +152,13 @@ These cost hours now and weeks later. They are decided; don't relitigate them in
 
 - `templates/base.html` loads fonts from Google Fonts. Fine for marketing pages, but it
   is a third-party request logging viewer IPs — self-host the two faces before the parent
-  portal ships in Phase 4.
+  portal ships in Phase 4. The set-password page already sends `referrer: no-referrer`,
+  because its URL is a credential; the rest of the portal does not need to.
+- **`SITE_ID = 1` points at the unconfigured `example.com` Site row**, so `sitemap.xml`
+  advertises the wrong host. One row to edit in `/admin`, before the domain goes live.
+- **The nightly backup has no schedule yet.** `manage.py backup_database` works and the
+  restore is rehearsed, but nothing calls it on a timer — that is a cron entry on the
+  VPS, and it belongs with the deploy rather than in the repo.
+- **R2 is unconfigured on this machine**, so `backup_database` refuses. That is the
+  intended behaviour, not a bug: a backup that silently no-ops is worse than one that
+  fails. `./scripts/backup-local.sh` covers the local case.
