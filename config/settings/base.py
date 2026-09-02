@@ -91,8 +91,23 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+# Two media stores, not one, and the split is the point.
+#
+#   default      — children's photos, pickup photos, student documents. In prod this
+#                  is a PRIVATE R2 bucket served by short-lived presigned URLs after
+#                  a consent check. See config/settings/prod.py.
+#   public_media — the marketing site's photographs. World-readable, cacheable,
+#                  indexable, no expiry. Exactly wrong for a child and exactly right
+#                  for a hero image.
+#
+# Two buckets rather than two prefixes in one, so a misconfiguration cannot make a
+# classroom photo public. Both are local disk here; prod re-points them.
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "public_media": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
 

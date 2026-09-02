@@ -31,6 +31,12 @@ x-app: &app
     # always `postgres`. Taking it from .env would inherit whatever a developer
     # left pointed at localhost and fail to connect on first boot.
     DATABASE_URL: "postgres://${POSTGRES_USER:?see the deploy command in the header comment}:${POSTGRES_PASSWORD:?missing POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:?missing POSTGRES_DB}"
+  volumes:
+    # Uploaded media. Without this, an admin uploading a photo on a stack with R2
+    # unconfigured writes to the container filesystem and loses it on the next
+    # `up -d --build` — which was already true for TeamMember.photo and every
+    # apps/people image field before this line existed.
+    - media_data:/app/media
   depends_on:
     postgres:
       condition: service_healthy
@@ -47,6 +53,8 @@ services:
     env_file: ../.env
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Read-only: Caddy serves media when R2 is unconfigured, never writes it.
+      - media_data:/srv/media:ro
       # Certificates and ACME account state. Losing caddy_data means
       # re-issuing certs and burning Let's Encrypt rate limit.
       - caddy_data:/data
@@ -116,3 +124,4 @@ volumes:
   postgres_data:
   caddy_data:
   caddy_config:
+  media_data:
