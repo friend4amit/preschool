@@ -79,13 +79,13 @@
         </form>
       </section>
 
-      <aside class="space-y-8">
+      <aside class="panel-leaf space-y-8">
         <div>
           <h2 class="font-display text-ink text-lg font-semibold">Visit us</h2>
           {% if site.address %}
-            <p class="text-muted mt-2 text-sm leading-relaxed">{{ site.address|linebreaksbr }}</p>
+            <p class="text-ink/80 mt-2 text-sm leading-relaxed">{{ site.address|linebreaksbr }}</p>
           {% else %}
-            <p class="text-muted mt-2 text-sm">Address coming soon — call or write and we will send directions.</p>
+            <p class="text-ink/80 mt-2 text-sm">Address coming soon — call or write and we will send directions.</p>
           {% endif %}
         </div>
 
