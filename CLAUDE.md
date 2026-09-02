@@ -28,7 +28,17 @@ uv run lint-imports                       # layer contract
 ./scripts/restore.sh [DUMP]               # rehearse a restore into a scratch database
 uv run python manage.py backup_database   # the nightly one: pg_dump -> R2, then prune
 uv run python manage.py backup_database --list
+
+uv run python manage.py seed_media --source <wp-content/uploads>   # marketing photos
+uv run python manage.py seed_media --source <path> --dry-run       # report, write nothing
 ```
+
+`seed_media` converts the Udgam photographs to WebP at a few widths and attaches them
+to `SiteSettings`, `Program` and `GalleryImage`. `--source` is required and has no
+default on purpose: a path that exists on one laptop and not on the VPS is how a
+command silently half-works. It refuses a blocklist — one file is a named person who
+must not appear on this site, the rest carry watermarks or burnt-in text — and
+`apps/website/tests/test_media_blocklist.py` keeps that honest.
 
 `restore.sh` never touches the live database — it creates `aaroham_restore_check`,
 restores into that, counts what came back, and drops it. Run it after every phase that
@@ -150,10 +160,12 @@ These cost hours now and weeks later. They are decided; don't relitigate them in
 
 ## Known follow-ups
 
-- `templates/base.html` loads fonts from Google Fonts. Fine for marketing pages, but it
-  is a third-party request logging viewer IPs — self-host the two faces before the parent
-  portal ships in Phase 4. The set-password page already sends `referrer: no-referrer`,
-  because its URL is a credential; the rest of the portal does not need to.
+- **A public R2 bucket does not exist yet.** `STORAGES["public_media"]` holds the
+  marketing photographs and must be a *separate, public* bucket from the private one
+  children's photos live in. Until `R2_PUBLIC_BUCKET` and `R2_PUBLIC_BASE_URL` are set,
+  prod falls back to local disk and Caddy serves `/media/`. On R2, `custom_domain` is
+  the setting that makes URLs work — `querystring_auth: False` alone yields an unsigned
+  S3-endpoint URL that R2 refuses anonymously.
 - **`SITE_ID = 1` points at the unconfigured `example.com` Site row**, so `sitemap.xml`
   advertises the wrong host. One row to edit in `/admin`, before the domain goes live.
 - **The nightly backup has no schedule yet.** `manage.py backup_database` works and the
