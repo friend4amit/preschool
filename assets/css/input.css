@@ -103,6 +103,13 @@
     font-weight: 600;
   }
 
+  /* The header is sticky, so an anchor jump would otherwise put the target
+     underneath it — including the skip link, which is the one users who need it
+     most rely on. */
+  #main {
+    scroll-margin-top: 5rem;
+  }
+
   /* Keyboard focus stays visible everywhere, in both schemes. */
   :focus-visible {
     outline: 2px solid var(--color-clay);
@@ -360,5 +367,124 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+}
+
+@layer components {
+  /* -------------------------------------------------------------------------
+     Mobile navigation, with no JavaScript.
+
+     <details>/<summary>, because its contents sit in the DOM whether open or
+     closed. Every nav link is therefore in the server-rendered HTML, which is what
+     the every-page-reaches-every-other test checks, and a <summary> has no href to
+     point at "#", which is what the other nav test checks. A scripted drawer fails
+     both — and also fails the parent whose JavaScript has not arrived yet on a slow
+     connection.
+  ------------------------------------------------------------------------- */
+
+  .nav-drawer {
+    position: relative;
+  }
+
+  .nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.75rem;
+    width: 2.75rem;
+    cursor: pointer;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-line);
+    /* Both of these remove the disclosure triangle; browsers disagree on which. */
+    list-style: none;
+  }
+
+  .nav-toggle::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Three bars from one gradient — no SVG, no icon font, no extra request. */
+  .nav-bars,
+  .nav-bars::before,
+  .nav-bars::after {
+    display: block;
+    height: 2px;
+    width: 1.15rem;
+    border-radius: 2px;
+    background-color: var(--color-ink);
+  }
+
+  .nav-bars {
+    position: relative;
+  }
+
+  .nav-bars::before,
+  .nav-bars::after {
+    content: "";
+    position: absolute;
+    left: 0;
+  }
+
+  .nav-bars::before { top: -6px; }
+  .nav-bars::after  { top: 6px; }
+
+  .nav-drawer[open] .nav-toggle {
+    background-color: var(--color-clay-wash);
+  }
+
+  .nav-drawer-list {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    z-index: 50;
+    min-width: 15rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    background-color: var(--color-raised);
+    padding: --spacing(2);
+    box-shadow: 0 12px 32px -12px color-mix(in oklab, var(--color-ink) 35%, transparent);
+  }
+
+  /* -------------------------------------------------------------------------
+     The WhatsApp button.
+
+     52px: comfortably past the 44px touch minimum, on the reasoning that the
+     people tapping this are one-handed on a phone.
+  ------------------------------------------------------------------------- */
+
+  .float-wa {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 45;
+    display: inline-flex;
+    height: 3.25rem;
+    width: 3.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background-color: #25d366;
+    color: #ffffff;
+    box-shadow: 0 8px 24px -6px color-mix(in oklab, #25d366 60%, transparent);
+  }
+
+  .float-wa:hover {
+    background-color: #1ebe5a;
+  }
+
+  .btn-sm {
+    min-height: 2.25rem;
+    padding: --spacing(2) --spacing(4);
+    font-size: 0.875rem;
+  }
+
+  /* Photography does not re-point itself the way a colour token does. Without
+     this, a dark page carries a bright, fully saturated photo band and reads as
+     broken. */
+  @media (prefers-color-scheme: dark) {
+    .media-frame > img,
+    .band-photo img {
+      filter: brightness(0.82) saturate(0.92);
+    }
   }
 }

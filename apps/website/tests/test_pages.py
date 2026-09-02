@@ -209,3 +209,32 @@ def test_every_page_offers_a_way_to_book_a_visit(client, name):
     reaching it should never take more than one tap from anywhere."""
     content = client.get(reverse(name)).content.decode()
     assert content.count(reverse("contact")) >= 1
+
+
+def test_the_whatsapp_button_appears_only_when_a_number_is_set(client, branch, site_settings):
+    assert b"wa.me" not in client.get(reverse("home")).content
+
+    site_settings.whatsapp_number = "919876543210"
+    site_settings.save(update_fields=["whatsapp_number"])
+    assert b"wa.me/919876543210" in client.get(reverse("home")).content
+
+
+def test_the_mobile_menu_is_a_disclosure_not_a_link(client):
+    """A <summary> has no href, so it satisfies the no-`href="#"` rule, and its
+    contents sit in the DOM whether open or closed, so every nav link is still in the
+    server-rendered HTML. A JavaScript drawer would fail both."""
+    content = client.get(reverse("home")).content.decode()
+    assert "<summary" in content
+    assert 'href="#"' not in content
+
+
+def test_the_footer_shows_the_branch_details_when_they_exist(client, site_settings):
+    """The footer used to be three hardcoded lines and read nothing from the
+    database, so the address and phone the office typed into /admin appeared
+    nowhere."""
+    site_settings.address = "12 Rose Lane, Bengaluru"
+    site_settings.save(update_fields=["address"])
+
+    content = client.get(reverse("home")).content.decode()
+    assert "12 Rose Lane, Bengaluru" in content
+    assert "080 1234 5678" in content

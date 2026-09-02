@@ -10,98 +10,100 @@
 {% endblock %}
 
 {% block content %}
-  <h1 class="font-display text-ink text-3xl leading-tight font-semibold text-balance md:text-5xl">
-    Come and see the place
-  </h1>
-  <p class="text-muted mt-5 max-w-prose text-lg">
-    Tell us a little about your child and we will call you back. Visits are unhurried, and
-    there is no obligation.
-  </p>
+  <div class="shell py-12 md:py-16">
+    <h1 class="font-display text-ink text-3xl leading-tight font-semibold text-balance md:text-5xl">
+      Come and see the place
+    </h1>
+    <p class="text-muted mt-5 max-w-prose text-lg">
+      Tell us a little about your child and we will call you back. Visits are unhurried, and
+      there is no obligation.
+    </p>
 
-  {% if just_sent %}
-    <div role="status"
-         class="border-sage bg-sage-wash text-ink mt-8 rounded-2xl border-l-4 p-5">
-      <p class="font-medium">Thank you — we have your enquiry.</p>
-      <p class="text-muted mt-1 text-sm">We will call you shortly. If it is urgent, phoning us is quickest.</p>
-    </div>
-  {% endif %}
+    {% if just_sent %}
+      <div role="status"
+           class="border-sage bg-sage-wash text-ink mt-8 rounded-2xl border-l-4 p-5">
+        <p class="font-medium">Thank you — we have your enquiry.</p>
+        <p class="text-muted mt-1 text-sm">We will call you shortly. If it is urgent, phoning us is quickest.</p>
+      </div>
+    {% endif %}
 
-  <div class="mt-12 grid gap-12 lg:grid-cols-[minmax(0,1fr)_20rem]">
-    <section>
-      <h2 class="font-display text-ink text-2xl font-semibold">Enquire about a place</h2>
+    <div class="mt-12 grid gap-12 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <section>
+        <h2 class="font-display text-ink text-2xl font-semibold">Enquire about a place</h2>
 
-      <form method="post" action="{% url 'contact' %}" class="prose-form mt-6 space-y-5" novalidate>
-        {% csrf_token %}
+        <form method="post" action="{% url 'contact' %}" class="prose-form mt-6 space-y-5" novalidate>
+          {% csrf_token %}
 
-        {% if form.non_field_errors %}
-          <div role="alert" class="border-stop bg-stop-wash text-ink rounded-xl border-l-4 p-4 text-sm">
-            {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+          {% if form.non_field_errors %}
+            <div role="alert" class="border-stop bg-stop-wash text-ink rounded-xl border-l-4 p-4 text-sm">
+              {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
+          {% endif %}
+
+          {% for field in form.visible_fields %}
+            {% if field.name != 'website' %}
+              <div>
+                <label for="{{ field.id_for_label }}" class="text-ink block text-sm font-medium">
+                  {{ field.label }}{% if field.field.required %}<span class="text-clay" aria-hidden="true">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.help_text %}<p class="text-muted mt-1 text-xs">{{ field.help_text }}</p>{% endif %}
+                {% for error in field.errors %}
+                  <p class="text-stop mt-1 text-xs" role="alert">{{ error }}</p>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endfor %}
+
+          {# Honeypot. Hidden from people, irresistible to bots. #}
+          <div class="hidden" aria-hidden="true">{{ form.website }}</div>
+
+          {% if turnstile_site_key %}
+            <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}"></div>
+          {% endif %}
+
+          <button type="submit"
+                  class="btn btn-primary w-full sm:w-auto">
+            Send enquiry
+          </button>
+          <p class="text-muted text-xs">
+            We use your details only to reply to this enquiry. We never share them.
+          </p>
+        </form>
+      </section>
+
+      <aside class="space-y-8">
+        <div>
+          <h2 class="font-display text-ink text-lg font-semibold">Visit us</h2>
+          {% if site.address %}
+            <p class="text-muted mt-2 text-sm leading-relaxed">{{ site.address|linebreaksbr }}</p>
+          {% else %}
+            <p class="text-muted mt-2 text-sm">Address coming soon — call or write and we will send directions.</p>
+          {% endif %}
+        </div>
+
+        {% if site.phone %}
+          <div>
+            <h2 class="font-display text-ink text-lg font-semibold">Call</h2>
+            <p class="mt-2"><a class="text-clay hover:underline" href="tel:{{ site.phone }}">{{ site.phone }}</a></p>
           </div>
         {% endif %}
 
-        {% for field in form.visible_fields %}
-          {% if field.name != 'website' %}
-            <div>
-              <label for="{{ field.id_for_label }}" class="text-ink block text-sm font-medium">
-                {{ field.label }}{% if field.field.required %}<span class="text-clay" aria-hidden="true">*</span>{% endif %}
-              </label>
-              {{ field }}
-              {% if field.help_text %}<p class="text-muted mt-1 text-xs">{{ field.help_text }}</p>{% endif %}
-              {% for error in field.errors %}
-                <p class="text-stop mt-1 text-xs" role="alert">{{ error }}</p>
-              {% endfor %}
-            </div>
-          {% endif %}
-        {% endfor %}
-
-        {# Honeypot. Hidden from people, irresistible to bots. #}
-        <div class="hidden" aria-hidden="true">{{ form.website }}</div>
-
-        {% if turnstile_site_key %}
-          <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}"></div>
+        {% if site.email %}
+          <div>
+            <h2 class="font-display text-ink text-lg font-semibold">Write</h2>
+            <p class="mt-2"><a class="text-clay break-all hover:underline" href="mailto:{{ site.email }}">{{ site.email }}</a></p>
+          </div>
         {% endif %}
 
-        <button type="submit"
-                class="btn btn-primary w-full sm:w-auto">
-          Send enquiry
-        </button>
-        <p class="text-muted text-xs">
-          We use your details only to reply to this enquiry. We never share them.
-        </p>
-      </form>
-    </section>
-
-    <aside class="space-y-8">
-      <div>
-        <h2 class="font-display text-ink text-lg font-semibold">Visit us</h2>
-        {% if site.address %}
-          <p class="text-muted mt-2 text-sm leading-relaxed">{{ site.address|linebreaksbr }}</p>
-        {% else %}
-          <p class="text-muted mt-2 text-sm">Address coming soon — call or write and we will send directions.</p>
+        {% if site.map_embed_url %}
+          <div class="overflow-hidden rounded-2xl">
+            <iframe src="{{ site.map_embed_url }}" title="Map to Aaroham"
+                    class="h-64 w-full border-0" loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
         {% endif %}
-      </div>
-
-      {% if site.phone %}
-        <div>
-          <h2 class="font-display text-ink text-lg font-semibold">Call</h2>
-          <p class="mt-2"><a class="text-clay hover:underline" href="tel:{{ site.phone }}">{{ site.phone }}</a></p>
-        </div>
-      {% endif %}
-
-      {% if site.email %}
-        <div>
-          <h2 class="font-display text-ink text-lg font-semibold">Write</h2>
-          <p class="mt-2"><a class="text-clay break-all hover:underline" href="mailto:{{ site.email }}">{{ site.email }}</a></p>
-        </div>
-      {% endif %}
-
-      {% if site.map_embed_url %}
-        <div class="overflow-hidden rounded-2xl">
-          <iframe src="{{ site.map_embed_url }}" title="Map to Aaroham"
-                  class="h-64 w-full border-0" loading="lazy"
-                  referrerpolicy="no-referrer-when-downgrade"></iframe>
-        </div>
-      {% endif %}
-    </aside>
+      </aside>
+    </div>
   </div>
 {% endblock %}

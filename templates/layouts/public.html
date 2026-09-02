@@ -1,39 +1,107 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% comment %} Public marketing shell: prospective parents, mostly on a phone.
-   Wide, generous, and the only layout with a full footer. {% endcomment %}
 
-{% block main_class %}mx-auto w-full max-w-3xl px-5 py-10 md:px-8 md:py-16 lg:max-w-5xl{% endblock %}
+   `main` carries no width of its own. Each section constrains its own content with
+   .shell, which is what lets a photo band run edge to edge without the
+   `w-screen; left:50%; translate` trick — that measures 100vw, which includes the
+   scrollbar gutter, so it overflows by the scrollbar width and gives a horizontal
+   scroll on exactly the Windows desktops most of these parents use. {% endcomment %}
+
+{% block main_class %}w-full{% endblock %}
 
 {% block header %}
-  <header class="border-b border-line bg-raised/80 backdrop-blur">
-    <div class="mx-auto flex w-full max-w-3xl flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-8 lg:max-w-5xl">
-      <a href="{% url 'home' %}" class="font-display text-xl font-semibold text-ink">
-        Aaroham<span class="text-clay">.</span>
+  <header class="border-line bg-surface/85 sticky top-0 z-40 border-b backdrop-blur">
+    <div class="shell flex items-center justify-between gap-4 py-3">
+      <a href="{% url 'home' %}" class="flex shrink-0 items-center gap-2">
+        {% if site.logo %}
+          <img src="{{ site.logo.url }}" alt="Aaroham" class="h-9 w-auto" height="36">
+        {% else %}
+          {% comment %} No logo is a perfectly good state — the wordmark is better
+             than most preschool logos, and the field exists for the day there is one. {% endcomment %}
+          <span class="font-display text-ink text-xl font-semibold">Aaroham<span class="text-clay">.</span></span>
+        {% endif %}
       </a>
 
-      {% comment %} Reverse by name, never a literal path: a typo then fails loudly at render
-         instead of shipping a dead link, which is how these last broke. {% endcomment %}
-      <nav aria-label="Primary" class="-mx-1 overflow-x-auto">
+      <nav aria-label="Primary" class="hidden lg:block">
         <ul class="flex items-center gap-1 text-sm whitespace-nowrap">
-          <li><a href="{% url 'about' %}" class="rounded-lg px-3 py-2 text-muted hover:bg-clay-wash hover:text-clay">About</a></li>
-          <li><a href="{% url 'programs' %}" class="rounded-lg px-3 py-2 text-muted hover:bg-clay-wash hover:text-clay">Programmes</a></li>
-          <li><a href="{% url 'approach' %}" class="rounded-lg px-3 py-2 text-muted hover:bg-clay-wash hover:text-clay">Our approach</a></li>
-          <li><a href="{% url 'team' %}" class="rounded-lg px-3 py-2 text-muted hover:bg-clay-wash hover:text-clay">Our team</a></li>
-          <li><a href="{% url 'special_education' %}" class="rounded-lg px-3 py-2 text-muted hover:bg-clay-wash hover:text-clay">Thoughtful education</a></li>
-          <li><a href="{% url 'contact' %}" class="rounded-lg px-3 py-2 text-muted hover:bg-clay-wash hover:text-clay">Contact</a></li>
+          {% include "website/partials/nav_links.html" with link_class="text-muted hover:bg-clay-wash hover:text-clay rounded-lg px-3 py-2" %}
         </ul>
       </nav>
+
+      <div class="flex items-center gap-2">
+        {% comment %} The one action this whole site exists for, visible on every page
+           and on every scroll position. {% endcomment %}
+        <a href="{% url 'contact' %}" class="btn btn-primary btn-sm">Book a visit</a>
+
+        {% comment %} <details> rather than a button and a script: its contents are in
+           the DOM open or closed, so every nav link is in the server-rendered HTML,
+           and a <summary> has no href to point at "#". A JavaScript drawer would fail
+           both of those tests, and would also fail the parent on a slow connection
+           whose JS has not arrived yet. {% endcomment %}
+        <details class="nav-drawer lg:hidden">
+          <summary class="nav-toggle" aria-label="Menu">
+            <span class="nav-bars" aria-hidden="true"></span>
+          </summary>
+          <ul class="nav-drawer-list">
+            {% include "website/partials/nav_links.html" with link_class="block rounded-lg px-3 py-2.5 text-ink hover:bg-clay-wash hover:text-clay" %}
+          </ul>
+        </details>
+      </div>
     </div>
   </header>
 {% endblock %}
 
 {% block footer %}
-  <footer class="mt-auto border-t border-line bg-sunken">
-    <div class="mx-auto w-full max-w-3xl px-5 py-8 text-sm text-muted md:px-8 lg:max-w-5xl">
-      <p class="font-display text-base text-ink">Aaroham</p>
-      <p class="mt-1">Preschool and daycare.</p>
-      <p class="mt-4 text-2xs uppercase tracking-widest">&copy; Aaroham</p>
+  <footer class="border-line bg-sunken mt-auto border-t">
+    <div class="shell grid gap-8 py-12 md:grid-cols-3">
+      <div>
+        <p class="font-display text-ink text-lg font-semibold">Aaroham</p>
+        <p class="text-muted mt-1 text-sm">
+          {% if site.tagline %}{{ site.tagline }}{% else %}Preschool and daycare.{% endif %}
+        </p>
+        {% if site.facebook_url or site.instagram_url %}
+          <p class="mt-4 flex gap-4 text-sm">
+            {% if site.facebook_url %}<a href="{{ site.facebook_url }}" class="text-clay hover:underline" rel="noopener">Facebook</a>{% endif %}
+            {% if site.instagram_url %}<a href="{{ site.instagram_url }}" class="text-clay hover:underline" rel="noopener">Instagram</a>{% endif %}
+          </p>
+        {% endif %}
+      </div>
+
+      <div class="text-muted text-sm">
+        <p class="text-ink text-2xs font-medium tracking-widest uppercase">Visit us</p>
+        {% if site.address %}<p class="mt-2 whitespace-pre-line">{{ site.address }}</p>{% endif %}
+        {% if site.phone %}<p class="mt-2"><a href="tel:{{ site.phone }}" class="hover:text-clay">{{ site.phone }}</a></p>{% endif %}
+        {% if site.email %}<p><a href="mailto:{{ site.email }}" class="hover:text-clay">{{ site.email }}</a></p>{% endif %}
+      </div>
+
+      <nav aria-label="Footer" class="text-sm">
+        <p class="text-ink text-2xs font-medium tracking-widest uppercase">Pages</p>
+        <ul class="text-muted mt-2 space-y-1.5">
+          {% include "website/partials/nav_links.html" with link_class="hover:text-clay" %}
+        </ul>
+      </nav>
+    </div>
+
+    <div class="shell border-line text-2xs text-muted border-t py-5">
+      &copy; Aaroham
     </div>
   </footer>
+{% endblock %}
+
+{% block extra_body %}
+  {% comment %} A wa.me link, not the WhatsApp Business API that plan.md defers — no
+     Meta verification, no registered entity, just a link. Hidden entirely until a
+     number is set, which is also what makes it absent on a site with no Branch. {% endcomment %}
+  {% if site.whatsapp_number %}
+    <a class="float-wa"
+       href="https://wa.me/{{ site.whatsapp_number }}?text=Hi%2C%20I%27d%20like%20to%20book%20a%20visit%20at%20Aaroham."
+       target="_blank" rel="noopener"
+       aria-label="Message us on WhatsApp">
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true">
+        <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 18.15h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.19 8.19 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24 2.2 0 4.27.86 5.83 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23Zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.24-.64.8-.78.97-.15.16-.29.18-.54.06-.25-.13-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.44.13-.15.17-.25.25-.41.08-.17.04-.31-.02-.44-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43h-.47c-.16 0-.43.06-.65.31-.22.25-.85.83-.85 2.03s.87 2.35.99 2.51c.12.17 1.71 2.61 4.14 3.66.58.25 1.03.4 1.38.51.58.19 1.11.16 1.53.1.47-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.06-.1-.22-.16-.47-.29Z"/>
+      </svg>
+    </a>
+  {% endif %}
 {% endblock %}

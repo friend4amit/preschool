@@ -4,105 +4,107 @@
 {% block meta_description %}A preschool where children explore, imagine and create — play-based learning rooted in Indian values, for ages 1½ to 6.{% endblock %}
 
 {% block content %}
-  <section class="mb-16 md:mb-24">
-    <p class="eyebrow">Pure beginnings</p>
-    <h1 class="font-display text-ink mt-3 text-4xl leading-tight font-semibold text-balance md:text-6xl">
-      Where children feel safe, valued, and free to grow.
-    </h1>
-    <p class="text-muted mt-5 max-w-prose text-lg">
-      Aaroham is a preschool and daycare built on play, rhythm and care — an inclusive,
-      nurturing place where the natural pace of childhood is protected rather than rushed.
-    </p>
-    <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-      <a href="{% url 'contact' %}"
-         class="btn btn-primary">
-        Book a visit
-      </a>
-      <a href="{% url 'programs' %}"
-         class="btn btn-ghost">
-        See our programmes
-      </a>
-    </div>
-  </section>
-
-  <section class="mb-16 md:mb-24">
-    <h2 class="font-display text-ink text-2xl font-semibold md:text-3xl">Why early education matters</h2>
-    <p class="text-muted mt-3 max-w-prose">
-      The first years shape how a child feels about learning for the rest of their life.
-    </p>
-    <div class="mt-8 grid gap-5 md:grid-cols-2">
-      <div class="card">
-        <h3 class="font-display text-ink text-lg font-semibold">Warm interaction, secure attachment</h3>
-        <p class="text-muted mt-2 text-sm leading-relaxed">Direct, warm contact — eye contact, a hug when it is needed — forms secure attachments and helps children learn to manage their own emotions.</p>
-      </div>
-      <div class="card">
-        <h3 class="font-display text-ink text-lg font-semibold">Learning from each other</h3>
-        <p class="text-muted mt-2 text-sm leading-relaxed">Time with other children and with teachers builds communication, cooperation and empathy in a way no worksheet can.</p>
-      </div>
-      <div class="card">
-        <h3 class="font-display text-ink text-lg font-semibold">Safety, nutrition and care</h3>
-        <p class="text-muted mt-2 text-sm leading-relaxed">Clean, safe surroundings and proper food are the floor everything else stands on — alongside emotional, social and physical development.</p>
-      </div>
-      <div class="card">
-        <h3 class="font-display text-ink text-lg font-semibold">Teachers trained for this age</h3>
-        <p class="text-muted mt-2 text-sm leading-relaxed">Our educators are trained to guide children through joyful play, hands-on exploration and imaginative work that sparks curiosity.</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="mb-16 md:mb-24">
-    <h2 class="font-display text-ink text-2xl font-semibold md:text-3xl">Rooted in values, ready for the world</h2>
-    <p class="text-muted mt-3 max-w-prose">
-      Our approach draws the imagination of Waldorf, the independence of Montessori, and the
-      joy of Playway learning into one balanced day.
-    </p>
-    <ul class="mt-8 grid gap-4 sm:grid-cols-2">
-      <li class="border-line rounded-2xl border p-5"><span class="text-clay font-display font-semibold">Indian values &amp; culture</span><p class="text-muted mt-1 text-sm">Festivals, stories and languages the family already knows.</p></li>
-      <li class="border-line rounded-2xl border p-5"><span class="text-clay font-display font-semibold">Learning through play &amp; rhythm</span><p class="text-muted mt-1 text-sm">A predictable day that a small child can rely on.</p></li>
-      <li class="border-line rounded-2xl border p-5"><span class="text-clay font-display font-semibold">Hands-on, independent learning</span><p class="text-muted mt-1 text-sm">Doing it themselves, at their own pace.</p></li>
-      <li class="border-line rounded-2xl border p-5"><span class="text-clay font-display font-semibold">Global practices, thoughtfully applied</span><p class="text-muted mt-1 text-sm">Borrowed where it helps, never imported wholesale.</p></li>
-    </ul>
-    <p class="mt-6"><a class="text-clay font-medium hover:underline" href="{% url 'approach' %}">Read more about our approach →</a></p>
-  </section>
-
-  <section class="mb-16 md:mb-24">
-    <h2 class="font-display text-ink text-2xl font-semibold md:text-3xl">A gentle journey for every stage</h2>
-    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {% for program in programs %}
-        <div class="border-line bg-raised flex flex-col rounded-2xl border p-6">
-          <p class="text-marigold text-xs font-medium tracking-widest uppercase">{{ program.age_range_display }}</p>
-          <h3 class="font-display text-ink mt-2 text-lg font-semibold">{{ program.name }}</h3>
-          {% if program.summary %}<p class="text-muted mt-2 text-sm leading-relaxed">{{ program.summary }}</p>{% endif %}
-        </div>
-      {% empty %}
-        <p class="text-muted">Programmes are being finalised. <a class="text-clay hover:underline" href="{% url 'contact' %}">Ask us</a>.</p>
-      {% endfor %}
-    </div>
-  </section>
-
-  {% if testimonials %}
+  <div class="shell py-12 md:py-16">
     <section class="mb-16 md:mb-24">
-      <h2 class="font-display text-ink text-2xl font-semibold md:text-3xl">From our families</h2>
+      <p class="eyebrow">Pure beginnings</p>
+      <h1 class="font-display text-ink mt-3 text-4xl leading-tight font-semibold text-balance md:text-6xl">
+        Where children feel safe, valued, and free to grow.
+      </h1>
+      <p class="text-muted mt-5 max-w-prose text-lg">
+        Aaroham is a preschool and daycare built on play, rhythm and care — an inclusive,
+        nurturing place where the natural pace of childhood is protected rather than rushed.
+      </p>
+      <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+        <a href="{% url 'contact' %}"
+           class="btn btn-primary">
+          Book a visit
+        </a>
+        <a href="{% url 'programs' %}"
+           class="btn btn-ghost">
+          See our programmes
+        </a>
+      </div>
+    </section>
+
+    <section class="mb-16 md:mb-24">
+      <h2 class="font-display text-ink text-2xl font-semibold md:text-3xl">Why early education matters</h2>
+      <p class="text-muted mt-3 max-w-prose">
+        The first years shape how a child feels about learning for the rest of their life.
+      </p>
       <div class="mt-8 grid gap-5 md:grid-cols-2">
-        {% for t in testimonials %}
-          <figure class="bg-sunken rounded-2xl p-6">
-            <blockquote class="text-ink leading-relaxed">“{{ t.quote }}”</blockquote>
-            <figcaption class="text-muted mt-3 text-sm">{{ t.author_name }}{% if t.relationship %} · {{ t.relationship }}{% endif %}</figcaption>
-          </figure>
+        <div class="card">
+          <h3 class="font-display text-ink text-lg font-semibold">Warm interaction, secure attachment</h3>
+          <p class="text-muted mt-2 text-sm leading-relaxed">Direct, warm contact — eye contact, a hug when it is needed — forms secure attachments and helps children learn to manage their own emotions.</p>
+        </div>
+        <div class="card">
+          <h3 class="font-display text-ink text-lg font-semibold">Learning from each other</h3>
+          <p class="text-muted mt-2 text-sm leading-relaxed">Time with other children and with teachers builds communication, cooperation and empathy in a way no worksheet can.</p>
+        </div>
+        <div class="card">
+          <h3 class="font-display text-ink text-lg font-semibold">Safety, nutrition and care</h3>
+          <p class="text-muted mt-2 text-sm leading-relaxed">Clean, safe surroundings and proper food are the floor everything else stands on — alongside emotional, social and physical development.</p>
+        </div>
+        <div class="card">
+          <h3 class="font-display text-ink text-lg font-semibold">Teachers trained for this age</h3>
+          <p class="text-muted mt-2 text-sm leading-relaxed">Our educators are trained to guide children through joyful play, hands-on exploration and imaginative work that sparks curiosity.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-16 md:mb-24">
+      <h2 class="font-display text-ink text-2xl font-semibold md:text-3xl">Rooted in values, ready for the world</h2>
+      <p class="text-muted mt-3 max-w-prose">
+        Our approach draws the imagination of Waldorf, the independence of Montessori, and the
+        joy of Playway learning into one balanced day.
+      </p>
+      <ul class="mt-8 grid gap-4 sm:grid-cols-2">
+        <li class="border-line rounded-2xl border p-5"><span class="text-clay font-display font-semibold">Indian values &amp; culture</span><p class="text-muted mt-1 text-sm">Festivals, stories and languages the family already knows.</p></li>
+        <li class="border-line rounded-2xl border p-5"><span class="text-clay font-display font-semibold">Learning through play &amp; rhythm</span><p class="text-muted mt-1 text-sm">A predictable day that a small child can rely on.</p></li>
+        <li class="border-line rounded-2xl border p-5"><span class="text-clay font-display font-semibold">Hands-on, independent learning</span><p class="text-muted mt-1 text-sm">Doing it themselves, at their own pace.</p></li>
+        <li class="border-line rounded-2xl border p-5"><span class="text-clay font-display font-semibold">Global practices, thoughtfully applied</span><p class="text-muted mt-1 text-sm">Borrowed where it helps, never imported wholesale.</p></li>
+      </ul>
+      <p class="mt-6"><a class="text-clay font-medium hover:underline" href="{% url 'approach' %}">Read more about our approach →</a></p>
+    </section>
+
+    <section class="mb-16 md:mb-24">
+      <h2 class="font-display text-ink text-2xl font-semibold md:text-3xl">A gentle journey for every stage</h2>
+      <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {% for program in programs %}
+          <div class="border-line bg-raised flex flex-col rounded-2xl border p-6">
+            <p class="text-marigold text-xs font-medium tracking-widest uppercase">{{ program.age_range_display }}</p>
+            <h3 class="font-display text-ink mt-2 text-lg font-semibold">{{ program.name }}</h3>
+            {% if program.summary %}<p class="text-muted mt-2 text-sm leading-relaxed">{{ program.summary }}</p>{% endif %}
+          </div>
+        {% empty %}
+          <p class="text-muted">Programmes are being finalised. <a class="text-clay hover:underline" href="{% url 'contact' %}">Ask us</a>.</p>
         {% endfor %}
       </div>
     </section>
-  {% endif %}
 
-  <section class="bg-sage-wash rounded-3xl p-8 md:p-12">
-    <h2 class="font-display text-ink text-2xl font-semibold md:text-3xl">Join the Aaroham family</h2>
-    <p class="text-muted mt-3 max-w-prose">
-      Come and see the space, meet the teachers, and ask us anything. Visits are unhurried
-      and there is no obligation.
-    </p>
-    <a href="{% url 'contact' %}"
-       class="btn btn-primary mt-6">
-      Book a visit
-    </a>
-  </section>
+    {% if testimonials %}
+      <section class="mb-16 md:mb-24">
+        <h2 class="font-display text-ink text-2xl font-semibold md:text-3xl">From our families</h2>
+        <div class="mt-8 grid gap-5 md:grid-cols-2">
+          {% for t in testimonials %}
+            <figure class="bg-sunken rounded-2xl p-6">
+              <blockquote class="text-ink leading-relaxed">“{{ t.quote }}”</blockquote>
+              <figcaption class="text-muted mt-3 text-sm">{{ t.author_name }}{% if t.relationship %} · {{ t.relationship }}{% endif %}</figcaption>
+            </figure>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
+    <section class="bg-sage-wash rounded-3xl p-8 md:p-12">
+      <h2 class="font-display text-ink text-2xl font-semibold md:text-3xl">Join the Aaroham family</h2>
+      <p class="text-muted mt-3 max-w-prose">
+        Come and see the space, meet the teachers, and ask us anything. Visits are unhurried
+        and there is no obligation.
+      </p>
+      <a href="{% url 'contact' %}"
+         class="btn btn-primary mt-6">
+        Book a visit
+      </a>
+    </section>
+  </div>
 {% endblock %}

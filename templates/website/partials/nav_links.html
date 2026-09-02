@@ -1,0 +1,13 @@
+{% comment %} The six primary links, rendered twice — once in the desktop bar, once
+   inside the <details> drawer. A bare fragment, never extending a layout, so it can
+   be included in both places.
+
+   Reverse by name, never a literal path: a typo then fails loudly at render instead
+   of shipping a dead link, which is how these last broke. {% endcomment %}
+
+<li><a href="{% url 'about' %}" class="{{ link_class }}">About</a></li>
+<li><a href="{% url 'programs' %}" class="{{ link_class }}">Programmes</a></li>
+<li><a href="{% url 'approach' %}" class="{{ link_class }}">Our approach</a></li>
+<li><a href="{% url 'team' %}" class="{{ link_class }}">Our team</a></li>
+<li><a href="{% url 'special_education' %}" class="{{ link_class }}">Thoughtful education</a></li>
+<li><a href="{% url 'contact' %}" class="{{ link_class }}">Contact</a></li>
