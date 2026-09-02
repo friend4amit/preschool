@@ -47,6 +47,7 @@ class SiteSettings(models.Model):
         upload_to="marketing/site/",
         blank=True,
         storage=public_media,
+        max_length=200,
         help_text="Optional. Without one the header shows the Aaroham wordmark, "
         "which is no bad thing.",
     )
@@ -54,6 +55,7 @@ class SiteSettings(models.Model):
         upload_to="marketing/site/",
         blank=True,
         storage=public_media,
+        max_length=200,
         help_text="The photograph behind the home page headline. Landscape, at "
         "least 1400px wide. Without one the hero falls back to colour and type.",
     )
@@ -100,6 +102,7 @@ class Program(BranchScopedModel):
         upload_to="marketing/programs/",
         blank=True,
         storage=public_media,
+        max_length=200,
         help_text="Landscape, roughly 4:3. A programme without one renders as a "
         "text card rather than an empty box.",
     )
@@ -252,7 +255,7 @@ class GalleryImage(BranchScopedModel):
     guardian, which is a different flow entirely. Nothing here goes near it.
     """
 
-    image = models.ImageField(upload_to="marketing/gallery/", storage=public_media)
+    image = models.ImageField(upload_to="marketing/gallery/", storage=public_media, max_length=200)
     alt_text = models.CharField(
         max_length=200,
         blank=True,
