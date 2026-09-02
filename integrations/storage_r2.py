@@ -72,3 +72,20 @@ def objects(*, prefix: str = "") -> list[StoredObject]:
 
 def delete(*, key: str) -> None:
     _client().delete_object(Bucket=settings.R2_BUCKET, Key=key)
+
+
+def public_media():
+    """The storage marketing images live in — world-readable, cached, indexable.
+
+    Deliberately NOT `default`, which in production is the private bucket holding
+    children's photos and is served by short-lived presigned URLs after a consent
+    check. Those are opposite requirements; see config/settings/prod.py.
+
+    Referenced as a callable from model fields rather than resolved at import time.
+    Django's FileField holds the callable on `_storage_callable` and `deconstruct()`
+    re-emits it, so what lands in a migration is this function's import path and not
+    a frozen storage instance with a bucket name baked into it.
+    """
+    from django.core.files.storage import storages
+
+    return storages["public_media"]
