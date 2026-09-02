@@ -10,14 +10,21 @@
 {% endblock %}
 
 {% block content %}
-  <div class="shell py-12 md:py-16">
-    <h1 class="font-display text-ink text-3xl leading-tight font-semibold text-balance md:text-5xl">
-      Come and see the place
-    </h1>
-    <p class="text-muted mt-5 max-w-prose text-lg">
-      Tell us a little about your child and we will call you back. Visits are unhurried, and
-      there is no obligation.
-    </p>
+  <section class="band pb-0">
+    <div class="shell">
+      <p class="eyebrow">Contact</p>
+      <h1 class="font-display text-ink text-display md:text-display-lg mt-3 max-w-3xl leading-[1.05] font-semibold text-balance">
+        Come and see the place
+      </h1>
+      <p class="text-muted mt-5 max-w-prose text-lg">
+        Tell us a little about your child and we will call you back. Visits are unhurried, and
+        there is no obligation.
+      </p>
+    </div>
+  </section>
+
+  <div class="band band-tint">
+    <div class="shell">
 
     {% if just_sent %}
       <div role="status"
@@ -28,7 +35,7 @@
     {% endif %}
 
     <div class="mt-12 grid gap-12 lg:grid-cols-[minmax(0,1fr)_20rem]">
-      <section>
+      <section class="border-line bg-raised rounded-card border p-6 md:p-8">
         <h2 class="font-display text-ink text-2xl font-semibold">Enquire about a place</h2>
 
         <form method="post" action="{% url 'contact' %}" class="prose-form mt-6 space-y-5" novalidate>
@@ -97,9 +104,11 @@
         {% endif %}
 
         {% if site.map_embed_url %}
-          <div class="overflow-hidden rounded-2xl">
+          {% comment %} In a frame so it reserves its space before the iframe loads —
+             a map dropping in late is one of the bigger layout shifts on a site. {% endcomment %}
+          <div class="frame frame-4x3">
             <iframe src="{{ site.map_embed_url }}" title="Map to Aaroham"
-                    class="h-64 w-full border-0" loading="lazy"
+                    class="absolute inset-0 h-full w-full border-0" loading="lazy"
                     referrerpolicy="no-referrer-when-downgrade"></iframe>
           </div>
         {% endif %}

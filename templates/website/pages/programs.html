@@ -1,28 +1,43 @@
 {% extends "layouts/public.html" %}
+{% load media_extras %}
 
-{% block title %}Programmes{% endblock %}
-{% block meta_description %}Playgroup, Nursery, LKG, UKG and daycare — a gentle learning journey for every stage.{% endblock %}
+{% block title %}Programmes — Aaroham{% endblock %}
+{% block meta_description %}Playgroup, Nursery, LKG, UKG and daycare for ages 1½ to 6. Children move up when they are ready, not on a date.{% endblock %}
 
 {% block content %}
-  <div class="shell py-12 md:py-16">
-    <h1 class="font-display text-ink text-3xl leading-tight font-semibold text-balance md:text-5xl">
-      A gentle learning journey for every stage
-    </h1>
-    <p class="text-muted mt-5 max-w-prose text-lg">
-      Children move up when they are ready, not on a date. If you are unsure which stage suits
-      your child, ask us — we will tell you honestly.
-    </p>
+  <section class="band pb-0">
+    <div class="shell">
+      <p class="eyebrow">Programmes</p>
+      <h1 class="font-display text-ink text-display md:text-display-lg mt-3 max-w-3xl leading-[1.05] font-semibold text-balance">
+        A gentle learning journey for every stage
+      </h1>
+      <p class="text-muted mt-5 max-w-prose text-lg">
+        Children move up when they are ready, not on a date. If you are unsure which stage suits
+        your child, ask us — we will tell you honestly.
+      </p>
+    </div>
+  </section>
 
-    <div class="mt-12 space-y-5">
+  <section class="band">
+    <div class="shell space-y-6">
       {% for program in programs %}
-        <article class="card md:flex md:items-start md:gap-8 md:p-8">
-          <div class="md:w-44 md:shrink-0">
+        <article class="border-line bg-raised overflow-hidden rounded-2xl border md:flex md:items-stretch">
+          {% if program.image %}
+            <div class="frame frame-4x3 rounded-none md:w-72 md:shrink-0 md:rounded-none">
+              <img src="{{ program.image.url }}"
+                   {% with ss=program.image|srcset:"800,400" %}{% if ss %}srcset="{{ ss }}" sizes="(min-width: 768px) 18rem, 100vw"{% endif %}{% endwith %}
+                   alt="{{ program.image_alt }}" loading="lazy" decoding="async">
+            </div>
+          {% endif %}
+
+          <div class="p-6 md:flex-1 md:p-8">
+            {% comment %} age_range_display stays in the rendered body — a page test
+               asserts the literal "2½–3½ years" is visible, and it is the single most
+               useful thing on this page to a parent scanning it. {% endcomment %}
             <p class="text-marigold text-xs font-medium tracking-widest uppercase">{{ program.age_range_display }}</p>
             <h2 class="font-display text-ink mt-1 text-xl font-semibold">{{ program.name }}</h2>
-          </div>
-          <div class="mt-3 md:mt-0">
             {% if program.summary %}
-              <p class="text-ink leading-relaxed">{{ program.summary }}</p>
+              <p class="text-ink mt-3 leading-relaxed">{{ program.summary }}</p>
             {% endif %}
             {% if program.description %}
               <p class="text-muted mt-3 leading-relaxed">{{ program.description|linebreaksbr }}</p>
@@ -37,17 +52,16 @@
         </p>
       {% endfor %}
     </div>
+  </section>
 
-    <section class="bg-sage-wash mt-14 rounded-3xl p-8 md:p-12">
-      <h2 class="font-display text-ink text-2xl font-semibold">Not sure where your child fits?</h2>
-      <p class="text-muted mt-3 max-w-prose">
+  <section class="band band-sage">
+    <div class="shell">
+      <h2 class="font-display text-ink text-display font-semibold text-balance">Not sure where your child fits?</h2>
+      <p class="text-muted mt-3 max-w-prose text-lg">
         Tell us their age and a little about them. We will suggest a stage — and say so if we
         think another school suits them better.
       </p>
-      <a href="{% url 'contact' %}"
-         class="btn btn-primary mt-6">
-        Ask us
-      </a>
-    </section>
-  </div>
+      <a href="{% url 'contact' %}" class="btn btn-primary mt-8">Ask us</a>
+    </div>
+  </section>
 {% endblock %}

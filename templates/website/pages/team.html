@@ -1,35 +1,69 @@
 {% extends "layouts/public.html" %}
+{% load media_extras %}
 
-{% block title %}Our team{% endblock %}
-{% block meta_description %}The educators at Aaroham — trained to guide young children through play, exploration and imaginative learning.{% endblock %}
+{% block title %}Our team — Aaroham{% endblock %}
+{% block meta_description %}Educators trained specifically for the early years, guiding children through joyful play, hands-on exploration and imaginative learning.{% endblock %}
 
 {% block content %}
-  <div class="shell py-12 md:py-16">
-    <h1 class="font-display text-ink text-3xl leading-tight font-semibold text-balance md:text-5xl">
-      A thoughtfully crafted preschool experience
-    </h1>
-    <p class="text-muted mt-5 max-w-prose text-lg">
-      Our educators are trained specifically for the early years — equipping them to guide
-      children through joyful play, hands-on exploration and imaginative learning that sparks
-      curiosity.
-    </p>
-
-    <div class="mt-12 grid gap-6 sm:grid-cols-2">
-      {% for member in team %}
-        <article class="card">
-          {% if member.photo %}
-            <img src="{{ member.photo.url }}" alt=""
-                 class="mb-4 h-24 w-24 rounded-full object-cover"
-                 width="96" height="96" loading="lazy">
-          {% endif %}
-          <h2 class="font-display text-ink text-lg font-semibold">{{ member.name }}</h2>
-          {% if member.role %}<p class="text-clay text-sm font-medium">{{ member.role }}</p>{% endif %}
-          {% if member.credentials %}<p class="text-muted mt-1 text-xs">{{ member.credentials }}</p>{% endif %}
-          {% if member.bio %}<p class="text-muted mt-3 text-sm leading-relaxed">{{ member.bio }}</p>{% endif %}
-        </article>
-      {% empty %}
-        <p class="text-muted">We are introducing our team here shortly.</p>
-      {% endfor %}
+  <section class="band pb-0">
+    <div class="shell">
+      <p class="eyebrow">Our team</p>
+      <h1 class="font-display text-ink text-display md:text-display-lg mt-3 max-w-3xl leading-[1.05] font-semibold text-balance">
+        A thoughtfully crafted preschool experience
+      </h1>
+      <p class="text-muted mt-5 max-w-prose text-lg">
+        Our educators are trained specifically for the early years — equipping them to guide
+        children through joyful play, hands-on exploration and imaginative learning that sparks
+        curiosity.
+      </p>
     </div>
-  </div>
+  </section>
+
+  {% if photo %}
+    <section class="band-photo mt-12 md:mt-16">
+      <img src="{{ photo.image.url }}"
+           {% with ss=photo.image|srcset:"1440,960" %}{% if ss %}srcset="{{ ss }}" sizes="100vw"{% endif %}{% endwith %}
+           alt="{{ photo.alt_text }}"
+           class="frame-21x9 h-full w-full" loading="lazy" decoding="async">
+    </section>
+  {% endif %}
+
+  <section class="band">
+    <div class="shell">
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {% for member in team %}
+          <article class="card">
+            {% comment %} A photograph when there is one, initials when there is not —
+               the card used to simply start at the name, which read as broken rather
+               than as a person whose portrait has not been taken yet. {% endcomment %}
+            {% if member.photo %}
+              <div class="frame frame-1x1 mb-5">
+                <img src="{{ member.photo.url }}" alt="" loading="lazy" decoding="async">
+              </div>
+            {% else %}
+              <div class="bg-clay-wash text-clay font-display mb-5 flex h-20 w-20 items-center justify-center rounded-full text-2xl font-semibold"
+                   aria-hidden="true">{{ member.name|slice:":1" }}</div>
+            {% endif %}
+            <h2 class="font-display text-ink text-lg font-semibold">{{ member.name }}</h2>
+            {% if member.role %}<p class="text-clay text-sm font-medium">{{ member.role }}</p>{% endif %}
+            {% if member.credentials %}<p class="text-muted mt-1 text-xs">{{ member.credentials }}</p>{% endif %}
+            {% if member.bio %}<p class="text-muted mt-3 text-sm leading-relaxed">{{ member.bio }}</p>{% endif %}
+          </article>
+        {% empty %}
+          <p class="text-muted">We are introducing our team here shortly.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="band band-sage">
+    <div class="shell">
+      <h2 class="font-display text-ink text-display font-semibold text-balance">Meet them in person</h2>
+      <p class="text-muted mt-3 max-w-prose text-lg">
+        The people matter more than the prospectus. Come and meet the teachers who would be
+        with your child every day.
+      </p>
+      <a href="{% url 'contact' %}" class="btn btn-primary mt-8">Book a visit</a>
+    </div>
+  </section>
 {% endblock %}

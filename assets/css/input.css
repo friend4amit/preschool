@@ -488,3 +488,86 @@
     }
   }
 }
+
+@layer components {
+  /* -------------------------------------------------------------------------
+     Photography.
+
+     Aspect ratio rather than width/height attributes, because an admin-uploaded
+     image has unknown dimensions and the box still has to reserve its space before
+     the bytes arrive. This is the layout-shift defence, and it is what finally puts
+     --radius-card to use.
+  ------------------------------------------------------------------------- */
+
+  .frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background-color: var(--color-sunken);
+  }
+
+  .frame > img {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  .frame-1x1  { aspect-ratio: 1; }
+  .frame-4x3  { aspect-ratio: 4 / 3; }
+  .frame-3x2  { aspect-ratio: 3 / 2; }
+  .frame-21x9 { aspect-ratio: 4 / 3; }
+
+  /* A 21:9 slice of a classroom on a 390px phone is a letterbox slit, so the wide
+     crop only applies once there is width to spend on it. */
+  @media (width >= 48rem) {
+    .frame-21x9 { aspect-ratio: 21 / 9; }
+  }
+
+  /* Edge to edge: square corners, and the section is the frame. */
+  .band-photo {
+    position: relative;
+    overflow: hidden;
+    border-radius: 0;
+  }
+
+  .band-photo > img {
+    display: block;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  /* Text over a photograph. Reads --color-ink so it re-points with the scheme
+     rather than being a hardcoded black that fights the dark palette. */
+  .scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      color-mix(in oklab, var(--color-ink) 78%, transparent),
+      color-mix(in oklab, var(--color-ink) 45%, transparent) 45%,
+      transparent 75%
+    );
+  }
+
+  /* -------------------------------------------------------------------------
+     The numbers band.
+  ------------------------------------------------------------------------- */
+
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: var(--text-display);
+    line-height: 1.05;
+    font-weight: 600;
+    color: var(--color-clay);
+  }
+
+  .stat-label {
+    margin-top: --spacing(1);
+    font-size: 0.8125rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+}

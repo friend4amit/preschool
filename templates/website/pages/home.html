@@ -1,37 +1,80 @@
 {% extends "layouts/public.html" %}
+{% load media_extras %}
 
 {% block title %}Aaroham — preschool and daycare{% endblock %}
 {% block meta_description %}A preschool where children explore, imagine and create — play-based learning rooted in Indian values, for ages 1½ to 6.{% endblock %}
 
 {% block content %}
-  <div class="shell py-12 md:py-16">
-    <section class="mb-16 md:mb-24">
-      <p class="eyebrow">Pure beginnings</p>
-      <h1 class="font-display text-ink mt-3 text-4xl leading-tight font-semibold text-balance md:text-6xl">
-        Where children feel safe, valued, and free to grow.
-      </h1>
-      <p class="text-muted mt-5 max-w-prose text-lg">
-        Aaroham is a preschool and daycare built on play, rhythm and care — an inclusive,
-        nurturing place where the natural pace of childhood is protected rather than rushed.
-      </p>
-      <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-        <a href="{% url 'contact' %}"
-           class="btn btn-primary">
-          Book a visit
-        </a>
-        <a href="{% url 'programs' %}"
-           class="btn btn-ghost">
-          See our programmes
-        </a>
+
+  {% comment %} --- Hero ------------------------------------------------------------
+     Two shapes, not one: the headline over a photograph when there is one, and a
+     typographic hero when there is not. The fallback is a design rather than a hole —
+     a site whose photographs have not been taken yet should still look deliberate. {% endcomment %}
+  {% if site.hero_image %}
+    <section class="band-photo">
+      <img src="{{ site.hero_image.url }}"
+           {% with ss=site.hero_image|srcset:"1440,960,640" %}{% if ss %}srcset="{{ ss }}" sizes="100vw"{% endif %}{% endwith %}
+           alt="{{ site.hero_image_alt }}"
+           class="h-[68svh] min-h-[26rem] md:h-[76svh]"
+           fetchpriority="high" decoding="async">
+      <div class="scrim"></div>
+      <div class="absolute inset-x-0 bottom-0">
+        <div class="shell pb-12 md:pb-16">
+          <p class="eyebrow text-white/80">Pure beginnings</p>
+          <h1 class="font-display text-display md:text-display-lg lg:text-display-xl mt-3 max-w-4xl leading-[1.05] font-semibold text-balance text-white">
+            Where children feel safe, valued, and free to grow.
+          </h1>
+          <p class="mt-5 max-w-xl text-lg text-white/85">
+            A preschool and daycare built on play, rhythm and care.
+          </p>
+          <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+            <a href="{% url 'contact' %}" class="btn btn-primary">Book a visit</a>
+            <a href="{% url 'programs' %}" class="btn btn-on-photo">See our programmes</a>
+          </div>
+        </div>
       </div>
     </section>
+  {% else %}
+    <section class="band band-clay">
+      <div class="shell">
+        <p class="eyebrow">Pure beginnings</p>
+        <h1 class="font-display text-ink text-display md:text-display-lg lg:text-display-xl mt-3 max-w-4xl leading-[1.05] font-semibold text-balance">
+          Where children feel safe, valued, and free to grow.
+        </h1>
+        <p class="text-muted mt-5 max-w-xl text-lg">
+          Aaroham is a preschool and daycare built on play, rhythm and care — an inclusive,
+          nurturing place where the natural pace of childhood is protected rather than rushed.
+        </p>
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+          <a href="{% url 'contact' %}" class="btn btn-primary">Book a visit</a>
+          <a href="{% url 'programs' %}" class="btn btn-ghost">See our programmes</a>
+        </div>
+      </div>
+    </section>
+  {% endif %}
 
-    <section class="mb-16 md:mb-24">
-      <h2 class="font-display text-ink text-2xl font-semibold md:text-3xl">Why early education matters</h2>
-      <p class="text-muted mt-3 max-w-prose">
+  {% comment %} --- The numbers ------------------------------------------------------ {% endcomment %}
+  {% if stats %}
+    <section class="band band-tint py-12 md:py-16" data-stats>
+      <div class="shell grid grid-cols-2 gap-8 md:grid-cols-4">
+        {% for stat in stats %}
+          <div>
+            <p class="stat-value">{{ stat.value }}</p>
+            <p class="stat-label">{{ stat.label }}</p>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+  {% comment %} --- Why it matters --------------------------------------------------- {% endcomment %}
+  <section class="band">
+    <div class="shell">
+      <h2 class="font-display text-ink text-display font-semibold text-balance">Why early education matters</h2>
+      <p class="text-muted mt-3 max-w-prose text-lg">
         The first years shape how a child feels about learning for the rest of their life.
       </p>
-      <div class="mt-8 grid gap-5 md:grid-cols-2">
+      <div class="mt-10 grid gap-5 md:grid-cols-2">
         <div class="card">
           <h3 class="font-display text-ink text-lg font-semibold">Warm interaction, secure attachment</h3>
           <p class="text-muted mt-2 text-sm leading-relaxed">Direct, warm contact — eye contact, a hug when it is needed — forms secure attachments and helps children learn to manage their own emotions.</p>
@@ -49,42 +92,81 @@
           <p class="text-muted mt-2 text-sm leading-relaxed">Our educators are trained to guide children through joyful play, hands-on exploration and imaginative work that sparks curiosity.</p>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="mb-16 md:mb-24">
-      <h2 class="font-display text-ink text-2xl font-semibold md:text-3xl">Rooted in values, ready for the world</h2>
-      <p class="text-muted mt-3 max-w-prose">
+  {% comment %} --- Values ----------------------------------------------------------- {% endcomment %}
+  <section class="band band-tint">
+    <div class="shell">
+      <h2 class="font-display text-ink text-display font-semibold text-balance">Rooted in values, ready for the world</h2>
+      <p class="text-muted mt-3 max-w-prose text-lg">
         Our approach draws the imagination of Waldorf, the independence of Montessori, and the
         joy of Playway learning into one balanced day.
       </p>
-      <ul class="mt-8 grid gap-4 sm:grid-cols-2">
-        <li class="border-line rounded-2xl border p-5"><span class="text-clay font-display font-semibold">Indian values &amp; culture</span><p class="text-muted mt-1 text-sm">Festivals, stories and languages the family already knows.</p></li>
-        <li class="border-line rounded-2xl border p-5"><span class="text-clay font-display font-semibold">Learning through play &amp; rhythm</span><p class="text-muted mt-1 text-sm">A predictable day that a small child can rely on.</p></li>
-        <li class="border-line rounded-2xl border p-5"><span class="text-clay font-display font-semibold">Hands-on, independent learning</span><p class="text-muted mt-1 text-sm">Doing it themselves, at their own pace.</p></li>
-        <li class="border-line rounded-2xl border p-5"><span class="text-clay font-display font-semibold">Global practices, thoughtfully applied</span><p class="text-muted mt-1 text-sm">Borrowed where it helps, never imported wholesale.</p></li>
+      <ul class="mt-10 grid gap-4 sm:grid-cols-2">
+        <li class="border-line bg-raised rounded-2xl border p-5"><span class="text-clay font-display font-semibold">Indian values &amp; culture</span><p class="text-muted mt-1 text-sm">Festivals, stories and languages the family already knows.</p></li>
+        <li class="border-line bg-raised rounded-2xl border p-5"><span class="text-clay font-display font-semibold">Learning through play &amp; rhythm</span><p class="text-muted mt-1 text-sm">A predictable day that a small child can rely on.</p></li>
+        <li class="border-line bg-raised rounded-2xl border p-5"><span class="text-clay font-display font-semibold">Hands-on, independent learning</span><p class="text-muted mt-1 text-sm">Doing it themselves, at their own pace.</p></li>
+        <li class="border-line bg-raised rounded-2xl border p-5"><span class="text-clay font-display font-semibold">Global practices, thoughtfully applied</span><p class="text-muted mt-1 text-sm">Borrowed where it helps, never imported wholesale.</p></li>
       </ul>
-      <p class="mt-6"><a class="text-clay font-medium hover:underline" href="{% url 'approach' %}">Read more about our approach →</a></p>
-    </section>
+      <p class="mt-8"><a class="text-clay font-medium hover:underline" href="{% url 'approach' %}">Read more about our approach →</a></p>
+    </div>
+  </section>
 
-    <section class="mb-16 md:mb-24">
-      <h2 class="font-display text-ink text-2xl font-semibold md:text-3xl">A gentle journey for every stage</h2>
-      <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  {% comment %} --- Programmes ------------------------------------------------------- {% endcomment %}
+  <section class="band">
+    <div class="shell">
+      <h2 class="font-display text-ink text-display font-semibold text-balance">A gentle journey for every stage</h2>
+      <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {% for program in programs %}
-          <div class="border-line bg-raised flex flex-col rounded-2xl border p-6">
-            <p class="text-marigold text-xs font-medium tracking-widest uppercase">{{ program.age_range_display }}</p>
-            <h3 class="font-display text-ink mt-2 text-lg font-semibold">{{ program.name }}</h3>
-            {% if program.summary %}<p class="text-muted mt-2 text-sm leading-relaxed">{{ program.summary }}</p>{% endif %}
-          </div>
+          <a href="{% url 'programs' %}"
+             class="border-line bg-raised hover:border-clay flex flex-col overflow-hidden rounded-2xl border transition">
+            {% comment %} A programme with no photograph is a text card, not an empty
+               grey box — which is what the office will see for a while. {% endcomment %}
+            {% if program.image %}
+              <div class="frame frame-4x3 rounded-none">
+                <img src="{{ program.image.url }}"
+                     {% with ss=program.image|srcset:"800,400" %}{% if ss %}srcset="{{ ss }}" sizes="(min-width: 1024px) 22rem, (min-width: 640px) 45vw, 90vw"{% endif %}{% endwith %}
+                     alt="{{ program.image_alt }}" loading="lazy" decoding="async">
+              </div>
+            {% endif %}
+            <div class="p-6">
+              <p class="text-marigold text-xs font-medium tracking-widest uppercase">{{ program.age_range_display }}</p>
+              <h3 class="font-display text-ink mt-2 text-lg font-semibold">{{ program.name }}</h3>
+              {% if program.summary %}<p class="text-muted mt-2 text-sm leading-relaxed">{{ program.summary }}</p>{% endif %}
+            </div>
+          </a>
         {% empty %}
           <p class="text-muted">Programmes are being finalised. <a class="text-clay hover:underline" href="{% url 'contact' %}">Ask us</a>.</p>
         {% endfor %}
       </div>
-    </section>
+    </div>
+  </section>
 
-    {% if testimonials %}
-      <section class="mb-16 md:mb-24">
-        <h2 class="font-display text-ink text-2xl font-semibold md:text-3xl">From our families</h2>
-        <div class="mt-8 grid gap-5 md:grid-cols-2">
+  {% comment %} --- Life here -------------------------------------------------------- {% endcomment %}
+  {% if gallery %}
+    <section class="band band-tint" data-gallery>
+      <div class="shell">
+        <h2 class="font-display text-ink text-display font-semibold text-balance">Life at Aaroham</h2>
+        <div class="mt-10 grid grid-cols-2 gap-4 md:grid-cols-3">
+          {% for image in gallery %}
+            <figure class="frame frame-1x1">
+              <img src="{{ image.image.url }}"
+                   {% with ss=image.image|srcset:"800,400" %}{% if ss %}srcset="{{ ss }}" sizes="(min-width: 768px) 30vw, 45vw"{% endif %}{% endwith %}
+                   alt="{{ image.alt_text }}" loading="lazy" decoding="async">
+            </figure>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
+  {% comment %} --- Families --------------------------------------------------------- {% endcomment %}
+  {% if testimonials %}
+    <section class="band">
+      <div class="shell">
+        <h2 class="font-display text-ink text-display font-semibold text-balance">From our families</h2>
+        <div class="mt-10 grid gap-5 md:grid-cols-2">
           {% for t in testimonials %}
             <figure class="bg-sunken rounded-2xl p-6">
               <blockquote class="text-ink leading-relaxed">“{{ t.quote }}”</blockquote>
@@ -92,19 +174,19 @@
             </figure>
           {% endfor %}
         </div>
-      </section>
-    {% endif %}
+      </div>
+    </section>
+  {% endif %}
 
-    <section class="bg-sage-wash rounded-3xl p-8 md:p-12">
-      <h2 class="font-display text-ink text-2xl font-semibold md:text-3xl">Join the Aaroham family</h2>
-      <p class="text-muted mt-3 max-w-prose">
+  {% comment %} --- Come and see ----------------------------------------------------- {% endcomment %}
+  <section class="band band-sage">
+    <div class="shell">
+      <h2 class="font-display text-ink text-display font-semibold text-balance">Join the Aaroham family</h2>
+      <p class="text-muted mt-3 max-w-prose text-lg">
         Come and see the space, meet the teachers, and ask us anything. Visits are unhurried
         and there is no obligation.
       </p>
-      <a href="{% url 'contact' %}"
-         class="btn btn-primary mt-6">
-        Book a visit
-      </a>
-    </section>
-  </div>
+      <a href="{% url 'contact' %}" class="btn btn-primary mt-8">Book a visit</a>
+    </div>
+  </section>
 {% endblock %}
