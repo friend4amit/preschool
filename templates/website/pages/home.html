@@ -104,12 +104,12 @@
         joy of Playway learning into one balanced day.
       </p>
       <ul class="mt-10 grid gap-4 sm:grid-cols-2">
-        <li class="border-line bg-raised rounded-2xl border p-5"><span class="text-clay font-display font-semibold">Indian values &amp; culture</span><p class="text-muted mt-1 text-sm">Festivals, stories and languages the family already knows.</p></li>
-        <li class="border-line bg-raised rounded-2xl border p-5"><span class="text-clay font-display font-semibold">Learning through play &amp; rhythm</span><p class="text-muted mt-1 text-sm">A predictable day that a small child can rely on.</p></li>
-        <li class="border-line bg-raised rounded-2xl border p-5"><span class="text-clay font-display font-semibold">Hands-on, independent learning</span><p class="text-muted mt-1 text-sm">Doing it themselves, at their own pace.</p></li>
-        <li class="border-line bg-raised rounded-2xl border p-5"><span class="text-clay font-display font-semibold">Global practices, thoughtfully applied</span><p class="text-muted mt-1 text-sm">Borrowed where it helps, never imported wholesale.</p></li>
+        <li class="border-line bg-raised rounded-2xl border p-5"><span class="text-leaf font-display font-semibold">Indian values &amp; culture</span><p class="text-muted mt-1 text-sm">Festivals, stories and languages the family already knows.</p></li>
+        <li class="border-line bg-raised rounded-2xl border p-5"><span class="text-leaf font-display font-semibold">Learning through play &amp; rhythm</span><p class="text-muted mt-1 text-sm">A predictable day that a small child can rely on.</p></li>
+        <li class="border-line bg-raised rounded-2xl border p-5"><span class="text-leaf font-display font-semibold">Hands-on, independent learning</span><p class="text-muted mt-1 text-sm">Doing it themselves, at their own pace.</p></li>
+        <li class="border-line bg-raised rounded-2xl border p-5"><span class="text-leaf font-display font-semibold">Global practices, thoughtfully applied</span><p class="text-muted mt-1 text-sm">Borrowed where it helps, never imported wholesale.</p></li>
       </ul>
-      <p class="mt-8"><a class="text-clay font-medium hover:underline" href="{% url 'approach' %}">Read more about our approach →</a></p>
+      <p class="mt-8"><a class="text-leaf font-medium hover:underline" href="{% url 'approach' %}">Read more about our approach →</a></p>
     </div>
   </section>
 
@@ -120,7 +120,7 @@
       <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {% for program in programs %}
           <a href="{% url 'programs' %}"
-             class="border-line bg-raised hover:border-clay flex flex-col overflow-hidden rounded-2xl border transition">
+             class="border-line bg-raised hover:border-leaf flex flex-col overflow-hidden rounded-2xl border transition">
             {% comment %} A programme with no photograph is a text card, not an empty
                grey box — which is what the office will see for a while. {% endcomment %}
             {% if program.image %}
@@ -137,7 +137,7 @@
             </div>
           </a>
         {% empty %}
-          <p class="text-muted">Programmes are being finalised. <a class="text-clay hover:underline" href="{% url 'contact' %}">Ask us</a>.</p>
+          <p class="text-muted">Programmes are being finalised. <a class="text-leaf hover:underline" href="{% url 'contact' %}">Ask us</a>.</p>
         {% endfor %}
       </div>
     </div>
@@ -179,7 +179,7 @@
   {% endif %}
 
   {% comment %} --- Come and see ----------------------------------------------------- {% endcomment %}
-  <section class="band band-sage">
+  <section class="band band-leaf">
     <div class="shell">
       <h2 class="font-display text-ink text-display font-semibold text-balance">Join the Aaroham family</h2>
       <p class="text-muted mt-3 max-w-prose text-lg">

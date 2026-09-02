@@ -40,13 +40,13 @@
     <section class="rounded-card border border-line bg-raised p-4">
       <div class="flex items-center justify-between gap-3">
         <h2 class="font-display text-lg font-semibold text-ink">Guardians</h2>
-        <a href="{% url 'guardian_new' student.pk %}" class="text-sm font-medium text-clay hover:text-clay-deep">Add</a>
+        <a href="{% url 'guardian_new' student.pk %}" class="text-sm font-medium text-leaf hover:text-leaf-deep">Add</a>
       </div>
       <ul class="mt-3 space-y-2 text-sm">
         {% for link in guardian_links %}
           <li class="flex items-baseline justify-between gap-3">
             <span>
-              <a href="{% url 'guardian_edit' link.guardian.pk %}" class="font-medium text-ink hover:text-clay">
+              <a href="{% url 'guardian_edit' link.guardian.pk %}" class="font-medium text-ink hover:text-leaf">
                 {{ link.guardian.full_name }}
               </a>
               <span class="text-muted"> — {{ link.get_relationship_display }}</span>
@@ -63,7 +63,7 @@
     <section class="rounded-card border border-line bg-raised p-4">
       <div class="flex items-center justify-between gap-3">
         <h2 class="font-display text-lg font-semibold text-ink">Emergency contacts</h2>
-        <a href="{% url 'emergency_contact_add' student.pk %}" class="text-sm font-medium text-clay hover:text-clay-deep">Add</a>
+        <a href="{% url 'emergency_contact_add' student.pk %}" class="text-sm font-medium text-leaf hover:text-leaf-deep">Add</a>
       </div>
       <ul class="mt-3 space-y-2 text-sm">
         {% for contact in contacts %}
@@ -81,7 +81,7 @@
     <section class="rounded-card border border-line bg-raised p-4">
       <div class="flex items-center justify-between gap-3">
         <h2 class="font-display text-lg font-semibold text-ink">Enrolment</h2>
-        <a href="{% url 'enrollment_change' student.pk %}" class="text-sm font-medium text-clay hover:text-clay-deep">
+        <a href="{% url 'enrollment_change' student.pk %}" class="text-sm font-medium text-leaf hover:text-leaf-deep">
           {% if open_enrollment %}Move room{% else %}Place{% endif %}
         </a>
       </div>

@@ -26,7 +26,7 @@
 
       <nav aria-label="Primary" class="hidden lg:block">
         <ul class="flex items-center gap-1 text-sm whitespace-nowrap">
-          {% include "website/partials/nav_links.html" with link_class="text-muted hover:bg-clay-wash hover:text-clay rounded-lg px-3 py-2" %}
+          {% include "website/partials/nav_links.html" with link_class="text-muted hover:bg-leaf-wash hover:text-leaf rounded-lg px-3 py-2" %}
         </ul>
       </nav>
 
@@ -45,7 +45,7 @@
             <span class="nav-bars" aria-hidden="true"></span>
           </summary>
           <ul class="nav-drawer-list">
-            {% include "website/partials/nav_links.html" with link_class="block rounded-lg px-3 py-2.5 text-ink hover:bg-clay-wash hover:text-clay" %}
+            {% include "website/partials/nav_links.html" with link_class="block rounded-lg px-3 py-2.5 text-ink hover:bg-leaf-wash hover:text-leaf" %}
           </ul>
         </details>
       </div>
@@ -63,8 +63,8 @@
         </p>
         {% if site.facebook_url or site.instagram_url %}
           <p class="mt-4 flex gap-4 text-sm">
-            {% if site.facebook_url %}<a href="{{ site.facebook_url }}" class="text-clay hover:underline" rel="noopener">Facebook</a>{% endif %}
-            {% if site.instagram_url %}<a href="{{ site.instagram_url }}" class="text-clay hover:underline" rel="noopener">Instagram</a>{% endif %}
+            {% if site.facebook_url %}<a href="{{ site.facebook_url }}" class="text-leaf hover:underline" rel="noopener">Facebook</a>{% endif %}
+            {% if site.instagram_url %}<a href="{{ site.instagram_url }}" class="text-leaf hover:underline" rel="noopener">Instagram</a>{% endif %}
           </p>
         {% endif %}
       </div>
@@ -72,14 +72,14 @@
       <div class="text-muted text-sm">
         <p class="text-ink text-2xs font-medium tracking-widest uppercase">Visit us</p>
         {% if site.address %}<p class="mt-2 whitespace-pre-line">{{ site.address }}</p>{% endif %}
-        {% if site.phone %}<p class="mt-2"><a href="tel:{{ site.phone }}" class="hover:text-clay">{{ site.phone }}</a></p>{% endif %}
-        {% if site.email %}<p><a href="mailto:{{ site.email }}" class="hover:text-clay">{{ site.email }}</a></p>{% endif %}
+        {% if site.phone %}<p class="mt-2"><a href="tel:{{ site.phone }}" class="hover:text-leaf">{{ site.phone }}</a></p>{% endif %}
+        {% if site.email %}<p><a href="mailto:{{ site.email }}" class="hover:text-leaf">{{ site.email }}</a></p>{% endif %}
       </div>
 
       <nav aria-label="Footer" class="text-sm">
         <p class="text-ink text-2xs font-medium tracking-widest uppercase">Pages</p>
         <ul class="text-muted mt-2 space-y-1.5">
-          {% include "website/partials/nav_links.html" with link_class="hover:text-clay" %}
+          {% include "website/partials/nav_links.html" with link_class="hover:text-leaf" %}
         </ul>
       </nav>
     </div>

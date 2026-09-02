@@ -6,7 +6,7 @@
   <div class="flex flex-wrap items-center justify-between gap-3">
     <h1 class="font-display text-2xl font-semibold text-ink">Students</h1>
     <a href="{% url 'student_new' %}"
-       class="rounded-xl bg-clay px-4 py-2.5 text-sm font-medium text-on-clay hover:bg-clay-deep">
+       class="rounded-xl bg-leaf px-4 py-2.5 text-sm font-medium text-on-leaf hover:bg-leaf-deep">
       Admit a student
     </a>
   </div>
@@ -33,7 +33,7 @@
 
     {% comment %} Visible without htmx, hidden once htmx is driving the same form. {% endcomment %}
     <noscript>
-      <button type="submit" class="rounded-xl bg-clay px-4 py-3 font-medium text-on-clay">Search</button>
+      <button type="submit" class="rounded-xl bg-leaf px-4 py-3 font-medium text-on-leaf">Search</button>
     </noscript>
     <button type="submit"
             class="hidden rounded-xl border border-line bg-raised px-4 py-3 text-sm font-medium text-ink md:block">

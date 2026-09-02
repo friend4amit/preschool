@@ -13,7 +13,7 @@
     <p class="mt-3 text-sm text-muted">
       Children:
       {% for child in children %}
-        <a href="{% url 'student_detail' child.pk %}" class="text-clay hover:text-clay-deep">{{ child.display_name }}</a>{% if not forloop.last %}, {% endif %}
+        <a href="{% url 'student_detail' child.pk %}" class="text-leaf hover:text-leaf-deep">{{ child.display_name }}</a>{% if not forloop.last %}, {% endif %}
       {% endfor %}
     </p>
   {% endif %}
@@ -24,7 +24,7 @@
        over, because there is no email or SMS to send it by. {% endcomment %}
     <form method="post" action="{% url 'guardian_account' guardian.pk %}" class="mt-5">
       {% csrf_token %}
-      <button type="submit" class="rounded-xl bg-sage px-5 py-3 text-sm font-medium text-on-clay hover:opacity-90">
+      <button type="submit" class="rounded-xl bg-sage px-5 py-3 text-sm font-medium text-on-leaf hover:opacity-90">
         Create a portal account
       </button>
     </form>
@@ -33,6 +33,6 @@
   <form method="post" class="prose-form mt-6 max-w-xl space-y-4">
     {% csrf_token %}
     {% include "partials/form_fields.html" with form=form %}
-    <button type="submit" class="rounded-xl bg-clay px-5 py-3 font-medium text-on-clay hover:bg-clay-deep">Save</button>
+    <button type="submit" class="rounded-xl bg-leaf px-5 py-3 font-medium text-on-leaf hover:bg-leaf-deep">Save</button>
   </form>
 {% endblock %}

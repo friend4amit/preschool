@@ -13,7 +13,7 @@
     {% csrf_token %}
     {% include "partials/form_fields.html" with form=form %}
     <div class="flex items-center gap-3 pt-2">
-      <button type="submit" class="rounded-xl bg-clay px-5 py-3 font-medium text-on-clay hover:bg-clay-deep">Save</button>
+      <button type="submit" class="rounded-xl bg-leaf px-5 py-3 font-medium text-on-leaf hover:bg-leaf-deep">Save</button>
       <a href="{% url 'student_detail' student.pk %}" class="text-sm text-muted hover:text-ink">Cancel</a>
     </div>
   </form>

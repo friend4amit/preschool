@@ -13,8 +13,11 @@
 /* ---------------------------------------------------------------------------
    Design tokens.
 
-   "Aaroham" is Sanskrit for ascent. The palette is warm and grounded — paper,
-   clay, sage, marigold — rather than primary-colour nursery brights. Every
+   "Aaroham" is Sanskrit for ascent, and the palette is a growing thing: warm
+   green on warm paper, with clay and marigold as the counterpoints. Green leads
+   because it is what the school is about — things growing at their own pace — and
+   because it stays warm and grounded rather than turning into primary-colour
+   nursery brights. Every
    colour is a CSS custom property so the dark scheme below can re-point the
    same token and every generated utility follows.
 --------------------------------------------------------------------------- */
@@ -28,16 +31,29 @@
   --color-ink:          #241e1a;  /* primary text */
   --color-muted:        #6b5f55;  /* secondary text */
 
-  /* Brand */
-  --color-clay:         #b4542e;  /* primary action, links */
-  --color-clay-deep:    #8e3f20;  /* hover / pressed */
-  --color-clay-wash:    #f6e5da;  /* tinted panels */
-  --color-sage:         #40614f;  /* calm secondary */
-  --color-sage-wash:    #e3ece5;
+  /* Brand.
+     leaf is the primary: every button, link and eyebrow. A warm, olive-leaning
+     green rather than a cool one, so it sits on the warm paper instead of fighting
+     it. 5.4:1 against the page and 5.7:1 under white — both clear of AA, which a
+     lighter, prettier green would not have been. */
+  --color-leaf:         #4b6b36;  /* primary action, links */
+  --color-leaf-deep:    #3a5427;  /* hover / pressed */
+  --color-leaf-wash:    #e9efe1;  /* tinted panels and bands */
+  --color-on-leaf:      #ffffff;  /* text on a filled leaf button */
+
+  /* Counterpoints, used sparingly and never as the action colour. Terracotta
+     against green is what stops the site reading as a garden centre. */
+  --color-clay:         #b4542e;
+  --color-clay-deep:    #8e3f20;
+  --color-clay-wash:    #f6e5da;
   --color-marigold:     #c98a1e;  /* highlight, never a large field */
-  --color-stop:         #a33a2b;  /* form errors — semantic, never the accent */
+
+  /* Semantic, not decorative: sage means "this went well", stop means "this did
+     not". Neither is ever borrowed for ordinary UI. */
+  --color-sage:         #40614f;
+  --color-sage-wash:    #e3ece5;
+  --color-stop:         #a33a2b;
   --color-stop-wash:    #f9e7e4;
-  --color-on-clay:      #ffffff;  /* text on a filled clay button */
 
   /* Type. One display face, one body face, both with real fallbacks. */
   --font-display: "Fraunces", "Iowan Old Style", Georgia, "Times New Roman", serif;
@@ -72,13 +88,16 @@
     --color-ink:        #f2ebe3;
     --color-muted:      #a99b8d;
 
+    --color-leaf:       #9cc47f;
+    --color-leaf-deep:  #b5d89a;
+    --color-leaf-wash:  #232e1c;
+    --color-on-leaf:    #16200f;
     --color-clay:       #e08757;
     --color-clay-deep:  #f0a077;
     --color-clay-wash:  #33241b;
     --color-sage:       #8fb79e;
     --color-sage-wash:  #1f2a23;
     --color-marigold:   #e0b055;
-    --color-on-clay:    #20150f;
   }
 }
 
@@ -112,7 +131,7 @@
 
   /* Keyboard focus stays visible everywhere, in both schemes. */
   :focus-visible {
-    outline: 2px solid var(--color-clay);
+    outline: 2px solid var(--color-leaf);
     outline-offset: 2px;
   }
 }
@@ -125,9 +144,9 @@
     top: -3rem;
     z-index: 50;
     border-radius: 0.5rem;
-    background-color: var(--color-clay);
+    background-color: var(--color-leaf);
     padding: 0.5rem 0.875rem;
-    color: var(--color-on-clay);
+    color: var(--color-on-leaf);
     transition: top 150ms ease;
   }
 
@@ -166,9 +185,9 @@
   .prose-form input:focus-visible,
   .prose-form select:focus-visible,
   .prose-form textarea:focus-visible {
-    outline: 2px solid var(--color-clay);
+    outline: 2px solid var(--color-leaf);
     outline-offset: 2px;
-    border-color: var(--color-clay);
+    border-color: var(--color-leaf);
   }
 
   /* Checkboxes opt out of the block above: they are laid out beside their label by
@@ -178,7 +197,7 @@
     height: 1.15rem;
     width: 1.15rem;
     flex-shrink: 0;
-    accent-color: var(--color-clay);
+    accent-color: var(--color-leaf);
   }
 
   .prose-form ::placeholder {
@@ -270,12 +289,12 @@
   }
 
   .btn-primary {
-    background-color: var(--color-clay);
-    color: var(--color-on-clay);
+    background-color: var(--color-leaf);
+    color: var(--color-on-leaf);
   }
 
   .btn-primary:hover {
-    background-color: var(--color-clay-deep);
+    background-color: var(--color-leaf-deep);
   }
 
   .btn-ghost {
@@ -285,7 +304,7 @@
   }
 
   .btn-ghost:hover {
-    background-color: var(--color-clay-wash);
+    background-color: var(--color-leaf-wash);
   }
 
   /* On a photograph rather than on paper — the hero's secondary action. */
@@ -313,7 +332,7 @@
     font-size: var(--text-sm);
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--color-clay);
+    color: var(--color-leaf);
   }
 
   /* -------------------------------------------------------------------------
@@ -350,7 +369,7 @@
   }
 
   .band-tint  { background-color: var(--color-sunken); }
-  .band-sage  { background-color: var(--color-sage-wash); }
+  .band-leaf  { background-color: var(--color-leaf-wash); }
   .band-clay  { background-color: var(--color-clay-wash); }
 
   /* A photograph in a frame, rounded and clipped. Deliberately NOT an organic
@@ -429,7 +448,7 @@
   .nav-bars::after  { top: 6px; }
 
   .nav-drawer[open] .nav-toggle {
-    background-color: var(--color-clay-wash);
+    background-color: var(--color-leaf-wash);
   }
 
   .nav-drawer-list {
@@ -560,7 +579,7 @@
     font-size: var(--text-display);
     line-height: 1.05;
     font-weight: 600;
-    color: var(--color-clay);
+    color: var(--color-leaf);
   }
 
   .stat-label {

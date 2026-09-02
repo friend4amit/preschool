@@ -51,7 +51,7 @@
             {% if field.name != 'website' %}
               <div>
                 <label for="{{ field.id_for_label }}" class="text-ink block text-sm font-medium">
-                  {{ field.label }}{% if field.field.required %}<span class="text-clay" aria-hidden="true">*</span>{% endif %}
+                  {{ field.label }}{% if field.field.required %}<span class="text-leaf" aria-hidden="true">*</span>{% endif %}
                 </label>
                 {{ field }}
                 {% if field.help_text %}<p class="text-muted mt-1 text-xs">{{ field.help_text }}</p>{% endif %}
@@ -92,14 +92,14 @@
         {% if site.phone %}
           <div>
             <h2 class="font-display text-ink text-lg font-semibold">Call</h2>
-            <p class="mt-2"><a class="text-clay hover:underline" href="tel:{{ site.phone }}">{{ site.phone }}</a></p>
+            <p class="mt-2"><a class="text-leaf hover:underline" href="tel:{{ site.phone }}">{{ site.phone }}</a></p>
           </div>
         {% endif %}
 
         {% if site.email %}
           <div>
             <h2 class="font-display text-ink text-lg font-semibold">Write</h2>
-            <p class="mt-2"><a class="text-clay break-all hover:underline" href="mailto:{{ site.email }}">{{ site.email }}</a></p>
+            <p class="mt-2"><a class="text-leaf break-all hover:underline" href="mailto:{{ site.email }}">{{ site.email }}</a></p>
           </div>
         {% endif %}
 

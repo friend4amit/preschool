@@ -41,11 +41,11 @@
                 <img src="{{ member.photo.url }}" alt="" loading="lazy" decoding="async">
               </div>
             {% else %}
-              <div class="bg-clay-wash text-clay font-display mb-5 flex h-20 w-20 items-center justify-center rounded-full text-2xl font-semibold"
+              <div class="bg-leaf-wash text-leaf font-display mb-5 flex h-20 w-20 items-center justify-center rounded-full text-2xl font-semibold"
                    aria-hidden="true">{{ member.name|slice:":1" }}</div>
             {% endif %}
             <h2 class="font-display text-ink text-lg font-semibold">{{ member.name }}</h2>
-            {% if member.role %}<p class="text-clay text-sm font-medium">{{ member.role }}</p>{% endif %}
+            {% if member.role %}<p class="text-leaf text-sm font-medium">{{ member.role }}</p>{% endif %}
             {% if member.credentials %}<p class="text-muted mt-1 text-xs">{{ member.credentials }}</p>{% endif %}
             {% if member.bio %}<p class="text-muted mt-3 text-sm leading-relaxed">{{ member.bio }}</p>{% endif %}
           </article>
@@ -56,7 +56,7 @@
     </div>
   </section>
 
-  <section class="band band-sage">
+  <section class="band band-leaf">
     <div class="shell">
       <h2 class="font-display text-ink text-display font-semibold text-balance">Meet them in person</h2>
       <p class="text-muted mt-3 max-w-prose text-lg">
