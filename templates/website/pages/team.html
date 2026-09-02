@@ -15,7 +15,7 @@
 
   <div class="mt-12 grid gap-6 sm:grid-cols-2">
     {% for member in team %}
-      <article class="border-line bg-raised rounded-2xl border p-6">
+      <article class="card">
         {% if member.photo %}
           <img src="{{ member.photo.url }}" alt=""
                class="mb-4 h-24 w-24 rounded-full object-cover"

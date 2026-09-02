@@ -5,7 +5,7 @@
 
 {% block content %}
   <section class="mb-16 md:mb-24">
-    <p class="font-display text-clay text-sm tracking-widest uppercase">Pure beginnings</p>
+    <p class="eyebrow">Pure beginnings</p>
     <h1 class="font-display text-ink mt-3 text-4xl leading-tight font-semibold text-balance md:text-6xl">
       Where children feel safe, valued, and free to grow.
     </h1>
@@ -15,11 +15,11 @@
     </p>
     <div class="mt-8 flex flex-col gap-3 sm:flex-row">
       <a href="{% url 'contact' %}"
-         class="bg-clay text-on-clay hover:bg-clay-deep inline-flex items-center justify-center rounded-xl px-6 py-3 font-medium transition">
+         class="btn btn-primary">
         Book a visit
       </a>
       <a href="{% url 'programs' %}"
-         class="border-line text-ink hover:bg-clay-wash inline-flex items-center justify-center rounded-xl border px-6 py-3 font-medium transition">
+         class="btn btn-ghost">
         See our programmes
       </a>
     </div>
@@ -31,19 +31,19 @@
       The first years shape how a child feels about learning for the rest of their life.
     </p>
     <div class="mt-8 grid gap-5 md:grid-cols-2">
-      <div class="border-line bg-raised rounded-2xl border p-6">
+      <div class="card">
         <h3 class="font-display text-ink text-lg font-semibold">Warm interaction, secure attachment</h3>
         <p class="text-muted mt-2 text-sm leading-relaxed">Direct, warm contact — eye contact, a hug when it is needed — forms secure attachments and helps children learn to manage their own emotions.</p>
       </div>
-      <div class="border-line bg-raised rounded-2xl border p-6">
+      <div class="card">
         <h3 class="font-display text-ink text-lg font-semibold">Learning from each other</h3>
         <p class="text-muted mt-2 text-sm leading-relaxed">Time with other children and with teachers builds communication, cooperation and empathy in a way no worksheet can.</p>
       </div>
-      <div class="border-line bg-raised rounded-2xl border p-6">
+      <div class="card">
         <h3 class="font-display text-ink text-lg font-semibold">Safety, nutrition and care</h3>
         <p class="text-muted mt-2 text-sm leading-relaxed">Clean, safe surroundings and proper food are the floor everything else stands on — alongside emotional, social and physical development.</p>
       </div>
-      <div class="border-line bg-raised rounded-2xl border p-6">
+      <div class="card">
         <h3 class="font-display text-ink text-lg font-semibold">Teachers trained for this age</h3>
         <p class="text-muted mt-2 text-sm leading-relaxed">Our educators are trained to guide children through joyful play, hands-on exploration and imaginative work that sparks curiosity.</p>
       </div>
@@ -101,7 +101,7 @@
       and there is no obligation.
     </p>
     <a href="{% url 'contact' %}"
-       class="bg-clay text-on-clay hover:bg-clay-deep mt-6 inline-flex items-center rounded-xl px-6 py-3 font-medium transition">
+       class="btn btn-primary mt-6">
       Book a visit
     </a>
   </section>

@@ -1,0 +1,22 @@
+Fraunces and Karla are licensed under the SIL Open Font License, Version 1.1.
+
+  Fraunces  — Copyright (c) Undercase Type
+              https://github.com/undercasetype/Fraunces
+  Karla     — Copyright (c) Jonathan Pinhorn
+              https://github.com/googlefonts/karla
+
+Full licence text: https://openfontlicense.org/
+
+These are the `latin` and `latin-ext` subsets of the variable fonts, taken from
+Google Fonts and self-hosted deliberately: loading them from fonts.gstatic.com is a
+third-party request that logs the IP of every parent who opens the site, which is
+what docs/plan.md rules out under the DPDP Act. Self-hosting also removes a
+render-blocking cross-origin connection on a slow mobile connection.
+
+To refresh, request the variable ranges (not fixed weights) so one file serves every
+weight:
+
+  https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,100..900&family=Karla:wght@200..800&display=swap
+
+fetched with a modern browser User-Agent, then download the latin and latin-ext
+woff2 files it names.

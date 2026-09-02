@@ -14,7 +14,7 @@
 
   <div class="mt-12 space-y-5">
     {% for program in programs %}
-      <article class="border-line bg-raised rounded-2xl border p-6 md:flex md:items-start md:gap-8 md:p-8">
+      <article class="card md:flex md:items-start md:gap-8 md:p-8">
         <div class="md:w-44 md:shrink-0">
           <p class="text-marigold text-xs font-medium tracking-widest uppercase">{{ program.age_range_display }}</p>
           <h2 class="font-display text-ink mt-1 text-xl font-semibold">{{ program.name }}</h2>
@@ -44,7 +44,7 @@
       think another school suits them better.
     </p>
     <a href="{% url 'contact' %}"
-       class="bg-clay text-on-clay hover:bg-clay-deep mt-6 inline-flex items-center rounded-xl px-6 py-3 font-medium transition">
+       class="btn btn-primary mt-6">
       Ask us
     </a>
   </section>
