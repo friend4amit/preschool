@@ -1,0 +1,67 @@
+{% comment %} One child's row. An htmx target, so it extends nothing.
+
+   Three buttons rather than a dropdown: the plan's target is a full room marked in
+   under a minute standing up, and a select box costs two taps and a scroll where a
+   button costs one. Late, half day and reasons live behind "More", because they are
+   the exception and the exception should not slow down the ninety percent.
+
+   Each button is a real <form>. htmx swaps this row back; with JavaScript off the
+   same button posts and the page re-renders. On school wifi that difference is the
+   whole screen working or not.
+{% endcomment %}
+
+{% with record=row.record student=row.student %}
+<li id="row-{{ student.pk }}"
+    class="border-line flex flex-wrap items-center gap-3 border-b px-1 py-3 last:border-b-0
+           {% if not record %}bg-marigold-wash/40{% endif %}">
+
+  <span class="min-w-0 flex-1">
+    <span class="text-ink block truncate font-medium">{{ student.display_name }}</span>
+    <span class="text-2xs text-muted block">
+      {% if record %}
+        {{ record.get_status_display }}{% if record.arrived_at %} · in {{ record.arrived_at|time:"H:i" }}{% endif %}{% if record.left_at %} · out {{ record.left_at|time:"H:i" }}{% endif %}{% if record.reason %} · {{ record.reason }}{% endif %}
+        {% if record.pickup %} · collected by {{ record.pickup.collected_by }}{% endif %}
+      {% else %}
+        Not marked
+      {% endif %}
+    </span>
+  </span>
+
+  {% if student.has_medical_flags %}
+    {% comment %} The allergy marker follows the child onto the register, because the
+       person holding a snack is the person marking this row. {% endcomment %}
+    <span class="bg-stop-wash text-stop rounded-full px-2 py-0.5 text-2xs font-medium"
+          title="{{ student.allergies|default:'Medical note on file' }}">Medical</span>
+  {% endif %}
+
+  <span class="flex shrink-0 items-center gap-1.5">
+    {% for value, label in statuses %}
+      {% if value == "present" or value == "absent" %}
+        <form method="post"
+              action="{% url 'attendance_mark' room.pk student.pk %}?date={{ day|date:'Y-m-d' }}"
+              hx-post="{% url 'attendance_mark' room.pk student.pk %}?date={{ day|date:'Y-m-d' }}"
+              hx-target="#row-{{ student.pk }}"
+              hx-swap="outerHTML">
+          {% csrf_token %}
+          <input type="hidden" name="status" value="{{ value }}">
+          <input type="hidden" name="date" value="{{ day|date:'Y-m-d' }}">
+          <button type="submit"
+                  class="mark-btn {% if record.status == value %}mark-btn-on-{{ value }}{% endif %}">
+            {{ label }}
+          </button>
+        </form>
+      {% endif %}
+    {% endfor %}
+
+    <a href="{% url 'attendance_detail' room.pk student.pk %}?date={{ day|date:'Y-m-d' }}"
+       class="mark-btn">More</a>
+
+    {% if record %}
+      <a href="{% url 'attendance_pickup' record.pk %}"
+         class="mark-btn {% if record.pickup %}mark-btn-done{% endif %}">
+        {% if record.pickup %}Collected{% else %}Pickup{% endif %}
+      </a>
+    {% endif %}
+  </span>
+</li>
+{% endwith %}

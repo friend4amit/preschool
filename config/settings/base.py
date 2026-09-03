@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "django_tasks",
     "django_tasks_db",
     "simple_history",
+    "apps.attendance",
     "apps.core",
     "apps.people",
     "apps.website",

@@ -1,0 +1,21 @@
+{% extends "layouts/staff.html" %}
+
+{% block title %}{{ student.display_name }} — {{ day|date:"j M" }} — Aaroham{% endblock %}
+
+{% block staff_content %}
+  <p class="text-2xs text-muted uppercase tracking-widest">
+    <a href="{% url 'attendance_day' room.pk %}?date={{ day|date:'Y-m-d' }}" class="hover:text-ink">{{ room.name }}</a>
+  </p>
+  <h1 class="font-display text-ink mt-1 text-2xl font-semibold">{{ student.display_name }}</h1>
+  <p class="text-muted mt-1 text-sm">{{ day|date:"l, j F Y" }}</p>
+
+  <form method="post" class="prose-form mt-6 max-w-md space-y-4">
+    {% csrf_token %}
+    <input type="hidden" name="date" value="{{ day|date:'Y-m-d' }}">
+    {% include "partials/form_fields.html" with form=form %}
+    <div class="flex items-center gap-3 pt-2">
+      <button type="submit" class="btn btn-primary">Save</button>
+      <a href="{% url 'attendance_day' room.pk %}?date={{ day|date:'Y-m-d' }}" class="text-sm text-muted hover:text-ink">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

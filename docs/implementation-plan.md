@@ -324,6 +324,18 @@ Statuses: `present` · `absent` · `late` · `half_day` · `holiday`.
 - Late arrival and early pickup times, with an optional note.
 - **Pickup record at checkout**: who collected the child, chosen from that student's `AuthorizedPickup` list, with an explicit override path (with a reason and the staff member's name) for the parent who phones ahead. This is the screen where the Phase 2 safety records earn their keep — an authorised-pickup list nobody checks at the door is decoration.
 - Backdated correction, permission-gated and recorded in history.
+  **Built as:** a teacher may mark today and yesterday; anything older is a correction
+  and needs `branch_admin`. Nobody marks the future, not even an admin — a register
+  records what happened, and a tap made in advance is a guess that gets read later as
+  a fact. The one-day window is a judgement, not something this plan handed down;
+  `BACKDATE_WINDOW_DAYS` in `apps/attendance/selectors.py` moves it.
+
+  "Recorded in history" here means `marked_by` and `marked_at` on the row, not a
+  `django-simple-history` shadow table. [`plan.md`](./plan.md) is explicit that
+  simple-history goes on `Student`, `Consent` and `Payment` **only**, and that
+  decision governs — this document owns sequence, not that call. The register answers
+  "who last touched this, and when", which is the question a backdated correction
+  raises.
 - Parent view: my child's month, with a simple calendar.
 - Reports: monthly attendance percentage per child and per classroom.
 

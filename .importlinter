@@ -12,6 +12,7 @@ root_packages =
 name = Views -> services -> selectors -> models, never upward
 type = layers
 containers =
+    apps.attendance
     apps.core
     apps.people
     apps.website

@@ -1,0 +1,89 @@
+{% extends "layouts/staff.html" %}
+
+{% block title %}Attendance — {{ room.name }} — Aaroham{% endblock %}
+
+{% block staff_content %}
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <h1 class="font-display text-ink text-2xl font-semibold">{{ room.name }}</h1>
+      <p class="text-muted mt-1 text-sm">
+        {{ day|date:"l, j F Y" }}{% if not is_today %} · <span class="text-clay">not today</span>{% endif %}
+      </p>
+    </div>
+
+    <a href="{% url 'attendance_report' room.pk %}"
+       class="border-line bg-raised text-ink hover:bg-sunken rounded-xl border px-4 py-2.5 text-sm font-medium">
+      This month
+    </a>
+  </div>
+
+  {% comment %} Room and date switchers as plain links — no JavaScript, and each one is
+     a URL a teacher can bookmark. {% endcomment %}
+  {% if rooms|length > 1 %}
+    <nav aria-label="Classrooms" class="-mx-1 mt-4 overflow-x-auto">
+      <ul class="flex gap-1 text-sm whitespace-nowrap">
+        {% for other in rooms %}
+          <li>
+            <a href="{% url 'attendance_day' other.pk %}?date={{ day|date:'Y-m-d' }}"
+               class="rounded-lg px-3 py-2 {% if other.pk == room.pk %}bg-leaf text-on-leaf{% else %}text-muted hover:bg-sunken{% endif %}">
+              {{ other.name }}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </nav>
+  {% endif %}
+
+  <nav aria-label="Recent days" class="-mx-1 mt-2 overflow-x-auto">
+    <ul class="flex gap-1 text-sm whitespace-nowrap">
+      {% for other in recent %}
+        <li>
+          <a href="{% url 'attendance_day' room.pk %}?date={{ other|date:'Y-m-d' }}"
+             class="rounded-lg px-3 py-1.5 {% if other == day %}bg-sunken text-ink font-medium{% else %}text-muted hover:bg-sunken{% endif %}">
+            {{ other|date:"D j M" }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </nav>
+
+  {% comment %} The one-tap start of a morning, and the number a teacher checks before
+     putting the phone away. {% endcomment %}
+  <div class="border-line bg-raised mt-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4">
+    <p class="text-sm">
+      {% if unmarked %}
+        <span class="text-ink font-semibold">{{ unmarked }}</span>
+        <span class="text-muted">still to mark</span>
+      {% else %}
+        <span class="text-leaf font-semibold">All marked.</span>
+      {% endif %}
+    </p>
+
+    {% if unmarked %}
+      <form method="post" action="{% url 'attendance_all_present' room.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="date" value="{{ day|date:'Y-m-d' }}">
+        <button type="submit" class="btn btn-primary btn-sm">
+          Mark the remaining {{ unmarked }} present
+        </button>
+      </form>
+    {% endif %}
+  </div>
+
+  {% if rows %}
+    <ul class="border-line bg-raised mt-4 overflow-hidden rounded-2xl border px-3">
+      {% for row in rows %}
+        {% include "attendance/partials/row.html" %}
+      {% endfor %}
+    </ul>
+    <p class="text-muted mt-3 text-2xs">
+      Unmarked children are highlighted. Tap a name's <strong>More</strong> for a late
+      arrival, an early pickup or a note.
+    </p>
+  {% else %}
+    <p class="border-line text-muted mt-4 rounded-2xl border border-dashed px-4 py-10 text-center text-sm">
+      Nobody is enrolled in {{ room.name }} yet.
+      <a class="text-leaf hover:underline" href="{% url 'student_list' %}">Place a child</a>.
+    </p>
+  {% endif %}
+{% endblock %}
