@@ -41,11 +41,19 @@
   --color-leaf-wash:    #e9efe1;  /* the quietest tint — hovers, small panels */
   --color-on-leaf:      #ffffff;  /* text on a filled leaf button */
 
-  /* The panel green. A BACKGROUND ONLY, and the name says so because the numbers
-     demand it: 10:1 under ink, but 1.65:1 under white. Text on it is --color-ink,
-     never white and never --color-leaf (3.5:1, large text at best). A leaf button
-     sits on it happily — 3.5:1 clears the 3:1 required of a UI component. */
-  --color-leaf-panel:   #aad688;
+  /* #aad688 lives here as `spring`, and it is used as a SOLID — marks, pills, the
+     rule under a heading — where its brightness is the whole point.
+     A BACKGROUND ONLY as far as text goes: 9.9:1 under ink, 1.66:1 under white. */
+  --color-spring:       #aad688;
+
+  /* And a warmer, softer relative for large fields.
+     Straight #aad688 across a whole band read acidic against #fbf7f1, and the
+     reason is temperature rather than taste: the paper sits around 35° hue and
+     #aad688 at 95°, so a big flat slab of it fights the page instead of belonging
+     to it. This is the same green pulled toward yellow and let down a little in
+     saturation — near enough to read as the same colour, far enough to sit still.
+     10.3:1 under ink, 5.3:1 under leaf-deep. */
+  --color-leaf-panel:   #bcd590;
 
   /* The accent family.
      Five hues, each with a wash to sit on and a deep to write in. All of them are
@@ -115,10 +123,11 @@
     --color-leaf-deep:  #b5d89a;
     --color-leaf-wash:  #232e1c;
     --color-on-leaf:    #16200f;
-    /* Not #aad688 dimmed — a light panel on a dark page glares. The dark scheme
-       wants the same *role* (a green panel that lifts off the background) at the
-       opposite end of the scale. */
+    /* Not the light green dimmed — a light panel on a dark page glares. The dark
+       scheme wants the same *role* (a green panel that lifts off the background) at
+       the opposite end of the scale. */
     --color-leaf-panel: #2b3d20;
+    --color-spring:     #8fbf6c;
     --color-clay:       #e08757;
     --color-clay-deep:  #f0a077;
     --color-clay-wash:  #33241b;
@@ -367,7 +376,11 @@
     font-size: var(--text-sm);
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--color-leaf);
+    /* deep, not leaf. This is small uppercase text and it now sits on the panel
+       green as often as on paper, where leaf measures 3.78:1 — under AA. deep is
+       5.3:1 there and better everywhere else, so there is no case for the lighter
+       one. */
+    color: var(--color-leaf-deep);
   }
 
   /* -------------------------------------------------------------------------
@@ -765,4 +778,99 @@
   .band-sky      { background-color: var(--color-sky-wash); }
   .band-marigold { background-color: var(--color-marigold-wash); }
   .band-berry    { background-color: var(--color-berry-wash); }
+}
+
+@layer components {
+  /* -------------------------------------------------------------------------
+     The bold set. Piloted on About before it goes anywhere else.
+
+     "Bolder" here means larger areas of committed colour and higher contrast
+     between neighbouring sections — not more hues. Five is already the ceiling;
+     a sixth would stop being a palette and start being a swatch book.
+  ------------------------------------------------------------------------- */
+
+  /* A band that IS its colour, white type on the deep. The loudest thing on a
+     page, so a page gets one. */
+  .band-solid {
+    background-color: var(--accent-ink);
+    color: #ffffff;
+  }
+
+  .band-solid h1,
+  .band-solid h2,
+  .band-solid h3,
+  .band-solid .eyebrow {
+    color: #ffffff;
+  }
+
+  .band-solid .btn-ghost {
+    border-color: color-mix(in oklab, #ffffff 60%, transparent);
+    color: #ffffff;
+  }
+
+  .band-solid .btn-ghost:hover {
+    background-color: color-mix(in oklab, #ffffff 15%, transparent);
+  }
+
+  /* A heavier card: the accent stated along the top edge rather than whispered
+     around the border. */
+  .card-bold {
+    border-radius: var(--radius-card);
+    background-color: var(--accent-wash);
+    padding: --spacing(7);
+    border: 1px solid color-mix(in oklab, var(--accent) 35%, transparent);
+    border-top: 5px solid var(--accent);
+  }
+
+  .card-bold .card-title {
+    color: var(--accent-ink);
+  }
+
+  .card-mark-lg {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 3.5rem;
+    width: 3.5rem;
+    border-radius: 9999px;
+    background-color: var(--accent);
+    color: var(--accent-on);
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  /* A photograph with a colour block shifted out behind it. Pure decoration, and
+     the one piece of decoration on the page that earns itself — it is what stops a
+     two-column text-and-photo row reading like a brochure template.
+     `inset-inline-start` rather than `left` so it flips with the writing direction
+     the day Hindi arrives. */
+  .photo-offset {
+    position: relative;
+  }
+
+  .photo-offset::before {
+    content: "";
+    position: absolute;
+    inset-block: --spacing(6) calc(--spacing(6) * -1);
+    inset-inline: calc(--spacing(6) * -1) --spacing(6);
+    border-radius: var(--radius-card);
+    background-color: var(--accent-wash);
+    z-index: 0;
+  }
+
+  .photo-offset > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* A short rule under a heading, in the brightest green we have. This is where
+     #aad688 belongs — small, solid, and load-bearing rather than spread thin. */
+  .rule-spring {
+    display: block;
+    height: 0.375rem;
+    width: 3.5rem;
+    border-radius: 9999px;
+    background-color: var(--color-spring);
+  }
 }
