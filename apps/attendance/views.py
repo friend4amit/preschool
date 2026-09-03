@@ -18,6 +18,7 @@ from datetime import date as date_type
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.exceptions import PermissionDenied
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
@@ -40,6 +41,21 @@ def _day_from(request: HttpRequest) -> date_type:
         return date_type.fromisoformat(raw)
     except ValueError:
         return timezone.localdate()
+
+
+def _check_may_mark(request: HttpRequest, marking: date_type) -> None:
+    """403, not 404, and the difference is deliberate.
+
+    The 404-never-403 rule elsewhere is about not leaking whether a record exists.
+    Here the user can already see this register — what they may not do is rewrite a
+    date this far back, and saying so plainly is more use than pretending the page
+    vanished.
+    """
+    if not selectors.may_mark_on(request.user, marking):
+        raise PermissionDenied(
+            "Marking a date this far back is a correction, and corrections are the "
+            "branch admin's to make. Nobody marks a date in the future."
+        )
 
 
 def _room_or_404(request: HttpRequest, classroom_id: int):
@@ -101,6 +117,7 @@ def mark(request: HttpRequest, classroom_id: int, student_id: int) -> HttpRespon
         raise Http404("No such student.")
 
     marking = _day_from(request)
+    _check_may_mark(request, marking)
     form = forms.MarkForm(request.POST)
     if form.is_valid():
         services.mark(
@@ -120,6 +137,7 @@ def all_present(request: HttpRequest, classroom_id: int) -> HttpResponse:
     """The one-tap start of a morning."""
     room = _room_or_404(request, classroom_id)
     marking = _day_from(request)
+    _check_may_mark(request, marking)
     written = services.mark_all_present(
         classroom=room,
         students=list(people_selectors.roster(room.pk, user=request.user)),
@@ -146,6 +164,7 @@ def detail(request: HttpRequest, classroom_id: int, student_id: int) -> HttpResp
     form = forms.DetailForm(request.POST or None, initial=_initial_from(existing))
 
     if request.method == "POST" and form.is_valid():
+        _check_may_mark(request, marking)
         services.mark(
             student=student,
             day=marking,

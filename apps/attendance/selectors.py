@@ -12,9 +12,10 @@ from datetime import date as date_type
 from datetime import timedelta
 
 from django.db.models import Count, Q, QuerySet
+from django.utils import timezone
 
 from apps.attendance.models import AttendanceRecord, AttendanceStatus, StaffAttendance
-from apps.core.models import Classroom, User
+from apps.core.models import Classroom, Role, User
 from apps.core.selectors import branches_for_user, classrooms_for_user
 from apps.people.models import Student
 from apps.people.selectors import children_of, roster, students_for_user
@@ -130,3 +131,28 @@ def staff_records_for_user(user: User) -> QuerySet[StaffAttendance]:
 def recent_days(day: date_type, count: int = 7) -> list[date_type]:
     """The last few dates, newest first — for the date switcher on the grid."""
     return [day - timedelta(days=offset) for offset in range(count)]
+
+
+# A teacher who forgets to mark until the next morning is ordinary; a teacher editing
+# last month is a correction, and corrections are the branch admin's call. One day is
+# the line, and it is a judgement rather than a rule handed down by the plan — moving
+# it is a one-line change here.
+BACKDATE_WINDOW_DAYS = 1
+
+
+def may_mark_on(user: User, day: date_type) -> bool:
+    """Whether this user may write a register for this date.
+
+    Nobody marks the future: a register is a record of what happened, and a tap made
+    in advance is a guess that will be read later as a fact.
+    """
+    if not user.is_authenticated:
+        return False
+
+    today = timezone.localdate()
+    if day > today:
+        return False
+    if (today - day).days <= BACKDATE_WINDOW_DAYS:
+        return True
+
+    return user.is_superuser or user.memberships.filter(role=Role.BRANCH_ADMIN).exists()

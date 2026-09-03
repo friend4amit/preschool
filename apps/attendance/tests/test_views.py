@@ -257,3 +257,70 @@ def test_the_register_reaches_a_room_without_being_told_which(staff, room):
     response = staff.get(reverse("attendance_today"))
     assert response.status_code == 302
     assert str(room.pk) in response.url or str(Classroom.objects.first().pk) in response.url
+
+
+# --- backdating ------------------------------------------------------------------------
+
+
+def test_a_teacher_may_correct_yesterday(staff, room, child):
+    """Forgetting to mark until the next morning is ordinary, not an irregularity."""
+    yesterday = timezone.localdate() - timedelta(days=1)
+    response = staff.post(
+        reverse("attendance_mark", args=[room.pk, child.pk]),
+        {"status": "present", "date": yesterday.isoformat()},
+    )
+    assert response.status_code == 302
+    assert AttendanceRecord.objects.get(student=child).date == yesterday
+
+
+def test_a_teacher_may_not_rewrite_last_month(staff, room, child):
+    """403, not 404: the teacher can see this register, they just may not rewrite a
+    date this far back. Pretending the page vanished would be less useful."""
+    long_ago = timezone.localdate() - timedelta(days=40)
+    response = staff.post(
+        reverse("attendance_mark", args=[room.pk, child.pk]),
+        {"status": "present", "date": long_ago.isoformat()},
+    )
+    assert response.status_code == 403
+    assert not AttendanceRecord.objects.exists()
+
+
+def test_a_branch_admin_may_correct_last_month(client, branch, room, child):
+    admin = User.objects.create_user(phone="9100000096")
+    grant_membership(user=admin, branch=branch, role=Role.BRANCH_ADMIN)
+    client.force_login(admin)
+
+    long_ago = timezone.localdate() - timedelta(days=40)
+    response = client.post(
+        reverse("attendance_mark", args=[room.pk, child.pk]),
+        {"status": "present", "date": long_ago.isoformat()},
+    )
+    assert response.status_code == 302
+    assert AttendanceRecord.objects.get(student=child).date == long_ago
+
+
+def test_nobody_marks_the_future(client, branch, room, child):
+    """A register records what happened. A tap made in advance is a guess that will be
+    read later as a fact — so not even a branch admin may do it."""
+    admin = User.objects.create_user(phone="9100000095")
+    grant_membership(user=admin, branch=branch, role=Role.BRANCH_ADMIN)
+    client.force_login(admin)
+
+    tomorrow = timezone.localdate() + timedelta(days=1)
+    response = client.post(
+        reverse("attendance_mark", args=[room.pk, child.pk]),
+        {"status": "present", "date": tomorrow.isoformat()},
+    )
+    assert response.status_code == 403
+    assert not AttendanceRecord.objects.exists()
+
+
+def test_who_marked_it_and_when_is_recorded(staff, room, child, teacher):
+    """What "recorded in history" means here. docs/plan.md limits simple-history to
+    Student, Consent and Payment, so the register carries marked_by and marked_at
+    rather than a shadow table — who last touched a row, and when."""
+    staff.post(reverse("attendance_mark", args=[room.pk, child.pk]), {"status": "present"})
+    record = AttendanceRecord.objects.get(student=child)
+
+    assert record.marked_by == teacher
+    assert record.marked_at is not None

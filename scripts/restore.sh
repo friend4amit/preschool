@@ -191,6 +191,7 @@ django.setup()
 
 from apps.core.models import Branch, Consent, Organization, User
 from apps.people.models import Enrollment, Guardian, Student
+from apps.attendance.models import AttendanceRecord, PickupRecord
 from apps.website.models import Enquiry, GalleryImage, Program, Stat
 
 counts = {
@@ -205,6 +206,8 @@ counts = {
     "programmes": Program.objects.count(),
     "gallery images": GalleryImage.objects.count(),
     "stats": Stat.objects.count(),
+    "attendance": AttendanceRecord.objects.count(),
+    "pickups": PickupRecord.objects.count(),
 }
 width = max(len(k) for k in counts)
 for name, count in counts.items():
