@@ -47,12 +47,29 @@
      sits on it happily — 3.5:1 clears the 3:1 required of a UI component. */
   --color-leaf-panel:   #aad688;
 
-  /* Counterpoints, used sparingly and never as the action colour. Terracotta
-     against green is what stops the site reading as a garden centre. */
+  /* The accent family.
+     Five hues, each with a wash to sit on and a deep to write in. All of them are
+     warm-leaning — the blue is a teal, the pink is a plum — so they read as one set
+     on warm paper rather than as a box of crayons. Every `deep` clears AA on its own
+     `wash`: marigold 5.1, sky 6.5, berry 7.3, clay 6.0, leaf 5.9.
+
+     The rule that keeps this from turning into noise: a colour identifies a thing
+     (a programme, a value), it never decorates one. */
   --color-clay:         #b4542e;
   --color-clay-deep:    #8e3f20;
-  --color-clay-wash:    #f6e5da;
-  --color-marigold:     #c98a1e;  /* highlight, never a large field */
+  --color-clay-wash:    #f9e6dc;
+
+  --color-marigold:     #c98a1e;
+  --color-marigold-deep:#8a5c0d;
+  --color-marigold-wash:#fbeed4;
+
+  --color-sky:          #2f7d95;
+  --color-sky-deep:     #1f5a6d;
+  --color-sky-wash:     #ddeef4;
+
+  --color-berry:        #9d4470;
+  --color-berry-deep:   #7a3156;
+  --color-berry-wash:   #f8e5ee;
 
   /* Semantic, not decorative: sage means "this went well", stop means "this did
      not". Neither is ever borrowed for ordinary UI. */
@@ -105,6 +122,14 @@
     --color-clay:       #e08757;
     --color-clay-deep:  #f0a077;
     --color-clay-wash:  #33241b;
+    --color-marigold-deep: #f0c97a;
+    --color-marigold-wash: #322710;
+    --color-sky:        #7fc0d4;
+    --color-sky-deep:   #a5d8e8;
+    --color-sky-wash:   #12282f;
+    --color-berry:      #d98cb4;
+    --color-berry-deep: #eeafd0;
+    --color-berry-wash: #2d1a24;
     --color-sage:       #8fb79e;
     --color-sage-wash:  #1f2a23;
     --color-marigold:   #e0b055;
@@ -616,4 +641,128 @@
        stays quieter than the number — without dropping below AA. */
     color: color-mix(in oklab, var(--color-ink) 75%, transparent);
   }
+}
+
+@layer components {
+  /* -------------------------------------------------------------------------
+     Colour as identity.
+
+     An element picks a hue by carrying one `.a-*` class, which sets three custom
+     properties. Everything below reads those properties and nothing else — so a
+     card, a pill and a photo frame in the same colour agree automatically, and
+     adding a sixth hue is four lines in one place rather than an edit everywhere.
+
+     `--accent-ink` is always the `deep` variant, never the base, because the base
+     is chosen to look right as a solid and the deep is chosen to be legible on the
+     wash. Those are different jobs and they need different values.
+  ------------------------------------------------------------------------- */
+
+  .a-leaf {
+    --accent: var(--color-leaf);
+    --accent-wash: var(--color-leaf-wash);
+    --accent-ink: var(--color-leaf-deep);
+    --accent-on: #ffffff;
+  }
+  .a-marigold {
+    --accent: var(--color-marigold);
+    --accent-wash: var(--color-marigold-wash);
+    --accent-ink: var(--color-marigold-deep);
+    /* Ink, not white. Marigold is the one hue light enough that white on it is
+       2.94:1 — under the 3:1 a large mark needs, never mind text. Darkening the
+       gold would have fixed the number and lost the colour, which is the opposite
+       of the point. */
+    --accent-on: var(--color-ink);
+  }
+  .a-sky {
+    --accent: var(--color-sky);
+    --accent-wash: var(--color-sky-wash);
+    --accent-ink: var(--color-sky-deep);
+    --accent-on: #ffffff;
+  }
+  .a-berry {
+    --accent: var(--color-berry);
+    --accent-wash: var(--color-berry-wash);
+    --accent-ink: var(--color-berry-deep);
+    --accent-on: #ffffff;
+  }
+  .a-clay {
+    --accent: var(--color-clay);
+    --accent-wash: var(--color-clay-wash);
+    --accent-ink: var(--color-clay-deep);
+    --accent-on: #ffffff;
+  }
+
+  /* A card that is its colour rather than a white card with a coloured bit. */
+  .card-colour {
+    border-radius: var(--radius-card);
+    background-color: var(--accent-wash);
+    padding: --spacing(6);
+    /* A hairline of the solid accent, not a heavy border. At 3px this reads as a
+       children's-television sticker; at 1px it reads as a considered surface. */
+    border: 1px solid color-mix(in oklab, var(--accent) 30%, transparent);
+  }
+
+  .card-colour .card-title {
+    color: var(--accent-ink);
+  }
+
+  /* The number or letter that marks a card. Solid accent, so it carries weight
+     without needing size. */
+  .card-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.75rem;
+    width: 2.75rem;
+    border-radius: 9999px;
+    background-color: var(--accent);
+    color: var(--accent-on);
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+
+  /* Age bands, stage labels — the small pill that says what something is. */
+  .pill {
+    display: inline-block;
+    border-radius: 9999px;
+    background-color: var(--accent-wash);
+    padding: --spacing(1) --spacing(3);
+    color: var(--accent-ink);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1px solid color-mix(in oklab, var(--accent) 28%, transparent);
+  }
+
+  /* A photograph that belongs to a coloured thing. The wash shows while the image
+     loads, so the card never flashes grey, and it tints the letterboxing when the
+     source is the wrong shape — which, with admin uploads, it sometimes will be. */
+  .frame-colour {
+    background-color: var(--accent-wash);
+  }
+
+  /* A rule that picks up the card's hue instead of the generic hairline. */
+  .divide-accent {
+    border-color: color-mix(in oklab, var(--accent) 30%, transparent);
+  }
+
+  /* A link inside a coloured card. Written as a class rather than an inline style
+     because test_no_template_syntax_leaks_into_the_page forbids brace pairs in the
+     rendered output, and `style="color: var(--x)"` is one edit away from being one. */
+  .link-accent {
+    color: var(--accent-ink);
+    text-underline-offset: 4px;
+  }
+
+  .link-accent:hover {
+    text-decoration: underline;
+  }
+
+  /* Tinted page-opening bands. Softer than .band-leaf's panel green — a whole
+     header in a saturated colour is where "colourful" turns into "loud". */
+  .band-sky      { background-color: var(--color-sky-wash); }
+  .band-marigold { background-color: var(--color-marigold-wash); }
+  .band-berry    { background-color: var(--color-berry-wash); }
 }

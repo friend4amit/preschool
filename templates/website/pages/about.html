@@ -5,21 +5,23 @@
 {% block meta_description %}Our mission, our values, and the beliefs a day at Aaroham is built on — an inclusive preschool that protects the pace of childhood.{% endblock %}
 
 {% block content %}
-  <section class="band pb-0">
+  <section class="band band-sky pb-14 md:pb-20">
     <div class="shell">
       <p class="eyebrow">About us</p>
       <h1 class="font-display text-ink text-display md:text-display-lg mt-3 max-w-3xl leading-[1.05] font-semibold text-balance">
         A caring start for every little champion
       </h1>
+      <p class="text-ink/75 mt-5 max-w-prose text-lg">
+        An inclusive, nurturing place where children explore, imagine and create — and where the
+        pace of childhood is protected rather than rushed.
+      </p>
     </div>
   </section>
 
-  {% comment %} Mission beside the photograph rather than under it — a wall of prose is
-     what this page was, and the point of the redesign is that it stops being one. {% endcomment %}
   <section class="band">
     <div class="shell grid items-center gap-10 lg:grid-cols-2">
       <div>
-        <h2 class="font-display text-ink text-2xl font-semibold">Our mission</h2>
+        <h2 class="font-display text-ink text-display font-semibold text-balance">Our mission</h2>
         <p class="text-muted mt-4 leading-relaxed">
           Our mission is to provide an inclusive and nurturing preschool environment where
           children are encouraged to explore, imagine, and create. We aim to spark curiosity
@@ -31,7 +33,7 @@
       </div>
 
       {% if photo %}
-        <div class="frame frame-3x2">
+        <div class="a-marigold frame frame-3x2 frame-colour">
           <img src="{{ photo.image.url }}"
                {% with ss=photo.image|srcset:"800,480" %}{% if ss %}srcset="{{ ss }}" sizes="(min-width: 1024px) 32rem, 90vw"{% endif %}{% endwith %}
                alt="{{ photo.alt_text }}" loading="lazy" decoding="async">
@@ -40,34 +42,46 @@
     </div>
   </section>
 
+  {% comment %} Four beliefs, four colours. The colour is not decoration — it is what
+     lets the eye find its way back to a particular card after looking away, which on
+     a page of four similar blocks is most of what a reader is doing. {% endcomment %}
   <section class="band band-tint">
     <div class="shell">
       <h2 class="font-display text-ink text-display font-semibold text-balance">Core values &amp; beliefs</h2>
+      <p class="text-muted mt-3 max-w-prose text-lg">What a day here is built on.</p>
+
       <div class="mt-10 grid gap-5 md:grid-cols-2">
-        <div class="card">
-          <h3 class="font-display text-ink text-lg font-semibold">Capable &amp; unique</h3>
-          <p class="text-muted mt-2 text-sm leading-relaxed">
+        <div class="a-leaf card-colour">
+          <span class="card-mark" aria-hidden="true">1</span>
+          <h3 class="font-display card-title mt-4 text-lg font-semibold">Capable &amp; unique</h3>
+          <p class="text-ink/75 mt-2 leading-relaxed">
             Every child is strong, capable and full of potential, with their own learning style
             and interests. We start from what a child can already do.
           </p>
         </div>
-        <div class="card">
-          <h3 class="font-display text-ink text-lg font-semibold">Play is the work</h3>
-          <p class="text-muted mt-2 text-sm leading-relaxed">
+
+        <div class="a-marigold card-colour">
+          <span class="card-mark" aria-hidden="true">2</span>
+          <h3 class="font-display card-title mt-4 text-lg font-semibold">Play is the work</h3>
+          <p class="text-ink/75 mt-2 leading-relaxed">
             Play is not a break from learning at this age — it is how learning happens. The
             classroom is a joyful, engaging space by design.
           </p>
         </div>
-        <div class="card">
-          <h3 class="font-display text-ink text-lg font-semibold">Head, heart and hands</h3>
-          <p class="text-muted mt-2 text-sm leading-relaxed">
+
+        <div class="a-sky card-colour">
+          <span class="card-mark" aria-hidden="true">3</span>
+          <h3 class="font-display card-title mt-4 text-lg font-semibold">Head, heart and hands</h3>
+          <p class="text-ink/75 mt-2 leading-relaxed">
             We look for growth in all three: intellectual, emotional and physical. A confident
             child matters as much as a capable one.
           </p>
         </div>
-        <div class="card">
-          <h3 class="font-display text-ink text-lg font-semibold">Childhood, protected</h3>
-          <p class="text-muted mt-2 text-sm leading-relaxed">
+
+        <div class="a-berry card-colour">
+          <span class="card-mark" aria-hidden="true">4</span>
+          <h3 class="font-display card-title mt-4 text-lg font-semibold">Childhood, protected</h3>
+          <p class="text-ink/75 mt-2 leading-relaxed">
             In a world shaped by screens and academic pressure, we honour the natural pace of
             the early years and keep them unhurried.
           </p>
