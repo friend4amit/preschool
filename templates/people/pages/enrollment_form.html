@@ -1,0 +1,20 @@
+{% extends "layouts/staff.html" %}
+
+{% block title %}Enrolment — Aaroham{% endblock %}
+
+{% block staff_content %}
+  <h1 class="font-display text-2xl font-semibold text-ink">Place {{ student.display_name }}</h1>
+  <p class="mt-1 text-sm text-muted">
+    Moving a child closes the old enrolment rather than editing it — attendance and
+    invoices already point at the row that was open at the time.
+  </p>
+
+  <form method="post" class="prose-form mt-6 max-w-xl space-y-4">
+    {% csrf_token %}
+    {% include "partials/form_fields.html" with form=form %}
+    <div class="flex items-center gap-3 pt-2">
+      <button type="submit" class="rounded-xl bg-leaf px-5 py-3 font-medium text-on-leaf hover:bg-leaf-deep">Save</button>
+      <a href="{% url 'student_detail' student.pk %}" class="text-sm text-muted hover:text-ink">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

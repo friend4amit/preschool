@@ -1,57 +1,126 @@
 {% extends "layouts/public.html" %}
+{% load media_extras %}
 
-{% block title %}Our approach{% endblock %}
-{% block meta_description %}A balanced, child-centred approach drawing on Waldorf, Montessori and Playway learning.{% endblock %}
+{% block title %}Our approach — Aaroham{% endblock %}
+{% block meta_description %}Waldorf imagination, Montessori independence and Playway joy, combined into one balanced day for children aged 1½ to 6.{% endblock %}
 
 {% block content %}
-  <h1 class="font-display text-ink text-3xl leading-tight font-semibold text-balance md:text-5xl">
-    A balanced, child-centred approach
-  </h1>
-  <p class="text-muted mt-5 max-w-prose text-lg">
-    We bring together the imagination of Waldorf, the independence of Montessori, and the joy
-    of Playway learning — not as three separate programmes, but as one balanced day.
-  </p>
-
-  <section class="mt-12 space-y-8">
-    <div>
-      <h2 class="font-display text-ink text-xl font-semibold">Imagination — from Waldorf</h2>
-      <p class="text-muted mt-2 max-w-prose leading-relaxed">
-        Storytelling, art and open-ended play, with materials that leave room for a child to
-        decide what they are.
-      </p>
-    </div>
-    <div>
-      <h2 class="font-display text-ink text-xl font-semibold">Independence — from Montessori</h2>
-      <p class="text-muted mt-2 max-w-prose leading-relaxed">
-        Hands-on exploration and practical, real tasks a child can finish without an adult
-        stepping in. Confidence follows competence.
-      </p>
-    </div>
-    <div>
-      <h2 class="font-display text-ink text-xl font-semibold">Joy — from Playway</h2>
-      <p class="text-muted mt-2 max-w-prose leading-relaxed">
-        Play-based learning that keeps the classroom a place children want to be, and
-        collaborative activity that makes learning social.
+  <section class="band band-sky pb-16 md:pb-24">
+    <div class="shell">
+      <p class="eyebrow">Our approach</p>
+      <h1 class="font-display text-ink text-display md:text-display-lg lg:text-display-xl mt-3 max-w-4xl leading-[1.02] font-semibold text-balance">
+        A balanced, child-centred approach
+      </h1>
+      <span class="rule-spring mt-7"></span>
+      <p class="text-ink/75 mt-6 max-w-2xl text-xl leading-relaxed">
+        The imagination of Waldorf, the independence of Montessori, and the joy of Playway
+        learning — not three separate programmes, but one balanced day.
       </p>
     </div>
   </section>
 
-  <section class="bg-sunken mt-14 rounded-3xl p-8 md:p-10">
-    <h2 class="font-display text-ink text-2xl font-semibold">Head, heart and hands</h2>
-    <p class="text-muted mt-3 max-w-prose leading-relaxed">
-      Thoughtfully combined, these give children imagination and creativity, independence and
-      confidence, and the plain joy of learning together — supporting growth intellectually,
-      emotionally and physically.
-    </p>
+  {% comment %} Three traditions, three colours, each with its own photograph. Every
+     image is guarded separately, so a slot with nothing in it is a text card rather
+     than an empty coloured square. {% endcomment %}
+  <section class="band">
+    <div class="shell">
+      <h2 class="font-display text-ink text-display font-semibold text-balance">Three traditions, one day</h2>
+      <span class="rule-spring mt-5"></span>
+
+      <div class="mt-12 grid gap-6 md:grid-cols-3">
+        <article class="a-leaf card-bold !p-0 overflow-hidden">
+          {% if photos.approach_play %}
+            <div class="frame frame-4x3 frame-colour rounded-none">
+              <img src="{{ photos.approach_play.image.url }}"
+                   {% with ss=photos.approach_play.image|srcset:"640,400" %}{% if ss %}srcset="{{ ss }}" sizes="(min-width: 768px) 20rem, 90vw"{% endif %}{% endwith %}
+                   alt="{{ photos.approach_play.alt_text }}" loading="lazy" decoding="async">
+            </div>
+          {% endif %}
+          <div class="p-7">
+            <span class="card-mark-lg" aria-hidden="true">1</span>
+            <h3 class="font-display card-title mt-5 text-xl font-semibold">Imagination</h3>
+            <p class="text-ink/70 text-sm font-medium">from Waldorf</p>
+            <p class="text-ink/75 mt-3 leading-relaxed">
+              Storytelling, art and open-ended play, with materials that leave room for a child
+              to decide what they are.
+            </p>
+          </div>
+        </article>
+
+        <article class="a-marigold card-bold !p-0 overflow-hidden">
+          {% if photos.approach_hands %}
+            <div class="frame frame-4x3 frame-colour rounded-none">
+              <img src="{{ photos.approach_hands.image.url }}"
+                   {% with ss=photos.approach_hands.image|srcset:"640,400" %}{% if ss %}srcset="{{ ss }}" sizes="(min-width: 768px) 20rem, 90vw"{% endif %}{% endwith %}
+                   alt="{{ photos.approach_hands.alt_text }}" loading="lazy" decoding="async">
+            </div>
+          {% endif %}
+          <div class="p-7">
+            <span class="card-mark-lg" aria-hidden="true">2</span>
+            <h3 class="font-display card-title mt-5 text-xl font-semibold">Independence</h3>
+            <p class="text-ink/70 text-sm font-medium">from Montessori</p>
+            <p class="text-ink/75 mt-3 leading-relaxed">
+              Hands-on exploration and practical, real tasks a child can finish without an adult
+              stepping in. Confidence follows competence.
+            </p>
+          </div>
+        </article>
+
+        <article class="a-berry card-bold !p-0 overflow-hidden">
+          {% if photos.approach_values %}
+            <div class="frame frame-4x3 frame-colour rounded-none">
+              <img src="{{ photos.approach_values.image.url }}"
+                   {% with ss=photos.approach_values.image|srcset:"640,400" %}{% if ss %}srcset="{{ ss }}" sizes="(min-width: 768px) 20rem, 90vw"{% endif %}{% endwith %}
+                   alt="{{ photos.approach_values.alt_text }}" loading="lazy" decoding="async">
+            </div>
+          {% endif %}
+          <div class="p-7">
+            <span class="card-mark-lg" aria-hidden="true">3</span>
+            <h3 class="font-display card-title mt-5 text-xl font-semibold">Joy</h3>
+            <p class="text-ink/70 text-sm font-medium">from Playway</p>
+            <p class="text-ink/75 mt-3 leading-relaxed">
+              Play-based learning that keeps the classroom a place children want to be, and
+              collaborative activity that makes learning social.
+            </p>
+          </div>
+        </article>
+      </div>
+    </div>
   </section>
 
-  <section class="mt-14">
-    <h2 class="font-display text-ink text-2xl font-semibold">Protecting childhood in a modern world</h2>
-    <p class="text-muted mt-3 max-w-prose leading-relaxed">
-      Childhood is increasingly shaped by screens and academic pressure. We believe in
-      preserving the magic of the early years: children here engage with nature, build real
-      relationships, and discover things through real experience. Honouring the natural pace
-      of childhood is what builds lifelong curiosity and a love of learning.
-    </p>
+  {% comment %} The one solid band on this page. {% endcomment %}
+  <section class="a-sky band-solid band">
+    <div class="shell max-w-4xl">
+      <p class="font-display text-display leading-[1.15] font-semibold text-balance">
+        Head, heart and hands — we look for growth in all three.
+      </p>
+      <p class="mt-6 text-lg text-white/80">
+        Imagination and creativity, independence and confidence, and the plain joy of learning
+        together. A confident child matters as much as a capable one.
+      </p>
+    </div>
+  </section>
+
+  <section class="band band-tint">
+    <div class="shell max-w-3xl">
+      <h2 class="font-display text-ink text-display font-semibold text-balance">Protecting childhood in a modern world</h2>
+      <span class="rule-spring mt-5"></span>
+      <p class="text-muted mt-6 text-lg leading-relaxed">
+        Childhood is increasingly shaped by screens and academic pressure. We believe in
+        preserving the magic of the early years: children here engage with nature, build real
+        relationships, and discover things through real experience. Honouring the natural pace
+        of childhood is what builds lifelong curiosity and a love of learning.
+      </p>
+    </div>
+  </section>
+
+  <section class="band band-leaf">
+    <div class="shell">
+      <h2 class="font-display text-ink text-display font-semibold text-balance">See a day for yourself</h2>
+      <p class="text-ink/80 mt-4 max-w-prose text-lg">
+        An approach reads differently on a page than it does in a room. Come and watch one.
+      </p>
+      <a href="{% url 'contact' %}" class="btn btn-primary mt-8">Book a visit</a>
+    </div>
   </section>
 {% endblock %}

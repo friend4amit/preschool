@@ -1,0 +1,40 @@
+{% extends "layouts/staff.html" %}
+
+{% block title %}Add a guardian — Aaroham{% endblock %}
+
+{% block staff_content %}
+  <h1 class="font-display text-2xl font-semibold text-ink">
+    Add a guardian for {{ student.display_name }}
+  </h1>
+
+  {% if link_form.fields.guardian.choices %}
+    {% comment %} The sibling case comes first on the page, because retyping a mother who
+       is already on another child's record is exactly how one family becomes two
+       portal accounts. {% endcomment %}
+    <section class="mt-6 max-w-xl rounded-card border border-line bg-raised p-4">
+      <h2 class="font-display text-lg font-semibold text-ink">Someone already on file</h2>
+      <p class="mt-1 text-sm text-muted">Use this for a sibling's parent.</p>
+
+      <form method="post" action="{% url 'guardian_link' student.pk %}" class="prose-form mt-4 space-y-4">
+        {% csrf_token %}
+        {% include "partials/form_fields.html" with form=link_form %}
+        <button type="submit" class="rounded-xl border border-line bg-sunken px-5 py-3 text-sm font-medium text-ink hover:bg-line">
+          Link this guardian
+        </button>
+      </form>
+    </section>
+  {% endif %}
+
+  <section class="mt-6 max-w-xl">
+    <h2 class="font-display text-lg font-semibold text-ink">Someone new</h2>
+
+    <form method="post" class="prose-form mt-4 space-y-4">
+      {% csrf_token %}
+      {% include "partials/form_fields.html" with form=form %}
+      <div class="flex items-center gap-3 pt-2">
+        <button type="submit" class="rounded-xl bg-leaf px-5 py-3 font-medium text-on-leaf hover:bg-leaf-deep">Add</button>
+        <a href="{% url 'student_detail' student.pk %}" class="text-sm text-muted hover:text-ink">Cancel</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

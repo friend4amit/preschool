@@ -52,8 +52,54 @@ else:
     )
     _default_storage = {"BACKEND": "django.core.files.storage.FileSystemStorage"}
 
+# A SECOND, PUBLIC bucket — marketing images only, never a child's photo.
+#
+# Objects here are world-readable, cached forever and indexable by search engines.
+# That is correct for a hero photograph and catastrophic for a classroom one, which
+# is why this is a separate bucket rather than a prefix inside the private one: a
+# prefix is one typo away from publishing a child.
+_R2_PUBLIC_CONFIGURED = bool(
+    env("R2_PUBLIC_BUCKET", default="") and env("R2_PUBLIC_BASE_URL", default="")
+)
+
+if _R2_CONFIGURED and _R2_PUBLIC_CONFIGURED:
+    _public_media_storage = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "access_key": env("R2_ACCESS_KEY_ID"),
+            "secret_key": env("R2_SECRET_ACCESS_KEY"),
+            "bucket_name": env("R2_PUBLIC_BUCKET"),
+            "endpoint_url": env("R2_ENDPOINT_URL"),
+            # custom_domain is the load-bearing setting, not querystring_auth.
+            # django-storages returns a clean https://host/key ONLY when this is
+            # set; without it you get an unsigned URL against the S3 API endpoint,
+            # and R2 does not serve anonymous GETs there — every image would 403.
+            # Bare host, no scheme, no trailing slash.
+            "custom_domain": env("R2_PUBLIC_BASE_URL"),
+            "querystring_auth": False,
+            "default_acl": None,
+            # An admin re-uploading a same-named file gets a suffixed key rather
+            # than silently replacing an object every CDN edge has cached for a
+            # year under `immutable`.
+            "file_overwrite": False,
+            "region_name": "auto",
+            "signature_version": "s3v4",
+            "object_parameters": {"CacheControl": "public, max-age=31536000, immutable"},
+        },
+    }
+else:
+    # Loud, like the private bucket above: marketing images would land on the
+    # container filesystem and vanish on the next rebuild.
+    logging.getLogger(__name__).warning(
+        "R2_PUBLIC_BUCKET / R2_PUBLIC_BASE_URL are not set — marketing images fall "
+        "back to local disk and will NOT survive a container rebuild. Set them "
+        "before the public site goes live."
+    )
+    _public_media_storage = {"BACKEND": "django.core.files.storage.FileSystemStorage"}
+
 STORAGES = {
     "default": _default_storage,
+    "public_media": _public_media_storage,
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
 

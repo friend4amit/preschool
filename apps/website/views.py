@@ -13,6 +13,7 @@ from django.views.decorators.http import require_http_methods
 
 from apps.website import selectors, services
 from apps.website.forms import EnquiryForm
+from apps.website.models import ImagePlacement
 from integrations import turnstile
 
 
@@ -28,16 +29,33 @@ def _page_context(request: HttpRequest) -> dict:
 
 def home(request: HttpRequest) -> HttpResponse:
     context = _page_context(request)
-    context["testimonials"] = selectors.published_testimonials(context["branch"])
+    branch = context["branch"]
+    context["testimonials"] = selectors.published_testimonials(branch)
+    context["gallery"] = selectors.published_gallery(branch)
+    context["stats"] = selectors.published_stats(branch)
     return render(request, "website/pages/home.html", context)
 
 
 def about(request: HttpRequest) -> HttpResponse:
-    return render(request, "website/pages/about.html", _page_context(request))
+    context = _page_context(request)
+    context["photo"] = selectors.image_for(context["branch"], ImagePlacement.ABOUT)
+    return render(request, "website/pages/about.html", context)
 
 
 def approach(request: HttpRequest) -> HttpResponse:
-    return render(request, "website/pages/approach.html", _page_context(request))
+    """Three traditions, three photographs. Materials and hands rather than faces —
+    which is what docs/plan.md says a preschool site actually needs, and what carries
+    no consent question at all."""
+    context = _page_context(request)
+    context["photos"] = {
+        key: selectors.image_for(context["branch"], key)
+        for key in (
+            ImagePlacement.APPROACH_PLAY,
+            ImagePlacement.APPROACH_HANDS,
+            ImagePlacement.APPROACH_VALUES,
+        )
+    }
+    return render(request, "website/pages/approach.html", context)
 
 
 def programs(request: HttpRequest) -> HttpResponse:
@@ -47,11 +65,14 @@ def programs(request: HttpRequest) -> HttpResponse:
 def team(request: HttpRequest) -> HttpResponse:
     context = _page_context(request)
     context["team"] = selectors.published_team(context["branch"])
+    context["photo"] = selectors.image_for(context["branch"], ImagePlacement.TEAM)
     return render(request, "website/pages/team.html", context)
 
 
 def special_education(request: HttpRequest) -> HttpResponse:
-    return render(request, "website/pages/special_education.html", _page_context(request))
+    context = _page_context(request)
+    context["photo"] = selectors.image_for(context["branch"], ImagePlacement.INCLUSION)
+    return render(request, "website/pages/special_education.html", context)
 
 
 @require_http_methods(["GET", "POST"])

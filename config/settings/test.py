@@ -17,7 +17,12 @@ TASKS = {"default": {"BACKEND": "django_tasks.backends.dummy.DummyBackend"}}
 
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
+# `public_media` must be here as well as in base. A model field declaring
+# `storage=public_media` resolves the alias at import time, and an unknown alias
+# raises InvalidStorageError — which means the suite would stop COLLECTING rather
+# than fail a test, and every error would point somewhere unhelpful.
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
+    "public_media": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }

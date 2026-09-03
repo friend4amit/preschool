@@ -18,6 +18,48 @@ uv run pytest                             # tests — needs Postgres on :5432
 uv run ruff check . && uv run ruff format .
 uv run lint-imports                       # layer contract
 
+./scripts/start.sh                        # dev stack: postgres + web + worker
+./scripts/start.sh prod                   # prod stack: caddy + web + worker + postgres
+./scripts/start.sh testdb                 # postgres alone, for host-run pytest
+./scripts/stop.sh [dev|prod|testdb]       # halt. --down removes containers, --destroy volumes
+./scripts/test.sh                         # pytest inside the dev image; args pass through
+
+./scripts/backup-local.sh                 # pg_dump to backups/ (gitignored)
+./scripts/restore.sh [DUMP]               # rehearse a restore into a scratch database
+uv run python manage.py backup_database   # the nightly one: pg_dump -> R2, then prune
+uv run python manage.py backup_database --list
+
+uv run python manage.py seed_media --source <wp-content/uploads>   # marketing photos
+uv run python manage.py seed_media --source <path> --dry-run       # report, write nothing
+```
+
+`seed_media` converts the Udgam photographs to WebP at a few widths and attaches them
+to `SiteSettings`, `Program` and `GalleryImage`. `--source` is required and has no
+default on purpose: a path that exists on one laptop and not on the VPS is how a
+command silently half-works. It refuses a blocklist — one file is a named person who
+must not appear on this site, the rest carry watermarks or burnt-in text — and
+`apps/website/tests/test_media_blocklist.py` keeps that honest.
+
+`restore.sh` never touches the live database — it creates `aaroham_restore_check`,
+restores into that, counts what came back, and drops it. Run it after every phase that
+grows the schema. An untested backup is not a backup, and a restore that produces an
+empty schema looks exactly like one that worked.
+
+`backup_database` is a management command rather than only a task because the thing
+that schedules it is cron on the VPS, and cron cannot enqueue. The image carries
+`postgresql-client-17` from PGDG rather than Debian's 15 — `pg_dump` refuses to talk
+to a newer server than itself, so that pin moves with `postgres:17-bookworm`.
+
+`test.sh` exists because `uv run pytest` on the host currently fails on this Windows
+machine — Application Control blocks the SSL DLL psycopg's binary wheel loads, and
+pytest dies at import. The container carries its own libpq. On Linux and in CI the
+plain `uv run pytest` is still the command.
+
+The scripts are the convenience; the commands below are the documentation, and they
+still work. Reach for the scripts because they preflight Docker and `.env`, refuse a
+port collision with an explanation, and cannot forget `--env-file`.
+
+```sh
 docker compose up                         # dev: postgres + web + worker, migrated on boot
 
 # prod — from the REPO ROOT. --env-file is required: without it the ${POSTGRES_*}
@@ -30,12 +72,23 @@ The prod stack **forces** `DJANGO_SETTINGS_MODULE` and the database host in the 
 says `config.settings.dev`, and one forgotten line would otherwise run production with
 `DEBUG=True`. Don't "simplify" that back into `.env`.
 
-Postgres for host-run tests, if you aren't using compose:
+Postgres for host-run tests, if you aren't using compose — `./scripts/start.sh testdb`,
+or by hand:
 
 ```sh
 docker run -d --name aaroham-pg -e POSTGRES_USER=aaroham -e POSTGRES_PASSWORD=aaroham \
-  -e POSTGRES_DB=aaroham -p 5432:5432 postgres:17-alpine
+  -e POSTGRES_DB=aaroham -p 5432:5432 postgres:17-bookworm
 ```
+
+Those hardcoded credentials only work if `.env` still uses them; the script reads the
+real `POSTGRES_*` instead, so the `DATABASE_URL` already in `.env` connects. **The dev
+stack and `aaroham-pg` both want port 5432** and cannot run together — the dev stack's
+own postgres serves host-run tests equally well, so `testdb` is for when you don't want
+the whole stack. `POSTGRES_HOST_PORT` moves the dev stack if you need both.
+
+Scripts are POSIX `sh`, one implementation for Git Bash on Windows and the Linux VPS.
+`.gitattributes` pins them to LF: with `core.autocrlf=true` a CRLF checkout gives
+`bad interpreter: /bin/sh^M` on the server — invisible on Windows, fatal there.
 
 Tailwind is the **standalone CLI** — no Node, no `package.json`, no PostCSS. See
 `assets/README-frontend.md`. `static/css/app.css` is build output, gitignored, and built
@@ -107,6 +160,25 @@ These cost hours now and weeks later. They are decided; don't relitigate them in
 
 ## Known follow-ups
 
-- `templates/base.html` loads fonts from Google Fonts. Fine for marketing pages, but it
-  is a third-party request logging viewer IPs — self-host the two faces before the parent
-  portal ships in Phase 4.
+- **A public R2 bucket does not exist yet.** `STORAGES["public_media"]` holds the
+  marketing photographs and must be a *separate, public* bucket from the private one
+  children's photos live in. Until `R2_PUBLIC_BUCKET` and `R2_PUBLIC_BASE_URL` are set,
+  prod falls back to local disk and Caddy serves `/media/`. On R2, `custom_domain` is
+  the setting that makes URLs work — `querystring_auth: False` alone yields an unsigned
+  S3-endpoint URL that R2 refuses anonymously.
+- **`SITE_ID = 1` points at the unconfigured `example.com` Site row**, so `sitemap.xml`
+  advertises the wrong host. One row to edit in `/admin`, before the domain goes live.
+- **The nightly backup has no schedule yet.** `manage.py backup_database` works and the
+  restore is rehearsed, but nothing calls it on a timer — that is a cron entry on the
+  VPS, and it belongs with the deploy rather than in the repo.
+- **R2 is unconfigured on this machine**, so `backup_database` refuses. That is the
+  intended behaviour, not a bug: a backup that silently no-ops is worse than one that
+  fails. `./scripts/backup-local.sh` covers the local case.
+- **The Phase 2 screens have never been seen below ~1218px.** Chrome on Windows will
+  not size a window narrower than that, so the phone layout is written but unverified —
+  the plan's "renders at 390px" check is outstanding. The one to look at first is the
+  student list: its filter bar is `md:grid-cols-[2fr_1fr_1fr_auto]`, so on a phone it
+  stacks into four full-width rows before the first student appears, and that may want
+  collapsing behind a summary. Check it on a real cheap Android over mobile data rather
+  than in a device emulator — `plan.md` is right that emulated viewports hide
+  touch-target size, font scaling and slow-network behaviour.

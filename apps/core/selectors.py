@@ -10,7 +10,15 @@ take a user and return querysets. The view decides what an empty result means.
 
 from django.db.models import QuerySet
 
-from apps.core.models import Branch, Consent, ConsentPurpose, Role, User
+from apps.core.models import (
+    AcademicYear,
+    Branch,
+    Classroom,
+    Consent,
+    ConsentPurpose,
+    Role,
+    User,
+)
 
 
 def branches_for_user(user: User) -> QuerySet[Branch]:
@@ -58,3 +66,49 @@ def current_branch_fallback() -> Branch | None:
     it has no request and no user. Never call it from a view.
     """
     return Branch.objects.filter(is_active=True).order_by("pk").first()
+
+
+def primary_role_for(user: User) -> str:
+    """The role that decides which console a user lands in after logging in.
+
+    Returned as a role, not a URL: which screen a role maps to is routing, and
+    routing is the view's business. Staff roles win over parent, so a teacher who
+    is also a parent lands in the staff console rather than the portal.
+    """
+    if not user.is_authenticated:
+        return ""
+    if user.is_superuser:
+        return Role.SUPERADMIN
+    ranked = [Role.BRANCH_ADMIN, Role.TEACHER, Role.ACCOUNTANT, Role.PARENT]
+    held = set(user.memberships.values_list("role", flat=True))
+    return next((role for role in ranked if role in held), Role.PARENT)
+
+
+def classrooms_for_user(user: User) -> QuerySet[Classroom]:
+    """Rooms this user may see. Populates every classroom select box in the console,
+    so an unscoped version here would let one branch enumerate another's rooms."""
+    return Classroom.objects.filter(branch__in=branches_for_user(user), is_active=True)
+
+
+def academic_years_for_user(user: User) -> QuerySet[AcademicYear]:
+    return AcademicYear.objects.filter(branch__in=branches_for_user(user))
+
+
+def current_academic_year(branch: Branch) -> AcademicYear | None:
+    """The year the office has marked current, which is a decision rather than a
+    calendar fact — a school is mid-admissions for next year while this one runs."""
+    return AcademicYear.objects.filter(branch=branch, is_current=True).first()
+
+
+STAFF_ROLES = (Role.BRANCH_ADMIN, Role.TEACHER, Role.ACCOUNTANT)
+
+
+def is_staff_member(user: User) -> bool:
+    """May this person open the staff console at all?
+
+    Not `user.is_staff`: that flag governs Django admin, which is superadmin-only
+    here. A teacher has no `is_staff` and every right to the console.
+    """
+    if not user.is_authenticated:
+        return False
+    return user.is_superuser or user.memberships.filter(role__in=STAFF_ROLES).exists()

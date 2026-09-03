@@ -67,10 +67,30 @@ RUN curl -fsSL -o /usr/local/bin/tailwindcss \
 # unchanged when copied across.
 FROM python:${PYTHON_VERSION}-slim-bookworm AS runtime-base
 
-# libpq5 only — the client library, not the headers. Needed by psycopg built
-# from source; harmless if the lockfile pins psycopg[binary] instead.
+# libpq5 — the client library, not the headers. Needed by psycopg built from
+# source; harmless if the lockfile pins psycopg[binary] instead.
+#
+# postgresql-client is here for the backups: pg_dump writes the nightly dump and
+# pg_restore reads it back during a rehearsal, and both run inside this image
+# rather than on the host — which is what lets the same command work on the Linux
+# VPS and on a Windows machine with no postgres installed.
+# postgresql-client-17, from PGDG rather than Debian. Debian bookworm ships 15,
+# and pg_dump refuses to talk to a newer server than itself:
+#
+#     pg_dump: error: aborting because of server version mismatch
+#
+# The pin has to move with docker-compose's postgres:17-bookworm. If you bump one,
+# bump the other.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        libpq5 \
+        libpq5 ca-certificates curl gnupg \
+    && install -d /usr/share/postgresql-common/pgdg \
+    && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+        -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+    && echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] \
+http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" \
+        > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update && apt-get install -y --no-install-recommends postgresql-client-17 \
+    && apt-get purge -y curl gnupg && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --create-home --uid 1000 app
 
@@ -81,7 +101,13 @@ ENV PATH=/opt/venv/bin:$PATH \
 
 # /app must be owned by `app`: collectstatic creates STATIC_ROOT under it, and
 # COPY --chown only sets ownership on the entries it copies, not on the directory.
-RUN install -d -o app -g app /app
+# /app/media exists in the image, owned by `app`, purely so the named volume mounted
+# over it in production inherits that ownership. Docker seeds an empty named volume
+# from whatever is at the mount point — and if nothing is there it creates the
+# directory as root, which the container (running as `app`) then cannot write to.
+# The symptom is PermissionError on the first upload, in production, long after the
+# deploy looked fine.
+RUN install -d -o app -g app /app /app/media
 WORKDIR /app
 EXPOSE 8000
 

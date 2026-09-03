@@ -13,8 +13,11 @@
 /* ---------------------------------------------------------------------------
    Design tokens.
 
-   "Aaroham" is Sanskrit for ascent. The palette is warm and grounded — paper,
-   clay, sage, marigold — rather than primary-colour nursery brights. Every
+   "Aaroham" is Sanskrit for ascent, and the palette is a growing thing: warm
+   green on warm paper, with clay and marigold as the counterpoints. Green leads
+   because it is what the school is about — things growing at their own pace — and
+   because it stays warm and grounded rather than turning into primary-colour
+   nursery brights. Every
    colour is a CSS custom property so the dark scheme below can re-point the
    same token and every generated utility follows.
 --------------------------------------------------------------------------- */
@@ -28,16 +31,60 @@
   --color-ink:          #241e1a;  /* primary text */
   --color-muted:        #6b5f55;  /* secondary text */
 
-  /* Brand */
-  --color-clay:         #b4542e;  /* primary action, links */
-  --color-clay-deep:    #8e3f20;  /* hover / pressed */
-  --color-clay-wash:    #f6e5da;  /* tinted panels */
-  --color-sage:         #40614f;  /* calm secondary */
+  /* Brand.
+     leaf is the primary: every button, link and eyebrow. A warm, olive-leaning
+     green rather than a cool one, so it sits on the warm paper instead of fighting
+     it. 5.4:1 against the page and 5.7:1 under white — both clear of AA, which a
+     lighter, prettier green would not have been. */
+  --color-leaf:         #4b6b36;  /* primary action, links */
+  --color-leaf-deep:    #3a5427;  /* hover / pressed */
+  --color-leaf-wash:    #e9efe1;  /* the quietest tint — hovers, small panels */
+  --color-on-leaf:      #ffffff;  /* text on a filled leaf button */
+
+  /* #aad688 lives here as `spring`, and it is used as a SOLID — marks, pills, the
+     rule under a heading — where its brightness is the whole point.
+     A BACKGROUND ONLY as far as text goes: 9.9:1 under ink, 1.66:1 under white. */
+  --color-spring:       #aad688;
+
+  /* And a warmer, softer relative for large fields.
+     Straight #aad688 across a whole band read acidic against #fbf7f1, and the
+     reason is temperature rather than taste: the paper sits around 35° hue and
+     #aad688 at 95°, so a big flat slab of it fights the page instead of belonging
+     to it. This is the same green pulled toward yellow and let down a little in
+     saturation — near enough to read as the same colour, far enough to sit still.
+     10.3:1 under ink, 5.3:1 under leaf-deep. */
+  --color-leaf-panel:   #bcd590;
+
+  /* The accent family.
+     Five hues, each with a wash to sit on and a deep to write in. All of them are
+     warm-leaning — the blue is a teal, the pink is a plum — so they read as one set
+     on warm paper rather than as a box of crayons. Every `deep` clears AA on its own
+     `wash`: marigold 5.1, sky 6.5, berry 7.3, clay 6.0, leaf 5.9.
+
+     The rule that keeps this from turning into noise: a colour identifies a thing
+     (a programme, a value), it never decorates one. */
+  --color-clay:         #b4542e;
+  --color-clay-deep:    #8e3f20;
+  --color-clay-wash:    #f9e6dc;
+
+  --color-marigold:     #c98a1e;
+  --color-marigold-deep:#8a5c0d;
+  --color-marigold-wash:#fbeed4;
+
+  --color-sky:          #2f7d95;
+  --color-sky-deep:     #1f5a6d;
+  --color-sky-wash:     #ddeef4;
+
+  --color-berry:        #9d4470;
+  --color-berry-deep:   #7a3156;
+  --color-berry-wash:   #f8e5ee;
+
+  /* Semantic, not decorative: sage means "this went well", stop means "this did
+     not". Neither is ever borrowed for ordinary UI. */
+  --color-sage:         #40614f;
   --color-sage-wash:    #e3ece5;
-  --color-marigold:     #c98a1e;  /* highlight, never a large field */
-  --color-stop:         #a33a2b;  /* form errors — semantic, never the accent */
+  --color-stop:         #a33a2b;
   --color-stop-wash:    #f9e7e4;
-  --color-on-clay:      #ffffff;  /* text on a filled clay button */
 
   /* Type. One display face, one body face, both with real fallbacks. */
   --font-display: "Fraunces", "Iowan Old Style", Georgia, "Times New Roman", serif;
@@ -52,6 +99,9 @@
   --text-display-lg: 3.5rem;
   --text-display-lg--line-height: 1.05;
   --text-display-lg--letter-spacing: -0.025em;
+  --text-display-xl: 4.5rem;
+  --text-display-xl--line-height: 1.0;
+  --text-display-xl--letter-spacing: -0.03em;
 
   /* Layout */
   --radius-card: 0.875rem;
@@ -69,13 +119,29 @@
     --color-ink:        #f2ebe3;
     --color-muted:      #a99b8d;
 
+    --color-leaf:       #9cc47f;
+    --color-leaf-deep:  #b5d89a;
+    --color-leaf-wash:  #232e1c;
+    --color-on-leaf:    #16200f;
+    /* Not the light green dimmed — a light panel on a dark page glares. The dark
+       scheme wants the same *role* (a green panel that lifts off the background) at
+       the opposite end of the scale. */
+    --color-leaf-panel: #2b3d20;
+    --color-spring:     #8fbf6c;
     --color-clay:       #e08757;
     --color-clay-deep:  #f0a077;
     --color-clay-wash:  #33241b;
+    --color-marigold-deep: #f0c97a;
+    --color-marigold-wash: #322710;
+    --color-sky:        #7fc0d4;
+    --color-sky-deep:   #a5d8e8;
+    --color-sky-wash:   #12282f;
+    --color-berry:      #d98cb4;
+    --color-berry-deep: #eeafd0;
+    --color-berry-wash: #2d1a24;
     --color-sage:       #8fb79e;
     --color-sage-wash:  #1f2a23;
     --color-marigold:   #e0b055;
-    --color-on-clay:    #20150f;
   }
 }
 
@@ -100,9 +166,16 @@
     font-weight: 600;
   }
 
+  /* The header is sticky, so an anchor jump would otherwise put the target
+     underneath it — including the skip link, which is the one users who need it
+     most rely on. */
+  #main {
+    scroll-margin-top: 5rem;
+  }
+
   /* Keyboard focus stays visible everywhere, in both schemes. */
   :focus-visible {
-    outline: 2px solid var(--color-clay);
+    outline: 2px solid var(--color-leaf);
     outline-offset: 2px;
   }
 }
@@ -115,9 +188,9 @@
     top: -3rem;
     z-index: 50;
     border-radius: 0.5rem;
-    background-color: var(--color-clay);
+    background-color: var(--color-leaf);
     padding: 0.5rem 0.875rem;
-    color: var(--color-on-clay);
+    color: var(--color-on-leaf);
     transition: top 150ms ease;
   }
 
@@ -134,6 +207,10 @@
   .prose-form input[type="email"],
   .prose-form input[type="tel"],
   .prose-form input[type="date"],
+  .prose-form input[type="password"],
+  .prose-form input[type="search"],
+  .prose-form input[type="number"],
+  .prose-form input[type="file"],
   .prose-form select,
   .prose-form textarea {
     margin-top: --spacing(1.5);
@@ -152,12 +229,654 @@
   .prose-form input:focus-visible,
   .prose-form select:focus-visible,
   .prose-form textarea:focus-visible {
-    outline: 2px solid var(--color-clay);
+    outline: 2px solid var(--color-leaf);
     outline-offset: 2px;
-    border-color: var(--color-clay);
+    border-color: var(--color-leaf);
+  }
+
+  /* Checkboxes opt out of the block above: they are laid out beside their label by
+     the field partial, and a full-width 3rem-tall checkbox is not a checkbox. */
+  .prose-form input[type="checkbox"] {
+    margin-top: --spacing(1);
+    height: 1.15rem;
+    width: 1.15rem;
+    flex-shrink: 0;
+    accent-color: var(--color-leaf);
   }
 
   .prose-form ::placeholder {
     color: color-mix(in oklab, var(--color-muted) 60%, transparent);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Self-hosted faces.
+
+   Google Fonts is a third-party request logging the IP of every parent who opens
+   the site — ruled out by docs/plan.md under the DPDP Act, and a render-blocking
+   cross-origin connection on the slow mobile networks these families actually
+   have. 176 KB of woff2 buys both faces outright.
+
+   These are the VARIABLE fonts: one file covers every weight, which is why the
+   ranges below are `100 900` and `200 800` rather than a face per weight. Paths
+   resolve from the built stylesheet at static/css/app.css; WhiteNoise's manifest
+   storage rewrites them to hashed names at collectstatic.
+--------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/fraunces-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/fraunces-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Karla";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("../fonts/karla-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Karla";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("../fonts/karla-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@layer components {
+  /* -------------------------------------------------------------------------
+     The pieces the marketing pages repeat.
+
+     Before this block, every card on the public site was the retyped string
+     `border-line bg-raised rounded-2xl border p-6` (ten copies) and every call to
+     action was `bg-clay text-on-clay hover:bg-clay-deep inline-flex ...` (five).
+     Restyling a card meant editing fifteen inline strings across five files, which
+     is why the site never got restyled. Now it is one rule each.
+  ------------------------------------------------------------------------- */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: --spacing(2);
+    border-radius: var(--radius-xl);
+    padding: --spacing(3) --spacing(6);
+    font-weight: 500;
+    line-height: 1.2;
+    /* 44px minimum: a thumb on a phone, not a mouse pointer on a desk. */
+    min-height: 2.75rem;
+    transition: background-color 150ms ease, border-color 150ms ease;
+  }
+
+  .btn-primary {
+    background-color: var(--color-leaf);
+    color: var(--color-on-leaf);
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-leaf-deep);
+  }
+
+  .btn-ghost {
+    border: 1px solid var(--color-line);
+    color: var(--color-ink);
+    background-color: transparent;
+  }
+
+  .btn-ghost:hover {
+    background-color: var(--color-leaf-wash);
+  }
+
+  /* On a photograph rather than on paper — the hero's secondary action. */
+  .btn-on-photo {
+    border: 1px solid color-mix(in oklab, white 55%, transparent);
+    color: white;
+    backdrop-filter: blur(4px);
+    background-color: color-mix(in oklab, black 25%, transparent);
+  }
+
+  .btn-on-photo:hover {
+    background-color: color-mix(in oklab, black 40%, transparent);
+  }
+
+  .card {
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    background-color: var(--color-raised);
+    padding: --spacing(6);
+  }
+
+  /* The small uppercase label above a heading. */
+  .eyebrow {
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    /* deep, not leaf. This is small uppercase text and it now sits on the panel
+       green as often as on paper, where leaf measures 3.78:1 — under AA. deep is
+       5.3:1 there and better everywhere else, so there is no case for the lighter
+       one. */
+    color: var(--color-leaf-deep);
+  }
+
+  /* -------------------------------------------------------------------------
+     Full-bleed bands.
+
+     `main` carries no width of its own (see layouts/public.html) — each section
+     sets its own background edge to edge and constrains its CONTENT with .shell.
+     That is why there is no `w-screen; left: 50%; translate` trick anywhere here:
+     that approach overflows by the width of the scrollbar and gives a horizontal
+     scroll on Windows, which is most of our parents.
+  ------------------------------------------------------------------------- */
+
+  .shell {
+    margin-inline: auto;
+    width: 100%;
+    max-width: 64rem;
+    padding-inline: --spacing(5);
+  }
+
+  @media (width >= 48rem) {
+    .shell {
+      padding-inline: --spacing(8);
+    }
+  }
+
+  .band {
+    padding-block: --spacing(16);
+  }
+
+  @media (width >= 48rem) {
+    .band {
+      padding-block: --spacing(24);
+    }
+  }
+
+  .band-tint  { background-color: var(--color-sunken); }
+  .band-leaf  { background-color: var(--color-leaf-panel); }
+  .band-clay  { background-color: var(--color-clay-wash); }
+
+  /* A panel inside a band — the pull-out on a prose page. Same colour, same rule:
+     ink on it, never white. */
+  .panel-leaf {
+    background-color: var(--color-leaf-panel);
+    border-radius: var(--radius-card);
+    padding: --spacing(6);
+  }
+
+  @media (width >= 48rem) {
+    .panel-leaf { padding: --spacing(10); }
+  }
+
+  /* A photograph in a frame, rounded and clipped. Deliberately NOT an organic
+     blob mask: the direction here is warm and grounded, and a blob reads as the
+     bubbly template look we are staying away from. */
+  .media-frame {
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background-color: var(--color-sunken);
+  }
+
+  .media-frame > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+@layer components {
+  /* -------------------------------------------------------------------------
+     Mobile navigation, with no JavaScript.
+
+     <details>/<summary>, because its contents sit in the DOM whether open or
+     closed. Every nav link is therefore in the server-rendered HTML, which is what
+     the every-page-reaches-every-other test checks, and a <summary> has no href to
+     point at "#", which is what the other nav test checks. A scripted drawer fails
+     both — and also fails the parent whose JavaScript has not arrived yet on a slow
+     connection.
+  ------------------------------------------------------------------------- */
+
+  .nav-drawer {
+    position: relative;
+  }
+
+  .nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.75rem;
+    width: 2.75rem;
+    cursor: pointer;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-line);
+    /* Both of these remove the disclosure triangle; browsers disagree on which. */
+    list-style: none;
+  }
+
+  .nav-toggle::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Three bars from one gradient — no SVG, no icon font, no extra request. */
+  .nav-bars,
+  .nav-bars::before,
+  .nav-bars::after {
+    display: block;
+    height: 2px;
+    width: 1.15rem;
+    border-radius: 2px;
+    background-color: var(--color-ink);
+  }
+
+  .nav-bars {
+    position: relative;
+  }
+
+  .nav-bars::before,
+  .nav-bars::after {
+    content: "";
+    position: absolute;
+    left: 0;
+  }
+
+  .nav-bars::before { top: -6px; }
+  .nav-bars::after  { top: 6px; }
+
+  .nav-drawer[open] .nav-toggle {
+    background-color: var(--color-leaf-wash);
+  }
+
+  .nav-drawer-list {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    z-index: 50;
+    min-width: 15rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    background-color: var(--color-raised);
+    padding: --spacing(2);
+    box-shadow: 0 12px 32px -12px color-mix(in oklab, var(--color-ink) 35%, transparent);
+  }
+
+  /* -------------------------------------------------------------------------
+     The WhatsApp button.
+
+     52px: comfortably past the 44px touch minimum, on the reasoning that the
+     people tapping this are one-handed on a phone.
+  ------------------------------------------------------------------------- */
+
+  .float-wa {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 45;
+    display: inline-flex;
+    height: 3.25rem;
+    width: 3.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background-color: #25d366;
+    color: #ffffff;
+    box-shadow: 0 8px 24px -6px color-mix(in oklab, #25d366 60%, transparent);
+  }
+
+  .float-wa:hover {
+    background-color: #1ebe5a;
+  }
+
+  .btn-sm {
+    min-height: 2.25rem;
+    padding: --spacing(2) --spacing(4);
+    font-size: 0.875rem;
+  }
+
+  /* Photography does not re-point itself the way a colour token does. Without
+     this, a dark page carries a bright, fully saturated photo band and reads as
+     broken. */
+  @media (prefers-color-scheme: dark) {
+    .media-frame > img,
+    .band-photo img {
+      filter: brightness(0.82) saturate(0.92);
+    }
+  }
+}
+
+@layer components {
+  /* -------------------------------------------------------------------------
+     Photography.
+
+     Aspect ratio rather than width/height attributes, because an admin-uploaded
+     image has unknown dimensions and the box still has to reserve its space before
+     the bytes arrive. This is the layout-shift defence, and it is what finally puts
+     --radius-card to use.
+  ------------------------------------------------------------------------- */
+
+  .frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background-color: var(--color-sunken);
+  }
+
+  .frame > img {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  .frame-1x1  { aspect-ratio: 1; }
+  .frame-4x3  { aspect-ratio: 4 / 3; }
+  .frame-3x2  { aspect-ratio: 3 / 2; }
+  .frame-21x9 { aspect-ratio: 4 / 3; }
+
+  /* A 21:9 slice of a classroom on a 390px phone is a letterbox slit, so the wide
+     crop only applies once there is width to spend on it. */
+  @media (width >= 48rem) {
+    .frame-21x9 { aspect-ratio: 21 / 9; }
+  }
+
+  /* Edge to edge: square corners, and the section is the frame. */
+  .band-photo {
+    position: relative;
+    overflow: hidden;
+    border-radius: 0;
+  }
+
+  .band-photo > img {
+    display: block;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  /* Text over a photograph. Reads --color-ink so it re-points with the scheme
+     rather than being a hardcoded black that fights the dark palette. */
+  .scrim {
+    position: absolute;
+    inset: 0;
+    /* Strong enough that the headline is legible over the BRIGHTEST pixel the
+       photograph might have there, not merely over the one it happens to have
+       today. White needs the scrim at ~62% ink to clear 4.5:1 against white
+       underneath; the headline sits in the 35-55% band, so that is where the 72%
+       stop goes. An admin can swap the hero image without re-checking this. */
+    background: linear-gradient(
+      to top,
+      color-mix(in oklab, var(--color-ink) 90%, transparent),
+      color-mix(in oklab, var(--color-ink) 72%, transparent) 55%,
+      color-mix(in oklab, var(--color-ink) 30%, transparent) 80%,
+      transparent 100%
+    );
+  }
+
+  /* -------------------------------------------------------------------------
+     The numbers band.
+  ------------------------------------------------------------------------- */
+
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: var(--text-display);
+    line-height: 1.05;
+    font-weight: 600;
+    /* deep, not leaf: these sit on the panel green, where leaf is 3.5:1 and only
+       passes as large text. leaf-deep is 5.1:1 and passes outright. */
+    color: var(--color-leaf-deep);
+  }
+
+  .stat-label {
+    margin-top: --spacing(1);
+    font-size: 0.8125rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    /* Not --color-muted: these sit on the panel green, where muted is 3.7:1 and
+       fails for text this size. Ink at 75% keeps the visual hierarchy — the label
+       stays quieter than the number — without dropping below AA. */
+    color: color-mix(in oklab, var(--color-ink) 75%, transparent);
+  }
+}
+
+@layer components {
+  /* -------------------------------------------------------------------------
+     Colour as identity.
+
+     An element picks a hue by carrying one `.a-*` class, which sets three custom
+     properties. Everything below reads those properties and nothing else — so a
+     card, a pill and a photo frame in the same colour agree automatically, and
+     adding a sixth hue is four lines in one place rather than an edit everywhere.
+
+     `--accent-ink` is always the `deep` variant, never the base, because the base
+     is chosen to look right as a solid and the deep is chosen to be legible on the
+     wash. Those are different jobs and they need different values.
+  ------------------------------------------------------------------------- */
+
+  .a-leaf {
+    --accent: var(--color-leaf);
+    --accent-wash: var(--color-leaf-wash);
+    --accent-ink: var(--color-leaf-deep);
+    --accent-on: #ffffff;
+  }
+  .a-marigold {
+    --accent: var(--color-marigold);
+    --accent-wash: var(--color-marigold-wash);
+    --accent-ink: var(--color-marigold-deep);
+    /* Ink, not white. Marigold is the one hue light enough that white on it is
+       2.94:1 — under the 3:1 a large mark needs, never mind text. Darkening the
+       gold would have fixed the number and lost the colour, which is the opposite
+       of the point. */
+    --accent-on: var(--color-ink);
+  }
+  .a-sky {
+    --accent: var(--color-sky);
+    --accent-wash: var(--color-sky-wash);
+    --accent-ink: var(--color-sky-deep);
+    --accent-on: #ffffff;
+  }
+  .a-berry {
+    --accent: var(--color-berry);
+    --accent-wash: var(--color-berry-wash);
+    --accent-ink: var(--color-berry-deep);
+    --accent-on: #ffffff;
+  }
+  .a-clay {
+    --accent: var(--color-clay);
+    --accent-wash: var(--color-clay-wash);
+    --accent-ink: var(--color-clay-deep);
+    --accent-on: #ffffff;
+  }
+
+  /* A card that is its colour rather than a white card with a coloured bit. */
+  .card-colour {
+    border-radius: var(--radius-card);
+    background-color: var(--accent-wash);
+    padding: --spacing(6);
+    /* A hairline of the solid accent, not a heavy border. At 3px this reads as a
+       children's-television sticker; at 1px it reads as a considered surface. */
+    border: 1px solid color-mix(in oklab, var(--accent) 30%, transparent);
+  }
+
+  .card-colour .card-title {
+    color: var(--accent-ink);
+  }
+
+  /* The number or letter that marks a card. Solid accent, so it carries weight
+     without needing size. */
+  .card-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.75rem;
+    width: 2.75rem;
+    border-radius: 9999px;
+    background-color: var(--accent);
+    color: var(--accent-on);
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+
+  /* Age bands, stage labels — the small pill that says what something is. */
+  .pill {
+    display: inline-block;
+    border-radius: 9999px;
+    background-color: var(--accent-wash);
+    padding: --spacing(1) --spacing(3);
+    color: var(--accent-ink);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1px solid color-mix(in oklab, var(--accent) 28%, transparent);
+  }
+
+  /* A photograph that belongs to a coloured thing. The wash shows while the image
+     loads, so the card never flashes grey, and it tints the letterboxing when the
+     source is the wrong shape — which, with admin uploads, it sometimes will be. */
+  .frame-colour {
+    background-color: var(--accent-wash);
+  }
+
+  /* A rule that picks up the card's hue instead of the generic hairline. */
+  .divide-accent {
+    border-color: color-mix(in oklab, var(--accent) 30%, transparent);
+  }
+
+  /* A link inside a coloured card. Written as a class rather than an inline style
+     because test_no_template_syntax_leaks_into_the_page forbids brace pairs in the
+     rendered output, and `style="color: var(--x)"` is one edit away from being one. */
+  .link-accent {
+    color: var(--accent-ink);
+    text-underline-offset: 4px;
+  }
+
+  .link-accent:hover {
+    text-decoration: underline;
+  }
+
+  /* Tinted page-opening bands. Softer than .band-leaf's panel green — a whole
+     header in a saturated colour is where "colourful" turns into "loud". */
+  .band-sky      { background-color: var(--color-sky-wash); }
+  .band-marigold { background-color: var(--color-marigold-wash); }
+  .band-berry    { background-color: var(--color-berry-wash); }
+}
+
+@layer components {
+  /* -------------------------------------------------------------------------
+     The bold set. Piloted on About before it goes anywhere else.
+
+     "Bolder" here means larger areas of committed colour and higher contrast
+     between neighbouring sections — not more hues. Five is already the ceiling;
+     a sixth would stop being a palette and start being a swatch book.
+  ------------------------------------------------------------------------- */
+
+  /* A band that IS its colour, white type on the deep. The loudest thing on a
+     page, so a page gets one. */
+  .band-solid {
+    background-color: var(--accent-ink);
+    color: #ffffff;
+  }
+
+  .band-solid h1,
+  .band-solid h2,
+  .band-solid h3,
+  .band-solid .eyebrow {
+    color: #ffffff;
+  }
+
+  .band-solid .btn-ghost {
+    border-color: color-mix(in oklab, #ffffff 60%, transparent);
+    color: #ffffff;
+  }
+
+  .band-solid .btn-ghost:hover {
+    background-color: color-mix(in oklab, #ffffff 15%, transparent);
+  }
+
+  /* A heavier card: the accent stated along the top edge rather than whispered
+     around the border. */
+  .card-bold {
+    border-radius: var(--radius-card);
+    background-color: var(--accent-wash);
+    padding: --spacing(7);
+    border: 1px solid color-mix(in oklab, var(--accent) 35%, transparent);
+    border-top: 5px solid var(--accent);
+  }
+
+  .card-bold .card-title {
+    color: var(--accent-ink);
+  }
+
+  .card-mark-lg {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 3.5rem;
+    width: 3.5rem;
+    border-radius: 9999px;
+    background-color: var(--accent);
+    color: var(--accent-on);
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  /* A photograph with a colour block shifted out behind it. Pure decoration, and
+     the one piece of decoration on the page that earns itself — it is what stops a
+     two-column text-and-photo row reading like a brochure template.
+     `inset-inline-start` rather than `left` so it flips with the writing direction
+     the day Hindi arrives. */
+  .photo-offset {
+    position: relative;
+  }
+
+  .photo-offset::before {
+    content: "";
+    position: absolute;
+    inset-block: --spacing(6) calc(--spacing(6) * -1);
+    inset-inline: calc(--spacing(6) * -1) --spacing(6);
+    border-radius: var(--radius-card);
+    background-color: var(--accent-wash);
+    z-index: 0;
+  }
+
+  .photo-offset > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* A short rule under a heading, in the brightest green we have. This is where
+     #aad688 belongs — small, solid, and load-bearing rather than spread thin. */
+  .rule-spring {
+    display: block;
+    height: 0.375rem;
+    width: 3.5rem;
+    border-radius: 9999px;
+    background-color: var(--color-spring);
   }
 }

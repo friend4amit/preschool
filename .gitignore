@@ -30,3 +30,11 @@ htmlcov/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local database dumps. These hold every child's name, date of birth and
+# guardian phone number — they never go in the repo.
+backups/
+*.dump
+
+# Scratch space for ./scripts/restore.sh, removed when it finishes.
+.restore-work/

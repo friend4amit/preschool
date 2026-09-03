@@ -1,68 +1,132 @@
 {% extends "layouts/public.html" %}
+{% load media_extras %}
 
 {% block title %}About Aaroham{% endblock %}
-{% block meta_description %}Our story, our mission, and what we believe about how young children learn best.{% endblock %}
+{% block meta_description %}Our mission, our values, and the beliefs a day at Aaroham is built on — an inclusive preschool that protects the pace of childhood.{% endblock %}
 
 {% block content %}
-  <h1 class="font-display text-ink text-3xl leading-tight font-semibold text-balance md:text-5xl">
-    A caring start for every little champion
-  </h1>
 
-  <section class="mt-10">
-    <h2 class="font-display text-ink text-2xl font-semibold">Our mission</h2>
-    <p class="text-muted mt-4 max-w-prose leading-relaxed">
-      Our mission is to provide an inclusive and nurturing preschool environment where
-      children are encouraged to explore, imagine, and create. We aim to spark curiosity
-      through play-based learning, foster confidence by valuing each child's voice, and
-      build a foundation of empathy and collaboration. By integrating creativity into
-      everyday experiences, we empower children to express their unique ideas and
-      perspectives while developing essential skills for lifelong learning.
-    </p>
+  {% comment %} --- Opening -----------------------------------------------------------
+     The warmed panel green across the full width, and the heading at the top of the
+     scale. This page's job is to say what the school believes, so it opens by
+     committing rather than easing in. {% endcomment %}
+  <section class="band band-leaf pb-16 md:pb-24">
+    <div class="shell">
+      <p class="eyebrow">About us</p>
+      <h1 class="font-display text-ink text-display md:text-display-lg lg:text-display-xl mt-3 max-w-4xl leading-[1.02] font-semibold text-balance">
+        A caring start for every little champion
+      </h1>
+      <span class="rule-spring mt-7"></span>
+      <p class="text-ink/75 mt-6 max-w-2xl text-xl leading-relaxed">
+        An inclusive, nurturing place where children explore, imagine and create — and where
+        the pace of childhood is protected rather than rushed.
+      </p>
+    </div>
   </section>
 
-  <section class="mt-14">
-    <h2 class="font-display text-ink text-2xl font-semibold">Core values &amp; beliefs</h2>
-    <div class="mt-6 grid gap-5 md:grid-cols-2">
-      <div class="border-line bg-raised rounded-2xl border p-6">
-        <h3 class="font-display text-ink text-lg font-semibold">Capable &amp; unique</h3>
-        <p class="text-muted mt-2 text-sm leading-relaxed">
-          Every child is strong, capable and full of potential, with their own learning style
-          and interests. We start from what a child can already do.
+  {% comment %} --- Mission ----------------------------------------------------------- {% endcomment %}
+  <section class="band">
+    <div class="shell grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
+      <div>
+        <h2 class="font-display text-ink text-display font-semibold text-balance">Our mission</h2>
+        <span class="rule-spring mt-5"></span>
+        <p class="text-muted mt-6 text-lg leading-relaxed">
+          Our mission is to provide an inclusive and nurturing preschool environment where
+          children are encouraged to explore, imagine, and create. We aim to spark curiosity
+          through play-based learning, foster confidence by valuing each child's voice, and
+          build a foundation of empathy and collaboration. By integrating creativity into
+          everyday experiences, we empower children to express their unique ideas and
+          perspectives while developing essential skills for lifelong learning.
         </p>
       </div>
-      <div class="border-line bg-raised rounded-2xl border p-6">
-        <h3 class="font-display text-ink text-lg font-semibold">Play is the work</h3>
-        <p class="text-muted mt-2 text-sm leading-relaxed">
-          Play is not a break from learning at this age — it is how learning happens. The
-          classroom is a joyful, engaging space by design.
-        </p>
-      </div>
-      <div class="border-line bg-raised rounded-2xl border p-6">
-        <h3 class="font-display text-ink text-lg font-semibold">Head, heart and hands</h3>
-        <p class="text-muted mt-2 text-sm leading-relaxed">
-          We look for growth in all three: intellectual, emotional and physical. A confident
-          child matters as much as a capable one.
-        </p>
-      </div>
-      <div class="border-line bg-raised rounded-2xl border p-6">
-        <h3 class="font-display text-ink text-lg font-semibold">Childhood, protected</h3>
-        <p class="text-muted mt-2 text-sm leading-relaxed">
-          In a world shaped by screens and academic pressure, we honour the natural pace of
-          the early years and keep them unhurried.
-        </p>
+
+      {% if photo %}
+        <div class="a-marigold photo-offset">
+          <div class="frame frame-3x2 frame-colour">
+            <img src="{{ photo.image.url }}"
+                 {% with ss=photo.image|srcset:"800,480" %}{% if ss %}srcset="{{ ss }}" sizes="(min-width: 1024px) 32rem, 90vw"{% endif %}{% endwith %}
+                 alt="{{ photo.alt_text }}" loading="lazy" decoding="async">
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  {% comment %} --- Values -------------------------------------------------------------
+     Four beliefs, four colours, the accent stated along the top edge. The colour is
+     not decoration — it is what lets the eye find its way back to a particular card
+     after looking away, which on four similar blocks is most of what a reader does. {% endcomment %}
+  <section class="band band-tint">
+    <div class="shell">
+      <h2 class="font-display text-ink text-display font-semibold text-balance">Core values &amp; beliefs</h2>
+      <span class="rule-spring mt-5"></span>
+      <p class="text-muted mt-6 max-w-prose text-lg">What a day here is built on.</p>
+
+      <div class="mt-12 grid gap-6 md:grid-cols-2">
+        <div class="a-leaf card-bold">
+          <span class="card-mark-lg" aria-hidden="true">1</span>
+          <h3 class="font-display card-title mt-5 text-xl font-semibold">Capable &amp; unique</h3>
+          <p class="text-ink/75 mt-3 leading-relaxed">
+            Every child is strong, capable and full of potential, with their own learning style
+            and interests. We start from what a child can already do.
+          </p>
+        </div>
+
+        <div class="a-marigold card-bold">
+          <span class="card-mark-lg" aria-hidden="true">2</span>
+          <h3 class="font-display card-title mt-5 text-xl font-semibold">Play is the work</h3>
+          <p class="text-ink/75 mt-3 leading-relaxed">
+            Play is not a break from learning at this age — it is how learning happens. The
+            classroom is a joyful, engaging space by design.
+          </p>
+        </div>
+
+        <div class="a-sky card-bold">
+          <span class="card-mark-lg" aria-hidden="true">3</span>
+          <h3 class="font-display card-title mt-5 text-xl font-semibold">Head, heart and hands</h3>
+          <p class="text-ink/75 mt-3 leading-relaxed">
+            We look for growth in all three: intellectual, emotional and physical. A confident
+            child matters as much as a capable one.
+          </p>
+        </div>
+
+        <div class="a-berry card-bold">
+          <span class="card-mark-lg" aria-hidden="true">4</span>
+          <h3 class="font-display card-title mt-5 text-xl font-semibold">Childhood, protected</h3>
+          <p class="text-ink/75 mt-3 leading-relaxed">
+            In a world shaped by screens and academic pressure, we honour the natural pace of
+            the early years and keep them unhurried.
+          </p>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="bg-sage-wash mt-14 rounded-3xl p-8 md:p-12">
-    <h2 class="font-display text-ink text-2xl font-semibold">Come and see</h2>
-    <p class="text-muted mt-3 max-w-prose">
-      The best way to understand a preschool is to stand in it. Visits are unhurried, and
-      there is no obligation.
-    </p>
-    <a href="{% url 'contact' %}"
-       class="bg-clay text-on-clay hover:bg-clay-deep mt-6 inline-flex items-center rounded-xl px-6 py-3 font-medium transition">
-      Book a visit
-    </a>
+  {% comment %} --- The statement ------------------------------------------------------
+     One solid band per page, and this is it. White on deep green, nothing else in
+     it, so the sentence has to carry the weight — which is the right pressure to put
+     on the only claim the school really makes. {% endcomment %}
+  <section class="a-leaf band-solid band">
+    <div class="shell max-w-4xl">
+      <p class="font-display text-display leading-[1.15] font-semibold text-balance">
+        Childhood is not a race, and the early years are not a head start.
+      </p>
+      <p class="mt-6 text-lg text-white/80">
+        They are the years a child decides how they feel about learning. We would rather get
+        that right slowly than get ahead quickly.
+      </p>
+    </div>
+  </section>
+
+  {% comment %} --- Come and see ------------------------------------------------------- {% endcomment %}
+  <section class="band band-leaf">
+    <div class="shell">
+      <h2 class="font-display text-ink text-display font-semibold text-balance">Come and see</h2>
+      <p class="text-ink/80 mt-4 max-w-prose text-lg">
+        The best way to understand a preschool is to stand in it. Visits are unhurried, and
+        there is no obligation.
+      </p>
+      <a href="{% url 'contact' %}" class="btn btn-primary mt-8">Book a visit</a>
+    </div>
   </section>
 {% endblock %}

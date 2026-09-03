@@ -1,0 +1,35 @@
+{% comment %} Renders a form's fields with the project's field chrome.
+
+   An include rather than a layout: partials are swappable into an hx-target, and
+   one that extended a layout could not be. Wrap the caller in .prose-form — the
+   input styling lives in the stylesheet, not on the widgets. {% endcomment %}
+
+{% if form.non_field_errors %}
+  <div role="alert" class="rounded-xl bg-stop-wash px-4 py-3 text-sm text-stop">
+    {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+  </div>
+{% endif %}
+
+{% for field in form %}
+  <div>
+    {% if field.field.widget.input_type == "checkbox" %}
+      <label class="flex items-start gap-3 text-sm text-ink">
+        {{ field }}
+        <span>
+          {{ field.label }}
+          {% if field.help_text %}<span class="mt-0.5 block text-2xs text-muted">{{ field.help_text }}</span>{% endif %}
+        </span>
+      </label>
+    {% else %}
+      <label for="{{ field.id_for_label }}" class="text-sm font-medium text-ink">
+        {{ field.label }}{% if field.field.required %}<span class="text-stop" aria-hidden="true">*</span>{% endif %}
+      </label>
+      {{ field }}
+      {% if field.help_text %}<p class="mt-1 text-2xs text-muted">{{ field.help_text|safe }}</p>{% endif %}
+    {% endif %}
+
+    {% for error in field.errors %}
+      <p class="mt-1 text-sm text-stop">{{ error }}</p>
+    {% endfor %}
+  </div>
+{% endfor %}

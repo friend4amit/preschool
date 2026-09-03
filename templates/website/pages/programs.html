@@ -1,51 +1,97 @@
 {% extends "layouts/public.html" %}
+{% load media_extras %}
 
-{% block title %}Programmes{% endblock %}
-{% block meta_description %}Playgroup, Nursery, LKG, UKG and daycare — a gentle learning journey for every stage.{% endblock %}
+{% block title %}Programmes — Aaroham{% endblock %}
+{% block meta_description %}Playgroup, Nursery, LKG, UKG and daycare for ages 1½ to 6. Children move up when they are ready, not on a date.{% endblock %}
 
 {% block content %}
-  <h1 class="font-display text-ink text-3xl leading-tight font-semibold text-balance md:text-5xl">
-    A gentle learning journey for every stage
-  </h1>
-  <p class="text-muted mt-5 max-w-prose text-lg">
-    Children move up when they are ready, not on a date. If you are unsure which stage suits
-    your child, ask us — we will tell you honestly.
-  </p>
-
-  <div class="mt-12 space-y-5">
-    {% for program in programs %}
-      <article class="border-line bg-raised rounded-2xl border p-6 md:flex md:items-start md:gap-8 md:p-8">
-        <div class="md:w-44 md:shrink-0">
-          <p class="text-marigold text-xs font-medium tracking-widest uppercase">{{ program.age_range_display }}</p>
-          <h2 class="font-display text-ink mt-1 text-xl font-semibold">{{ program.name }}</h2>
-        </div>
-        <div class="mt-3 md:mt-0">
-          {% if program.summary %}
-            <p class="text-ink leading-relaxed">{{ program.summary }}</p>
-          {% endif %}
-          {% if program.description %}
-            <p class="text-muted mt-3 leading-relaxed">{{ program.description|linebreaksbr }}</p>
-          {% endif %}
-        </div>
-      </article>
-    {% empty %}
-      <p class="text-muted">
-        Our programmes are being finalised.
-        <a class="text-clay hover:underline" href="{% url 'contact' %}">Get in touch</a>
-        and we will talk you through them.
+  <section class="band band-marigold pb-16 md:pb-24">
+    <div class="shell">
+      <p class="eyebrow">Programmes</p>
+      <h1 class="font-display text-ink text-display md:text-display-lg lg:text-display-xl mt-3 max-w-4xl leading-[1.02] font-semibold text-balance">
+        A gentle learning journey for every stage
+      </h1>
+      <span class="rule-spring mt-7"></span>
+      <p class="text-ink/75 mt-6 max-w-2xl text-xl leading-relaxed">
+        Children move up when they are ready, not on a date. If you are unsure which stage
+        suits your child, ask us — we will tell you honestly.
       </p>
-    {% endfor %}
-  </div>
+    </div>
+  </section>
 
-  <section class="bg-sage-wash mt-14 rounded-3xl p-8 md:p-12">
-    <h2 class="font-display text-ink text-2xl font-semibold">Not sure where your child fits?</h2>
-    <p class="text-muted mt-3 max-w-prose">
-      Tell us their age and a little about them. We will suggest a stage — and say so if we
-      think another school suits them better.
-    </p>
-    <a href="{% url 'contact' %}"
-       class="bg-clay text-on-clay hover:bg-clay-deep mt-6 inline-flex items-center rounded-xl px-6 py-3 font-medium transition">
-      Ask us
-    </a>
+  <section class="band">
+    <div class="shell space-y-8">
+      {% comment %} Each stage carries its own colour, and the same colour appears in the
+         pill, the marker and the frame behind the photograph — so a parent scanning
+         the page tells the stages apart before reading a word of them.
+
+         It cycles rather than living on the model. A colour field is easy to add
+         later and hard to take back once the office has started choosing badly. {% endcomment %}
+      {% for program in programs %}
+        <article class="{% cycle 'a-leaf' 'a-marigold' 'a-sky' 'a-berry' 'a-clay' %} card-bold overflow-hidden !p-0 md:flex md:items-stretch">
+          {% if program.image %}
+            <div class="frame frame-4x3 frame-colour rounded-none md:w-80 md:shrink-0">
+              <img src="{{ program.image.url }}"
+                   {% with ss=program.image|srcset:"800,400" %}{% if ss %}srcset="{{ ss }}" sizes="(min-width: 768px) 20rem, 100vw"{% endif %}{% endwith %}
+                   alt="{{ program.image_alt }}" loading="lazy" decoding="async">
+            </div>
+          {% endif %}
+
+          <div class="p-6 md:flex-1 md:p-8">
+            <div class="flex flex-wrap items-center gap-3">
+              <span class="card-mark-lg" aria-hidden="true">{{ forloop.counter }}</span>
+              {% comment %} The literal age range stays in the body — a page test asserts
+                 "2½–3½ years" is visible, and it is the first thing a parent looks
+                 for. {% endcomment %}
+              <span class="pill">{{ program.age_range_display }}</span>
+            </div>
+
+            <h2 class="font-display card-title mt-4 text-2xl font-semibold">{{ program.name }}</h2>
+
+            {% if program.summary %}
+              <p class="text-ink/85 mt-3 text-lg leading-relaxed">{{ program.summary }}</p>
+            {% endif %}
+            {% if program.description %}
+              <p class="text-ink/70 mt-3 leading-relaxed">{{ program.description|linebreaksbr }}</p>
+            {% endif %}
+
+            <p class="mt-5">
+              <a href="{% url 'contact' %}" class="link-accent text-sm font-semibold">
+                Ask about {{ program.name }} &rarr;
+              </a>
+            </p>
+          </div>
+        </article>
+      {% empty %}
+        <p class="text-muted">
+          Our programmes are being finalised.
+          <a class="text-leaf hover:underline" href="{% url 'contact' %}">Get in touch</a>
+          and we will talk you through them.
+        </p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="a-clay band-solid band">
+    <div class="shell max-w-4xl">
+      <p class="font-display text-display leading-[1.15] font-semibold text-balance">
+        Children move up when they are ready, not on a date.
+      </p>
+      <p class="mt-6 text-lg text-white/80">
+        A child who needs another term in Nursery gets one. Nobody is pushed on to keep a
+        cohort tidy.
+      </p>
+    </div>
+  </section>
+
+  <section class="band band-leaf">
+    <div class="shell">
+      <h2 class="font-display text-ink text-display font-semibold text-balance">Not sure where your child fits?</h2>
+      <p class="text-ink/80 mt-3 max-w-prose text-lg">
+        Tell us their age and a little about them. We will suggest a stage — and say so if we
+        think another school suits them better.
+      </p>
+      <a href="{% url 'contact' %}" class="btn btn-primary mt-8">Ask us</a>
+    </div>
   </section>
 {% endblock %}

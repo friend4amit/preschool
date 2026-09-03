@@ -10,10 +10,12 @@ which is the thing a brochure site can never do.
 """
 
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.text import slugify
 
 from apps.core.models import BranchScopedModel
+from integrations.storage_r2 import public_media
 
 
 class PublishedQuerySet(models.QuerySet):
@@ -41,6 +43,45 @@ class SiteSettings(models.Model):
     # Used from phase 6 to build the UPI payment link. Harmless until then.
     upi_vpa = models.CharField(max_length=100, blank=True)
 
+    logo = models.ImageField(
+        upload_to="marketing/site/",
+        blank=True,
+        storage=public_media,
+        max_length=200,
+        help_text="Optional. Without one the header shows the Aaroham wordmark, "
+        "which is no bad thing.",
+    )
+    hero_image = models.ImageField(
+        upload_to="marketing/site/",
+        blank=True,
+        storage=public_media,
+        max_length=200,
+        help_text="The photograph behind the home page headline. Landscape, at "
+        "least 1400px wide. Without one the hero falls back to colour and type.",
+    )
+    hero_image_alt = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="What the photograph shows, for a screen reader. Leave blank if "
+        "it is purely decorative.",
+    )
+    # A separate field, not `phone`. `phone` is a display string — "080 1234 5678"
+    # is the kind of thing that goes in it — and wa.me needs digits with a country
+    # code and nothing else. Stripping punctuation out of `phone` would give
+    # 08012345678, which wa.me rejects for having no country code.
+    whatsapp_number = models.CharField(
+        max_length=15,
+        blank=True,
+        validators=[
+            RegexValidator(
+                r"^\d{10,15}$",
+                "Digits only, including the country code — e.g. 919876543210.",
+            )
+        ],
+        help_text="Country code + number, digits only. Shows a WhatsApp button on "
+        "every public page. Leave blank to hide it.",
+    )
+
     class Meta:
         verbose_name_plural = "site settings"
 
@@ -57,6 +98,15 @@ class Program(BranchScopedModel):
     age_to_months = models.PositiveIntegerField(help_text="Oldest age admitted, in months")
     summary = models.CharField(max_length=300, blank=True)
     description = models.TextField(blank=True)
+    image = models.ImageField(
+        upload_to="marketing/programs/",
+        blank=True,
+        storage=public_media,
+        max_length=200,
+        help_text="Landscape, roughly 4:3. A programme without one renders as a "
+        "text card rather than an empty box.",
+    )
+    image_alt = models.CharField(max_length=200, blank=True)
     order = models.PositiveIntegerField(default=0)
     is_published = models.BooleanField(default=True)
 
@@ -176,3 +226,87 @@ class Enquiry(BranchScopedModel):
 
     def __str__(self) -> str:
         return f"{self.guardian_name} ({self.phone})"
+
+
+class ImagePlacement(models.TextChoices):
+    """Where on the site an image is meant to sit.
+
+    One model with a placement beats a named ImageField per page. `about_image`,
+    `approach_image`, `inclusion_image` is three fields today and six next quarter,
+    each needing a migration; this needs a row. It is also the shape docs/plan.md
+    asks for — repeating content lives in tiny models editable in /admin.
+    """
+
+    GALLERY = "gallery", "Gallery — the strip on the home page"
+    ABOUT = "about", "About us"
+    APPROACH_PLAY = "approach_play", "Our approach — learning through play"
+    APPROACH_HANDS = "approach_hands", "Our approach — hands-on and independent"
+    APPROACH_VALUES = "approach_values", "Our approach — Indian values and culture"
+    INCLUSION = "inclusion", "Thoughtful education"
+    TEAM = "team", "Our team — the band above the educators"
+
+
+class GalleryImage(BranchScopedModel):
+    """A photograph of the school, placed by role rather than by page template.
+
+    Deliberately no relation to a Student. These are marketing images — rooms,
+    materials, hands at work — and docs/plan.md is explicit that a photograph of an
+    identifiable child needs `photos_in_marketing` consent from that child's
+    guardian, which is a different flow entirely. Nothing here goes near it.
+    """
+
+    image = models.ImageField(upload_to="marketing/gallery/", storage=public_media, max_length=200)
+    alt_text = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="What the photograph shows. Leave blank only if it is purely "
+        "decorative — an empty alt is correct markup for that, a missing one is not.",
+    )
+    caption = models.CharField(max_length=200, blank=True)
+    placement = models.CharField(
+        max_length=20, choices=ImagePlacement.choices, default=ImagePlacement.GALLERY
+    )
+    # Which original this row came from, when it was seeded rather than uploaded.
+    # It is what makes `seed_media` idempotent, and it is provenance for images
+    # whose licensing may later need tracing.
+    source_key = models.CharField(max_length=200, blank=True, editable=False)
+    order = models.PositiveIntegerField(default=0)
+    is_published = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = PublishedQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["order", "id"]
+        constraints = [
+            # Partial, so admin-uploaded rows can leave source_key blank without
+            # colliding with each other.
+            models.UniqueConstraint(
+                fields=["branch", "source_key"],
+                condition=~models.Q(source_key=""),
+                name="uniq_gallery_source_per_branch",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return self.caption or self.alt_text or f"Image {self.pk}"
+
+
+class Stat(BranchScopedModel):
+    """One number in the band on the home page — "1:8", "Adult to child"."""
+
+    # A string, not an integer. The numbers a preschool actually wants to show are
+    # "1:8" for the adult-to-child ratio and "18 months" for the youngest admitted,
+    # and an IntegerField forces both of those out of the band.
+    value = models.CharField(max_length=20)
+    label = models.CharField(max_length=80)
+    order = models.PositiveIntegerField(default=0)
+    is_published = models.BooleanField(default=True)
+
+    objects = PublishedQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["order", "id"]
+
+    def __str__(self) -> str:
+        return f"{self.value} {self.label}"

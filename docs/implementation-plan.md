@@ -33,6 +33,7 @@ Each phase ends in something **deployed and usable by a real person**, not a bra
 |---|---|---|---|
 | 0 | [Foundations](#phase-0--foundations) | 4–5 | Nobody (but it's live) |
 | 1 | [Public website](#phase-1--public-website) | 7–9 | Prospective parents |
+| 1-a | [Container start/stop scripts](#phase-1-a--container-startstop-scripts) | 0.5–1 | The developer (not in the total) |
 | 2 | [People & enrolment](#phase-2--people--enrolment) | 10–12 | Office staff |
 | 3 | [Attendance](#phase-3--attendance) | 6–7 | Teachers |
 | 4 | [Daily activities & photos](#phase-4--daily-activities--photos) | 12–14 | **Parents** |
@@ -148,14 +149,110 @@ It does not make the content section easy, though, and it's worth being clear wh
 
 ---
 
+## Phase 1-a — Container start/stop scripts
+
+**0.5–1 day · Goal: starting and stopping the stack is one command that cannot be got wrong.**
+
+Not a product phase and not counted in the phase totals above — a half-day of tooling
+that pays for itself in Phase 2, the first phase that starts and stops the stack many
+times a day: new models, repeated migrations, and a restore rehearsal.
+
+### Why now
+
+| Today | What it costs |
+|---|---|
+| `docker compose --env-file .env -f deploy/docker-compose.prod.yml up -d --build` | `--env-file` is **required**, and omitting it produces a broken `DATABASE_URL`. CLAUDE.md guards this with a paragraph of prose — prose does not run. |
+| `docker run -d --name aaroham-pg …` copied out of CLAUDE.md | Retyped from the docs before every host-run `pytest` whenever the container has been pruned. Already cost a two-minute test timeout once. |
+| Docker Desktop not running | Each command fails differently, and none of them says "start Docker". |
+
+### There are three container situations, not one
+
+This is the fact the scripts have to encode, and the reason a single "start everything"
+script would be wrong:
+
+| Target | Command today | Publishes | Postgres reachable from the host? |
+|---|---|---|---|
+| **dev** | `docker compose up` (project `aaroham`) | 8000, `${POSTGRES_HOST_PORT:-5432}` | Yes |
+| **prod** | `--env-file .env -f deploy/docker-compose.prod.yml` (project `aaroham-prod`) | 80, 443, 443/udp | **No — deliberately** |
+| **testdb** | `docker run --name aaroham-pg -p 5432:5432` | 5432 | Yes |
+
+**dev and testdb collide on 5432.** prod and testdb do not — which is exactly why
+`aaroham-pg` exists: the prod stack's database is unpublished by design, so host-run
+`pytest` has nothing to connect to. The escape hatch is already in `docker-compose.yml`
+as `POSTGRES_HOST_PORT`; the scripts use it rather than inventing anything.
+
+### The hard rule: `stop` never destroys a volume
+
+`docker compose down -v` on the prod stack destroys `postgres_data` **and**
+`caddy_data` — and losing `caddy_data` means re-issuing certificates and burning
+Let's Encrypt rate limit. Therefore:
+
+- `stop` defaults to `docker compose stop` — containers halt, volumes and data untouched.
+- `--down` removes containers and networks. Volumes survive.
+- `--destroy` removes volumes, and **only** after a typed confirmation naming the
+  target. Never reachable as a silent combination of flags.
+
+### Deliverables
+
+- **`scripts/start.sh`** and **`scripts/stop.sh`**, POSIX `sh`, taking a target:
+  `dev` (default) | `prod` | `testdb`. One implementation, not two — `sh` runs in Git
+  Bash on the Windows dev machine and natively on the VPS; a PowerShell twin would
+  drift within a month.
+- **Preflight in both**, cheap and worth it: Docker daemon reachable (`docker info`),
+  `.env` present, target port free — with the fix named in the error, not just the fault.
+- **`--env-file .env` baked into the prod path**, so the one flag that must never be
+  forgotten cannot be.
+- **`.gitattributes`** forcing LF on `scripts/*.sh`. A CRLF checkout gives
+  `bad interpreter: /bin/sh^M` on the server — silent on Windows, fatal on Linux.
+- **The exec bit committed**, via `git update-index --chmod=+x`; `chmod` alone does not
+  survive a Windows checkout.
+- **Docs follow through**: the CLAUDE.md commands block and the README quick start point
+  at the scripts, with the raw `docker compose` lines kept underneath. The scripts are
+  the convenience; the commands stay the documentation.
+
+### Done when
+
+- `./scripts/start.sh dev` on a machine with Docker stopped prints what to do about it,
+  and on a running one brings up a migrated stack.
+- `./scripts/start.sh prod` produces a working `DATABASE_URL` with no `--env-file` typed
+  by hand.
+- `./scripts/start.sh testdb` followed by `uv run pytest` passes with no other setup.
+- `./scripts/stop.sh prod` leaves `postgres_data` and `caddy_data` intact — proven by
+  starting it again and finding the data still there.
+- Both scripts run unmodified in Git Bash on Windows and on a Linux host.
+
+### Added during the build
+
+**`scripts/test.sh`** — runs `pytest` inside the `aaroham:dev` image. `uv run pytest`
+on the host stays the documented command and is right on Linux and in CI, but it does
+not currently work on this Windows machine: Application Control blocks the SSL DLL
+that psycopg's binary wheel loads, and pytest dies at import. The container has its
+own libpq. Not planned; added because the alternative was retyping a `docker run` with
+four environment variables before every test run, which is the exact thing this phase
+exists to remove.
+
+### Not in scope
+
+No Makefile, no `just`, no task runner, no new dependency. Three shell scripts and a
+`.gitattributes` line.
+
+---
+
 ## Phase 2 — People & enrolment
 
 **10–12 days · Goal: the office runs admissions and student records in the app instead of a spreadsheet.**
 
 ### Models
 
-- `apps/people`: `Student`, `Guardian`, `StudentGuardian` (M2M through, with `relationship` and `is_primary`), `Staff`, `Document`.
-- `apps/core` additions: `AcademicYear`, `Classroom`, `Enrollment` (student × classroom × year, with join/leave dates).
+- `apps/people`: `Student`, `Guardian`, `StudentGuardian` (M2M through, with `relationship` and `is_primary`), `Staff`, `Document`, `Enrollment` (student × classroom × year, with join/leave dates).
+- `apps/core` additions: `AcademicYear`, `Classroom`.
+
+`Enrollment` sits in `people`, not `core`. An earlier draft of this line put it in
+`core` and contradicted the repo layout in [`plan.md`](./plan.md) — `core` was wrong.
+`AcademicYear` and `Classroom` hang off `Branch` and exist before any child does, so
+they belong to the organisation; `Enrollment` is a fact about a student. Putting it in
+`core` would make `core` depend on `people`, which already depends on `core` for
+`BranchScopedModel` — the dependency has to point one way.
 
 `Document` — per student: birth certificate, immunisation record, guardian ID. A file in R2, a type, an uploader, and an expiry where one applies. Small, but every school needs it, and it's far easier to add now than to retrofit into a settled `Student` page later.
 
@@ -187,7 +284,19 @@ A preschool system that can't answer *"is this child allergic to peanuts"* or *"
 
 - `Consent` capture as part of admission — per guardian, per purpose, defaulting to **off**.
 - `django-simple-history` on `Student` and `Consent`.
-- Re-rehearse the restore from Phase 1 now that the schema is substantially bigger.
+- ~~Re-rehearse the restore from Phase 1 now that the schema is substantially bigger.~~
+  **The backup itself was built here, not in Phase 1.** Phase 1 listed the nightly
+  `pg_dump` → R2 and shipped without it — R2 media storage was wired, the backup was
+  not. The plan's sequencing was right ("personal data arrives in Phase 1, so backups
+  do too") and the code was a phase behind it, which is worth writing down rather than
+  quietly correcting: Phase 1 ran live with an enquiry form and no backups.
+
+  What exists now: `integrations/postgres.py` and `integrations/storage_r2.py` as
+  vendor wrappers, `apps/core/backups.py` for dump-upload-prune, a
+  `backup_database` management command (cron cannot enqueue a task), and
+  `./scripts/restore.sh`, which restores into a scratch database and counts the rows
+  that come back. The rehearsal is a script rather than an afternoon, so the next
+  phase that grows the schema can re-run it in one command.
 
 ### Done when
 

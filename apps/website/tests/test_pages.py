@@ -9,7 +9,16 @@ from django.urls import reverse
 
 from apps.core.models import Organization
 from apps.core.services import create_branch
-from apps.website.models import Enquiry, Program, SiteSettings, TeamMember, Testimonial
+from apps.website.models import (
+    Enquiry,
+    GalleryImage,
+    ImagePlacement,
+    Program,
+    SiteSettings,
+    Stat,
+    TeamMember,
+    Testimonial,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -20,6 +29,11 @@ PUBLIC_PAGES = ["home", "about", "approach", "programs", "team", "special_educat
 def branch():
     org = Organization.objects.create(name="Aaroham", slug="aaroham")
     return create_branch(organization=org, name="Main", slug="main")
+
+
+@pytest.fixture
+def site_settings(branch):
+    return SiteSettings.objects.create(branch=branch, phone="080 1234 5678")
 
 
 @pytest.mark.parametrize("name", PUBLIC_PAGES)
@@ -147,3 +161,80 @@ def test_no_template_syntax_leaks_into_the_page(client, branch, name):
     content = client.get(reverse(name)).content.decode()
     for token in ("{#", "#}", "{%", "%}", "{{", "}}"):
         assert token not in content, f"unrendered {token!r} on {name}"
+
+
+# --- images and the empty states around them ------------------------------------------
+
+
+@pytest.mark.parametrize("name", PUBLIC_PAGES)
+def test_no_page_renders_an_empty_image_src(client, name):
+    """With no Branch there is no SiteSettings, so `{{ site.hero_image.url }}` renders
+    as the empty string — and `<img src="">` makes a browser re-request the current
+    page URL, doubling the load. One assertion catches every missing {% if %} guard.
+    """
+    content = client.get(reverse(name)).content.decode()
+    assert 'src=""' not in content
+    assert 'src="None"' not in content
+    assert 'srcset=""' not in content
+
+
+def test_unpublished_images_and_stats_stay_off_the_public_site(client, branch):
+    GalleryImage.objects.create(
+        branch=branch,
+        image="marketing/gallery/secret.webp",
+        alt_text="Not ready",
+        is_published=False,
+    )
+    Stat.objects.create(branch=branch, value="999", label="Not ready", is_published=False)
+
+    content = client.get(reverse("home")).content.decode()
+    assert "Not ready" not in content
+    assert "999" not in content
+
+
+def test_a_gallery_image_placed_elsewhere_does_not_appear_in_the_gallery(client, branch):
+    """Placement is what keeps the About band's photograph off the home strip."""
+    GalleryImage.objects.create(
+        branch=branch,
+        image="marketing/gallery/about.webp",
+        alt_text="On the about page",
+        placement=ImagePlacement.ABOUT,
+    )
+    assert b"data-gallery" not in client.get(reverse("home")).content
+
+
+@pytest.mark.parametrize("name", PUBLIC_PAGES)
+def test_every_page_offers_a_way_to_book_a_visit(client, name):
+    """The header CTA. The whole point of the marketing site is the enquiry form, so
+    reaching it should never take more than one tap from anywhere."""
+    content = client.get(reverse(name)).content.decode()
+    assert content.count(reverse("contact")) >= 1
+
+
+def test_the_whatsapp_button_appears_only_when_a_number_is_set(client, branch, site_settings):
+    assert b"wa.me" not in client.get(reverse("home")).content
+
+    site_settings.whatsapp_number = "919876543210"
+    site_settings.save(update_fields=["whatsapp_number"])
+    assert b"wa.me/919876543210" in client.get(reverse("home")).content
+
+
+def test_the_mobile_menu_is_a_disclosure_not_a_link(client):
+    """A <summary> has no href, so it satisfies the no-`href="#"` rule, and its
+    contents sit in the DOM whether open or closed, so every nav link is still in the
+    server-rendered HTML. A JavaScript drawer would fail both."""
+    content = client.get(reverse("home")).content.decode()
+    assert "<summary" in content
+    assert 'href="#"' not in content
+
+
+def test_the_footer_shows_the_branch_details_when_they_exist(client, site_settings):
+    """The footer used to be three hardcoded lines and read nothing from the
+    database, so the address and phone the office typed into /admin appeared
+    nowhere."""
+    site_settings.address = "12 Rose Lane, Bengaluru"
+    site_settings.save(update_fields=["address"])
+
+    content = client.get(reverse("home")).content.decode()
+    assert "12 Rose Lane, Bengaluru" in content
+    assert "080 1234 5678" in content

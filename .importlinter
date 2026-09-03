@@ -13,6 +13,8 @@ name = Views -> services -> selectors -> models, never upward
 type = layers
 containers =
     apps.core
+    apps.people
+    apps.website
 layers =
     views
     services

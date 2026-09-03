@@ -1,33 +1,85 @@
 {% extends "layouts/public.html" %}
+{% load media_extras %}
 
-{% block title %}Our team{% endblock %}
-{% block meta_description %}The educators at Aaroham — trained to guide young children through play, exploration and imaginative learning.{% endblock %}
+{% block title %}Our team — Aaroham{% endblock %}
+{% block meta_description %}Educators trained specifically for the early years, guiding children through joyful play, hands-on exploration and imaginative learning.{% endblock %}
 
 {% block content %}
-  <h1 class="font-display text-ink text-3xl leading-tight font-semibold text-balance md:text-5xl">
-    A thoughtfully crafted preschool experience
-  </h1>
-  <p class="text-muted mt-5 max-w-prose text-lg">
-    Our educators are trained specifically for the early years — equipping them to guide
-    children through joyful play, hands-on exploration and imaginative learning that sparks
-    curiosity.
-  </p>
+  <section class="band band-berry pb-16 md:pb-24">
+    <div class="shell">
+      <p class="eyebrow">Our team</p>
+      <h1 class="font-display text-ink text-display md:text-display-lg lg:text-display-xl mt-3 max-w-4xl leading-[1.02] font-semibold text-balance">
+        The people your child spends the day with
+      </h1>
+      <span class="rule-spring mt-7"></span>
+      <p class="text-ink/75 mt-6 max-w-2xl text-xl leading-relaxed">
+        Our educators are trained specifically for the early years — to guide children through
+        joyful play, hands-on exploration and imaginative learning that sparks curiosity.
+      </p>
+    </div>
+  </section>
 
-  <div class="mt-12 grid gap-6 sm:grid-cols-2">
-    {% for member in team %}
-      <article class="border-line bg-raised rounded-2xl border p-6">
-        {% if member.photo %}
-          <img src="{{ member.photo.url }}" alt=""
-               class="mb-4 h-24 w-24 rounded-full object-cover"
-               width="96" height="96" loading="lazy">
-        {% endif %}
-        <h2 class="font-display text-ink text-lg font-semibold">{{ member.name }}</h2>
-        {% if member.role %}<p class="text-clay text-sm font-medium">{{ member.role }}</p>{% endif %}
-        {% if member.credentials %}<p class="text-muted mt-1 text-xs">{{ member.credentials }}</p>{% endif %}
-        {% if member.bio %}<p class="text-muted mt-3 text-sm leading-relaxed">{{ member.bio }}</p>{% endif %}
-      </article>
-    {% empty %}
-      <p class="text-muted">We are introducing our team here shortly.</p>
-    {% endfor %}
-  </div>
+  {% if photo %}
+    <section class="band-photo">
+      <img src="{{ photo.image.url }}"
+           {% with ss=photo.image|srcset:"1440,960" %}{% if ss %}srcset="{{ ss }}" sizes="100vw"{% endif %}{% endwith %}
+           alt="{{ photo.alt_text }}"
+           class="frame-21x9 h-full w-full" loading="lazy" decoding="async">
+    </section>
+  {% endif %}
+
+  <section class="band">
+    <div class="shell">
+      <h2 class="font-display text-ink text-display font-semibold text-balance">Our educators</h2>
+      <span class="rule-spring mt-5"></span>
+
+      <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {% for member in team %}
+          <article class="{% cycle 'a-leaf' 'a-marigold' 'a-sky' 'a-berry' 'a-clay' %} card-bold overflow-hidden !p-0">
+            {% if member.photo %}
+              <div class="frame frame-1x1 frame-colour rounded-none">
+                <img src="{{ member.photo.url }}" alt="" loading="lazy" decoding="async">
+              </div>
+            {% endif %}
+            <div class="p-7">
+              {% comment %} Initials when there is no portrait. The card used to start
+                 abruptly at the name, which read as broken rather than as a person
+                 whose photograph has not been taken yet. {% endcomment %}
+              {% if not member.photo %}
+                <span class="card-mark-lg mb-5" aria-hidden="true">{{ member.name|slice:":1" }}</span>
+              {% endif %}
+              <h3 class="font-display card-title text-xl font-semibold">{{ member.name }}</h3>
+              {% if member.role %}<p class="text-ink/70 text-sm font-medium">{{ member.role }}</p>{% endif %}
+              {% if member.credentials %}<p class="text-ink/70 mt-1 text-xs">{{ member.credentials }}</p>{% endif %}
+              {% if member.bio %}<p class="text-ink/75 mt-3 leading-relaxed">{{ member.bio }}</p>{% endif %}
+            </div>
+          </article>
+        {% empty %}
+          <p class="text-muted">We are introducing our team here shortly.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="a-berry band-solid band">
+    <div class="shell max-w-4xl">
+      <p class="font-display text-display leading-[1.15] font-semibold text-balance">
+        A preschool is its teachers. Everything else is furniture.
+      </p>
+      <p class="mt-6 text-lg text-white/80">
+        The prospectus matters far less than the person who greets your child at the door each
+        morning. Come and meet them.
+      </p>
+    </div>
+  </section>
+
+  <section class="band band-leaf">
+    <div class="shell">
+      <h2 class="font-display text-ink text-display font-semibold text-balance">Meet them in person</h2>
+      <p class="text-ink/80 mt-4 max-w-prose text-lg">
+        Visits are unhurried, and you are welcome to sit in on part of a morning.
+      </p>
+      <a href="{% url 'contact' %}" class="btn btn-primary mt-8">Book a visit</a>
+    </div>
+  </section>
 {% endblock %}

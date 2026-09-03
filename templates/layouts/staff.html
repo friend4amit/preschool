@@ -10,19 +10,39 @@
   <header class="border-b border-line bg-raised">
     <div class="mx-auto flex w-full max-w-2xl flex-col gap-2 px-4 py-3 md:px-6 lg:max-w-7xl lg:flex-row lg:items-center lg:justify-between lg:py-2">
       <div class="flex items-baseline gap-3">
-        <a href="/" class="font-display text-base font-semibold text-ink">Aaroham</a>
+        <a href="{% url 'student_list' %}" class="font-display text-base font-semibold text-ink">Aaroham</a>
         <span class="text-2xs uppercase tracking-[0.18em] text-muted">Staff</span>
       </div>
 
-      <nav aria-label="Staff" class="-mx-1 overflow-x-auto">
-        <ul class="flex items-center gap-0.5 text-sm whitespace-nowrap">
-          <li><a href="#" class="rounded-md px-2.5 py-1.5 text-muted hover:bg-sunken hover:text-ink">Students</a></li>
-          <li><a href="#" class="rounded-md px-2.5 py-1.5 text-muted hover:bg-sunken hover:text-ink">Attendance</a></li>
-          <li><a href="#" class="rounded-md px-2.5 py-1.5 text-muted hover:bg-sunken hover:text-ink">Activities</a></li>
-          <li><a href="#" class="rounded-md px-2.5 py-1.5 text-muted hover:bg-sunken hover:text-ink">Billing</a></li>
-          <li><a href="#" class="rounded-md px-2.5 py-1.5 text-muted hover:bg-sunken hover:text-ink">Enquiries</a></li>
-        </ul>
-      </nav>
+      <div class="flex items-center gap-3">
+        {% comment %} Links that exist are reversed by name; the ones whose phases have not
+           landed stay inert rather than pointing at a 404. {% endcomment %}
+        <nav aria-label="Staff" class="-mx-1 overflow-x-auto">
+          <ul class="flex items-center gap-0.5 text-sm whitespace-nowrap">
+            <li><a href="{% url 'student_list' %}" class="rounded-md px-2.5 py-1.5 text-muted hover:bg-sunken hover:text-ink">Students</a></li>
+            <li><a href="{% url 'enquiry_list' %}" class="rounded-md px-2.5 py-1.5 text-muted hover:bg-sunken hover:text-ink">Enquiries</a></li>
+            <li><a href="{% url 'staff_list' %}" class="rounded-md px-2.5 py-1.5 text-muted hover:bg-sunken hover:text-ink">Staff</a></li>
+            <li><span class="rounded-md px-2.5 py-1.5 text-muted/50" title="Phase 3">Attendance</span></li>
+            <li><span class="rounded-md px-2.5 py-1.5 text-muted/50" title="Phase 6">Billing</span></li>
+          </ul>
+        </nav>
+
+        {% if user.is_authenticated %}
+          {% comment %} POST, because Django 5's LogoutView refuses GET — a prefetching
+             browser extension would otherwise sign people out. {% endcomment %}
+          <form method="post" action="{% url 'logout' %}" class="shrink-0">
+            {% csrf_token %}
+            <button type="submit" class="rounded-md px-2.5 py-1.5 text-sm text-muted hover:bg-sunken hover:text-ink">
+              Sign out
+            </button>
+          </form>
+        {% endif %}
+      </div>
     </div>
   </header>
+{% endblock %}
+
+{% block content %}
+  {% include "partials/messages.html" %}
+  {% block staff_content %}{% endblock %}
 {% endblock %}

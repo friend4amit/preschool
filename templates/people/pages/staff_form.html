@@ -1,0 +1,22 @@
+{% extends "layouts/staff.html" %}
+
+{% block title %}Add a colleague — Aaroham{% endblock %}
+
+{% block staff_content %}
+  <h1 class="font-display text-2xl font-semibold text-ink">Add a colleague</h1>
+  <p class="mt-1 text-sm text-muted">
+    They get the same kind of account a parent does — phone number, and a one-time link
+    to choose a password. There is no second account system.
+  </p>
+
+  <form method="post" class="prose-form mt-6 max-w-xl space-y-4">
+    {% csrf_token %}
+    {% include "partials/form_fields.html" with form=form %}
+    <div class="flex items-center gap-3 pt-2">
+      <button type="submit" class="rounded-xl bg-leaf px-5 py-3 font-medium text-on-leaf hover:bg-leaf-deep">
+        Create the account
+      </button>
+      <a href="{% url 'staff_list' %}" class="text-sm text-muted hover:text-ink">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

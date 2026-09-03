@@ -11,6 +11,17 @@
 {$CADDY_DOMAIN} {
 	encode zstd gzip
 
+	# Uploaded media, for the case where R2 is not configured and Django's
+	# storage falls back to local disk. With R2 public configured this block is
+	# never reached, because .url() returns an absolute URL on another host.
+	#
+	# This does not contradict the note above: static files are WhiteNoise's job.
+	# Media never was.
+	handle_path /media/* {
+		root * /srv/media
+		file_server
+	}
+
 	reverse_proxy web:8000
 
 	log {

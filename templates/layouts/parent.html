@@ -10,26 +10,42 @@
 {% block header %}
   <header class="border-b border-line bg-raised">
     <div class="mx-auto flex w-full max-w-xl items-center justify-between px-5 py-3 md:px-6">
-      <a href="/" class="font-display text-lg font-semibold text-ink">Aaroham</a>
+      <a href="{% url 'my_children' %}" class="font-display text-lg font-semibold text-ink">Aaroham</a>
 
-      <nav aria-label="Parent" class="hidden md:block">
-        <ul class="flex items-center gap-1 text-sm">
-          <li><a href="#" class="rounded-lg px-3 py-2 text-muted hover:bg-sage-wash hover:text-sage">Today</a></li>
-          <li><a href="#" class="rounded-lg px-3 py-2 text-muted hover:bg-sage-wash hover:text-sage">Photos</a></li>
-          <li><a href="#" class="rounded-lg px-3 py-2 text-muted hover:bg-sage-wash hover:text-sage">Fees</a></li>
-        </ul>
-      </nav>
+      <div class="flex items-center gap-1">
+        <nav aria-label="Parent" class="hidden md:block">
+          <ul class="flex items-center gap-1 text-sm">
+            <li><a href="{% url 'my_children' %}" class="rounded-lg px-3 py-2 text-muted hover:bg-sage-wash hover:text-sage">My children</a></li>
+            <li><span class="rounded-lg px-3 py-2 text-muted/50" title="Phase 4">Photos</span></li>
+            <li><span class="rounded-lg px-3 py-2 text-muted/50" title="Phase 6">Fees</span></li>
+          </ul>
+        </nav>
+
+        {% if user.is_authenticated %}
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="rounded-lg px-3 py-2 text-sm text-muted hover:bg-sage-wash hover:text-sage">
+              Sign out
+            </button>
+          </form>
+        {% endif %}
+      </div>
     </div>
   </header>
+{% endblock %}
+
+{% block content %}
+  {% include "partials/messages.html" %}
+  {% block parent_content %}{% endblock %}
 {% endblock %}
 
 {% block footer %}
   <nav aria-label="Parent"
        class="fixed inset-x-0 bottom-0 border-t border-line bg-raised md:hidden">
     <ul class="mx-auto flex max-w-xl items-stretch justify-around text-2xs">
-      <li class="flex-1"><a href="#" class="block px-2 py-3 text-center text-muted active:bg-sage-wash">Today</a></li>
-      <li class="flex-1"><a href="#" class="block px-2 py-3 text-center text-muted active:bg-sage-wash">Photos</a></li>
-      <li class="flex-1"><a href="#" class="block px-2 py-3 text-center text-muted active:bg-sage-wash">Fees</a></li>
+      <li class="flex-1"><a href="{% url 'my_children' %}" class="block px-2 py-3 text-center text-muted active:bg-sage-wash">My children</a></li>
+      <li class="flex-1"><span class="block px-2 py-3 text-center text-muted/50">Photos</span></li>
+      <li class="flex-1"><span class="block px-2 py-3 text-center text-muted/50">Fees</span></li>
     </ul>
   </nav>
 {% endblock %}

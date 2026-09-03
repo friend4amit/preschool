@@ -1,0 +1,22 @@
+{% extends "layouts/staff.html" %}
+
+{% block title %}Emergency contact — Aaroham{% endblock %}
+
+{% block staff_content %}
+  <h1 class="font-display text-2xl font-semibold text-ink">
+    Emergency contact for {{ student.display_name }}
+  </h1>
+  <p class="mt-1 text-sm text-muted">
+    The person the school actually rings — often a grandparent or a neighbour, and not
+    necessarily a guardian.
+  </p>
+
+  <form method="post" class="prose-form mt-6 max-w-xl space-y-4">
+    {% csrf_token %}
+    {% include "partials/form_fields.html" with form=form %}
+    <div class="flex items-center gap-3 pt-2">
+      <button type="submit" class="rounded-xl bg-leaf px-5 py-3 font-medium text-on-leaf hover:bg-leaf-deep">Add</button>
+      <a href="{% url 'student_detail' student.pk %}" class="text-sm text-muted hover:text-ink">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

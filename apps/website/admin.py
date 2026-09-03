@@ -1,6 +1,14 @@
 from django.contrib import admin
 
-from apps.website.models import Enquiry, Program, SiteSettings, TeamMember, Testimonial
+from apps.website.models import (
+    Enquiry,
+    GalleryImage,
+    Program,
+    SiteSettings,
+    Stat,
+    TeamMember,
+    Testimonial,
+)
 
 
 @admin.register(SiteSettings)
@@ -25,6 +33,22 @@ class TeamMemberAdmin(admin.ModelAdmin):
 class TestimonialAdmin(admin.ModelAdmin):
     list_display = ("author_name", "relationship", "is_published")
     list_editable = ("is_published",)
+
+
+@admin.register(GalleryImage)
+class GalleryImageAdmin(admin.ModelAdmin):
+    list_display = ("__str__", "placement", "order", "is_published", "branch")
+    list_filter = ("placement", "is_published", "branch")
+    list_editable = ("placement", "order", "is_published")
+
+
+@admin.register(Stat)
+class StatAdmin(admin.ModelAdmin):
+    """The numbers on the home page. Nobody should be inventing these — see the
+    CONFIRM BEFORE LAUNCH note in seed_website.py."""
+
+    list_display = ("value", "label", "order", "is_published", "branch")
+    list_editable = ("order", "is_published")
 
 
 @admin.register(Enquiry)

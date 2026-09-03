@@ -1,0 +1,30 @@
+{% extends "layouts/parent.html" %}
+
+{% block title %}My children — Aaroham{% endblock %}
+
+{% block parent_content %}
+  <h1 class="font-display text-2xl font-semibold text-ink">
+    {% if user.full_name %}Hello, {{ user.full_name }}{% else %}Hello{% endif %}
+  </h1>
+
+  {% if children %}
+    <ul class="mt-5 space-y-3">
+      {% for child in children %}
+        <li>
+          <a href="{% url 'child_detail' child.pk %}"
+             class="block rounded-card border border-line bg-raised p-4 active:bg-sunken">
+            <span class="font-display text-lg font-semibold text-ink">{{ child.display_name }}</span>
+            <span class="mt-0.5 block text-sm text-muted">{{ child.get_status_display }}</span>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    {% comment %} A guardian with an account but no children linked is a real state — the
+       office created the login before the admission finished. Say so plainly rather
+       than showing an empty page that looks broken. {% endcomment %}
+    <p class="mt-5 rounded-card border border-dashed border-line px-4 py-8 text-center text-sm text-muted">
+      We don't have any children on your record yet. Please ask the school office.
+    </p>
+  {% endif %}
+{% endblock %}

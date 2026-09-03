@@ -1,0 +1,38 @@
+{% extends "layouts/staff.html" %}
+
+{% block title %}{{ guardian.full_name }} — Aaroham{% endblock %}
+
+{% block staff_content %}
+  <h1 class="font-display text-2xl font-semibold text-ink">{{ guardian.full_name }}</h1>
+  <p class="mt-1 text-sm text-muted">
+    {{ guardian.phone }}
+    {% if guardian.user_id %} · has a portal account{% else %} · no portal account yet{% endif %}
+  </p>
+
+  {% if children %}
+    <p class="mt-3 text-sm text-muted">
+      Children:
+      {% for child in children %}
+        <a href="{% url 'student_detail' child.pk %}" class="text-leaf hover:text-leaf-deep">{{ child.display_name }}</a>{% if not forloop.last %}, {% endif %}
+      {% endfor %}
+    </p>
+  {% endif %}
+
+  {% if not guardian.user_id %}
+    {% comment %} An account is created by an explicit action, never as a side effect of
+       saving a phone number — the admin has to be standing there to hand the link
+       over, because there is no email or SMS to send it by. {% endcomment %}
+    <form method="post" action="{% url 'guardian_account' guardian.pk %}" class="mt-5">
+      {% csrf_token %}
+      <button type="submit" class="rounded-xl bg-sage px-5 py-3 text-sm font-medium text-on-leaf hover:opacity-90">
+        Create a portal account
+      </button>
+    </form>
+  {% endif %}
+
+  <form method="post" class="prose-form mt-6 max-w-xl space-y-4">
+    {% csrf_token %}
+    {% include "partials/form_fields.html" with form=form %}
+    <button type="submit" class="rounded-xl bg-leaf px-5 py-3 font-medium text-on-leaf hover:bg-leaf-deep">Save</button>
+  </form>
+{% endblock %}

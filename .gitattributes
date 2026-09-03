@@ -1,0 +1,9 @@
+# This machine has core.autocrlf=true. Without the rule below, shell scripts get
+# committed with CRLF and the Linux VPS answers with:
+#
+#     bad interpreter: /bin/sh^M
+#
+# Silent on Windows, fatal on the server. Anything a container executes keeps LF.
+*.sh        text eol=lf
+Dockerfile  text eol=lf
+Caddyfile   text eol=lf

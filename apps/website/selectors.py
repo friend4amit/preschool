@@ -9,7 +9,17 @@ from django.db.models import QuerySet
 
 from apps.core.models import Branch, User
 from apps.core.selectors import branches_for_user
-from apps.website.models import Enquiry, Program, SiteSettings, TeamMember, Testimonial
+from apps.website.models import (
+    Enquiry,
+    EnquiryStatus,
+    GalleryImage,
+    ImagePlacement,
+    Program,
+    SiteSettings,
+    Stat,
+    TeamMember,
+    Testimonial,
+)
 
 
 def current_branch() -> Branch | None:
@@ -53,3 +63,38 @@ def enquiries_for_user(user: User) -> QuerySet[Enquiry]:
         .select_related("program", "branch")
         .order_by("-created_at")
     )
+
+
+def enquiry_detail_for_user(user: User, enquiry_id: int) -> Enquiry | None:
+    """One enquiry, or None. The caller turns None into a 404 — an admin at branch
+    two must not be able to read branch one's admissions pipeline by guessing an id."""
+    return enquiries_for_user(user).filter(pk=enquiry_id).first()
+
+
+def open_enquiries_for_user(user: User) -> QuerySet[Enquiry]:
+    """The working queue: everything not yet admitted or written off."""
+    return enquiries_for_user(user).exclude(status__in=[EnquiryStatus.ADMITTED, EnquiryStatus.LOST])
+
+
+def published_gallery(branch: Branch | None) -> QuerySet[GalleryImage]:
+    """The strip on the home page. Placement-filtered, so an image put on the About
+    page does not also turn up here."""
+    if branch is None:
+        return GalleryImage.objects.none()
+    return GalleryImage.objects.published().filter(branch=branch, placement=ImagePlacement.GALLERY)
+
+
+def image_for(branch: Branch | None, placement: str) -> GalleryImage | None:
+    """The single image for a named slot — the About band, one of the three approach
+    cards, and so on. Returns None when the slot is empty, and every template that
+    calls it guards on that: a missing image renders as prose, never as a grey box.
+    """
+    if branch is None:
+        return None
+    return GalleryImage.objects.published().filter(branch=branch, placement=placement).first()
+
+
+def published_stats(branch: Branch | None) -> QuerySet[Stat]:
+    if branch is None:
+        return Stat.objects.none()
+    return Stat.objects.published().filter(branch=branch)
