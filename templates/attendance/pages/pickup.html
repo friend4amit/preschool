@@ -1,0 +1,59 @@
+{% extends "layouts/staff.html" %}
+
+{% block title %}Pickup — {{ record.student.display_name }} — Aaroham{% endblock %}
+
+{% block staff_content %}
+  <p class="text-2xs text-muted tracking-widest uppercase">
+    <a href="{% url 'attendance_day' record.classroom.pk %}?date={{ record.date|date:'Y-m-d' }}"
+       class="hover:text-ink">{{ record.classroom.name }}</a>
+  </p>
+  <h1 class="font-display text-ink mt-1 text-2xl font-semibold">
+    Who is collecting {{ record.student.display_name }}?
+  </h1>
+  <p class="text-muted mt-1 text-sm">{{ record.date|date:"l, j F Y" }}</p>
+
+  {% if record.pickup %}
+    <div class="border-leaf bg-leaf-wash mt-5 max-w-md rounded-2xl border-l-4 p-4">
+      <p class="text-ink text-sm">
+        Already recorded as collected by <strong>{{ record.pickup.collected_by }}</strong>
+        at {{ record.pickup.released_at|time:"H:i" }}.
+      </p>
+      <p class="text-ink/70 mt-1 text-2xs">
+        Saving again replaces this, so the record says one thing rather than two.
+      </p>
+    </div>
+  {% endif %}
+
+  {% if not pickups and not guardians %}
+    {% comment %} The state that matters most on this screen. A child with nobody on
+       file is not a form to fill in — it is a phone call to make. {% endcomment %}
+    <div class="border-stop bg-stop-wash mt-5 max-w-md rounded-2xl border-l-4 p-4">
+      <p class="text-ink text-sm">
+        <strong>Nobody is on file for this child.</strong> No guardian is linked and no
+        pickup has been authorised, so there is nothing here to check against.
+      </p>
+      <p class="text-ink/75 mt-2 text-sm">
+        Add a guardian on
+        <a class="text-leaf font-medium hover:underline"
+           href="{% url 'student_detail' record.student.pk %}">their record</a>
+        before releasing them, or record an override below and say who authorised it.
+      </p>
+    </div>
+  {% endif %}
+
+  <form method="post" class="prose-form mt-6 max-w-md space-y-4">
+    {% csrf_token %}
+    {% include "partials/form_fields.html" with form=form %}
+
+    <div class="flex items-center gap-3 pt-2">
+      <button type="submit" class="btn btn-primary">Record pickup</button>
+      <a href="{% url 'attendance_day' record.classroom.pk %}?date={{ record.date|date:'Y-m-d' }}"
+         class="text-muted hover:text-ink text-sm">Cancel</a>
+    </div>
+  </form>
+
+  <p class="text-muted mt-6 max-w-md text-2xs leading-relaxed">
+    Only authorisations valid today are listed. An expired one is refused even if this
+    page was left open — the check runs again when you save.
+  </p>
+{% endblock %}

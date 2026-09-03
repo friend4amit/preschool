@@ -880,3 +880,59 @@
     background-color: var(--color-spring);
   }
 }
+
+@layer components {
+  /* -------------------------------------------------------------------------
+     The register buttons.
+
+     Sized for a thumb, not a mouse: the target is a full room marked in under a
+     minute, standing up, holding a phone in one hand. 44px is the floor, and these
+     sit above it. Three buttons rather than a dropdown for the same reason — a
+     select box costs two taps and a scroll where a button costs one.
+  ------------------------------------------------------------------------- */
+
+  .mark-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    min-width: 3.25rem;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-line);
+    background-color: var(--color-raised);
+    padding: --spacing(2) --spacing(3);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-ink);
+    transition: background-color 120ms ease, border-color 120ms ease;
+  }
+
+  .mark-btn:hover {
+    background-color: var(--color-sunken);
+  }
+
+  /* The selected state is a filled button, not a border or a tint. A teacher glancing
+     down a list of thirty rows on a bright phone screen outdoors needs to see which
+     one is set without looking twice. */
+  .mark-btn-on-present {
+    background-color: var(--color-leaf);
+    border-color: var(--color-leaf);
+    color: var(--color-on-leaf);
+  }
+
+  .mark-btn-on-present:hover {
+    background-color: var(--color-leaf-deep);
+  }
+
+  .mark-btn-on-absent {
+    background-color: var(--color-stop);
+    border-color: var(--color-stop);
+    color: #ffffff;
+  }
+
+  .mark-btn-done {
+    background-color: var(--color-leaf-wash);
+    border-color: color-mix(in oklab, var(--color-leaf) 35%, transparent);
+    color: var(--color-leaf-deep);
+  }
+}

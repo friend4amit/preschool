@@ -1,0 +1,45 @@
+{% extends "layouts/parent.html" %}
+
+{% block title %}{{ child.display_name }}'s attendance — Aaroham{% endblock %}
+
+{% block parent_content %}
+  <p class="text-2xs text-muted tracking-widest uppercase">
+    <a href="{% url 'child_detail' child.pk %}" class="hover:text-ink">{{ child.display_name }}</a>
+  </p>
+  <h1 class="font-display text-ink mt-1 text-2xl font-semibold">Attendance</h1>
+  <p class="text-muted mt-1 text-sm">{{ month }}/{{ year }}</p>
+
+  {% if summary.rate is not None %}
+    <div class="a-leaf card-bold mt-6">
+      <p class="stat-value">{{ summary.rate }}%</p>
+      <p class="stat-label">Attended this month</p>
+      <p class="text-ink/75 mt-3 text-sm">
+        {{ summary.present }} of {{ summary.counted }} school days.
+        {% if summary.late %}{{ summary.late }} late.{% endif %}
+        {% comment %} Said plainly, because a parent seeing a percentage will otherwise
+           wonder whether the school counted the holidays against their child. {% endcomment %}
+        Holidays are not counted either way.
+      </p>
+    </div>
+  {% endif %}
+
+  {% if records %}
+    <ul class="border-line bg-raised divide-line mt-6 divide-y overflow-hidden rounded-2xl border">
+      {% for record in records %}
+        <li class="flex items-center justify-between gap-3 px-4 py-3">
+          <span class="text-ink text-sm font-medium">{{ record.date|date:"D j M" }}</span>
+          <span class="text-sm
+                       {% if record.status == 'absent' %}text-stop
+                       {% elif record.status == 'holiday' %}text-muted
+                       {% else %}text-leaf{% endif %}">
+            {{ record.get_status_display }}{% if record.arrived_at %} · {{ record.arrived_at|time:"H:i" }}{% endif %}
+          </span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="border-line text-muted mt-6 rounded-2xl border border-dashed px-4 py-10 text-center text-sm">
+      Nothing recorded for this month yet.
+    </p>
+  {% endif %}
+{% endblock %}
