@@ -71,25 +71,30 @@
   <section class="band">
     <div class="shell">
       <h2 class="font-display text-ink text-display font-semibold text-balance">Why early education matters</h2>
-      <p class="text-muted mt-3 max-w-prose text-lg">
+      <span class="rule-spring mt-5"></span>
+      <p class="text-muted mt-6 max-w-prose text-lg">
         The first years shape how a child feels about learning for the rest of their life.
       </p>
       <div class="mt-10 grid gap-5 md:grid-cols-2">
-        <div class="card">
-          <h3 class="font-display text-ink text-lg font-semibold">Warm interaction, secure attachment</h3>
-          <p class="text-muted mt-2 text-sm leading-relaxed">Direct, warm contact — eye contact, a hug when it is needed — forms secure attachments and helps children learn to manage their own emotions.</p>
+        <div class="a-leaf card-bold">
+          <span class="card-mark-lg" aria-hidden="true">1</span>
+          <h3 class="font-display card-title mt-5 text-xl font-semibold">Warm interaction, secure attachment</h3>
+          <p class="text-ink/75 mt-3 leading-relaxed">Direct, warm contact — eye contact, a hug when it is needed — forms secure attachments and helps children learn to manage their own emotions.</p>
         </div>
-        <div class="card">
-          <h3 class="font-display text-ink text-lg font-semibold">Learning from each other</h3>
-          <p class="text-muted mt-2 text-sm leading-relaxed">Time with other children and with teachers builds communication, cooperation and empathy in a way no worksheet can.</p>
+        <div class="a-marigold card-bold">
+          <span class="card-mark-lg" aria-hidden="true">2</span>
+          <h3 class="font-display card-title mt-5 text-xl font-semibold">Learning from each other</h3>
+          <p class="text-ink/75 mt-3 leading-relaxed">Time with other children and with teachers builds communication, cooperation and empathy in a way no worksheet can.</p>
         </div>
-        <div class="card">
-          <h3 class="font-display text-ink text-lg font-semibold">Safety, nutrition and care</h3>
-          <p class="text-muted mt-2 text-sm leading-relaxed">Clean, safe surroundings and proper food are the floor everything else stands on — alongside emotional, social and physical development.</p>
+        <div class="a-sky card-bold">
+          <span class="card-mark-lg" aria-hidden="true">3</span>
+          <h3 class="font-display card-title mt-5 text-xl font-semibold">Safety, nutrition and care</h3>
+          <p class="text-ink/75 mt-3 leading-relaxed">Clean, safe surroundings and proper food are the floor everything else stands on — alongside emotional, social and physical development.</p>
         </div>
-        <div class="card">
-          <h3 class="font-display text-ink text-lg font-semibold">Teachers trained for this age</h3>
-          <p class="text-muted mt-2 text-sm leading-relaxed">Our educators are trained to guide children through joyful play, hands-on exploration and imaginative work that sparks curiosity.</p>
+        <div class="a-berry card-bold">
+          <span class="card-mark-lg" aria-hidden="true">4</span>
+          <h3 class="font-display card-title mt-5 text-xl font-semibold">Teachers trained for this age</h3>
+          <p class="text-ink/75 mt-3 leading-relaxed">Our educators are trained to guide children through joyful play, hands-on exploration and imaginative work that sparks curiosity.</p>
         </div>
       </div>
     </div>
@@ -99,15 +104,16 @@
   <section class="band band-tint">
     <div class="shell">
       <h2 class="font-display text-ink text-display font-semibold text-balance">Rooted in values, ready for the world</h2>
-      <p class="text-muted mt-3 max-w-prose text-lg">
+      <span class="rule-spring mt-5"></span>
+      <p class="text-muted mt-6 max-w-prose text-lg">
         Our approach draws the imagination of Waldorf, the independence of Montessori, and the
         joy of Playway learning into one balanced day.
       </p>
       <ul class="mt-10 grid gap-4 sm:grid-cols-2">
-        <li class="border-line bg-raised rounded-2xl border p-5"><span class="text-leaf font-display font-semibold">Indian values &amp; culture</span><p class="text-muted mt-1 text-sm">Festivals, stories and languages the family already knows.</p></li>
-        <li class="border-line bg-raised rounded-2xl border p-5"><span class="text-leaf font-display font-semibold">Learning through play &amp; rhythm</span><p class="text-muted mt-1 text-sm">A predictable day that a small child can rely on.</p></li>
-        <li class="border-line bg-raised rounded-2xl border p-5"><span class="text-leaf font-display font-semibold">Hands-on, independent learning</span><p class="text-muted mt-1 text-sm">Doing it themselves, at their own pace.</p></li>
-        <li class="border-line bg-raised rounded-2xl border p-5"><span class="text-leaf font-display font-semibold">Global practices, thoughtfully applied</span><p class="text-muted mt-1 text-sm">Borrowed where it helps, never imported wholesale.</p></li>
+        <li class="a-leaf card-colour"><span class="card-title font-display font-semibold">Indian values &amp; culture</span><p class="text-ink/75 mt-1 text-sm">Festivals, stories and languages the family already knows.</p></li>
+        <li class="a-marigold card-colour"><span class="card-title font-display font-semibold">Learning through play &amp; rhythm</span><p class="text-ink/75 mt-1 text-sm">A predictable day that a small child can rely on.</p></li>
+        <li class="a-sky card-colour"><span class="card-title font-display font-semibold">Hands-on, independent learning</span><p class="text-ink/75 mt-1 text-sm">Doing it themselves, at their own pace.</p></li>
+        <li class="a-berry card-colour"><span class="card-title font-display font-semibold">Global practices, thoughtfully applied</span><p class="text-ink/75 mt-1 text-sm">Borrowed where it helps, never imported wholesale.</p></li>
       </ul>
       <p class="mt-8"><a class="text-leaf font-medium hover:underline" href="{% url 'approach' %}">Read more about our approach →</a></p>
     </div>
@@ -117,23 +123,28 @@
   <section class="band">
     <div class="shell">
       <h2 class="font-display text-ink text-display font-semibold text-balance">A gentle journey for every stage</h2>
+        <span class="rule-spring mt-5"></span>
       <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {% for program in programs %}
+          {% comment %} The same hue order as /programmes/, so a stage looks the same
+             wherever a parent meets it. A programme with no photograph is a text
+             card, not an empty coloured box — which is what the office will see
+             until they upload one. {% endcomment %}
           <a href="{% url 'programs' %}"
-             class="border-line bg-raised hover:border-leaf flex flex-col overflow-hidden rounded-2xl border transition">
-            {% comment %} A programme with no photograph is a text card, not an empty
-               grey box — which is what the office will see for a while. {% endcomment %}
+             class="{% cycle 'a-leaf' 'a-marigold' 'a-sky' 'a-berry' 'a-clay' %} card-bold flex flex-col overflow-hidden !p-0">
             {% if program.image %}
-              <div class="frame frame-4x3 rounded-none">
+              <div class="frame frame-4x3 frame-colour rounded-none">
                 <img src="{{ program.image.url }}"
                      {% with ss=program.image|srcset:"800,400" %}{% if ss %}srcset="{{ ss }}" sizes="(min-width: 1024px) 22rem, (min-width: 640px) 45vw, 90vw"{% endif %}{% endwith %}
                      alt="{{ program.image_alt }}" loading="lazy" decoding="async">
               </div>
             {% endif %}
             <div class="p-6">
-              <p class="text-marigold text-xs font-medium tracking-widest uppercase">{{ program.age_range_display }}</p>
-              <h3 class="font-display text-ink mt-2 text-lg font-semibold">{{ program.name }}</h3>
-              {% if program.summary %}<p class="text-muted mt-2 text-sm leading-relaxed">{{ program.summary }}</p>{% endif %}
+              {% comment %} A pill, not bare marigold text: #c98a1e on white is 2.94:1
+                 and fails AA. On its own wash with the deep ink it is 5.05:1. {% endcomment %}
+              <span class="pill">{{ program.age_range_display }}</span>
+              <h3 class="font-display card-title mt-3 text-lg font-semibold">{{ program.name }}</h3>
+              {% if program.summary %}<p class="text-ink/75 mt-2 text-sm leading-relaxed">{{ program.summary }}</p>{% endif %}
             </div>
           </a>
         {% empty %}
@@ -148,6 +159,7 @@
     <section class="band band-tint" data-gallery>
       <div class="shell">
         <h2 class="font-display text-ink text-display font-semibold text-balance">Life at Aaroham</h2>
+        <span class="rule-spring mt-5"></span>
         <div class="mt-10 grid grid-cols-2 gap-4 md:grid-cols-3">
           {% for image in gallery %}
             <figure class="frame frame-1x1">
@@ -166,6 +178,7 @@
     <section class="band">
       <div class="shell">
         <h2 class="font-display text-ink text-display font-semibold text-balance">From our families</h2>
+        <span class="rule-spring mt-5"></span>
         <div class="mt-10 grid gap-5 md:grid-cols-2">
           {% for t in testimonials %}
             <figure class="bg-sunken rounded-2xl p-6">
@@ -179,6 +192,18 @@
   {% endif %}
 
   {% comment %} --- Come and see ----------------------------------------------------- {% endcomment %}
+  <section class="a-leaf band-solid band">
+    <div class="shell max-w-4xl">
+      <p class="font-display text-display leading-[1.15] font-semibold text-balance">
+        The first years decide how a child feels about learning for the rest of their life.
+      </p>
+      <p class="mt-6 text-lg text-white/80">
+        That is the whole reason to take this age seriously — and the reason we protect its
+        pace rather than rushing it.
+      </p>
+    </div>
+  </section>
+
   <section class="band band-leaf">
     <div class="shell">
       <h2 class="font-display text-ink text-display font-semibold text-balance">Join the Aaroham family</h2>

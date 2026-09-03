@@ -5,71 +5,94 @@
 {% block meta_description %}An inclusive preschool is not one that treats every child the same. It is one that notices what each child needs, and adjusts.{% endblock %}
 
 {% block content %}
-  {% comment %} The most restrained page on the site, deliberately. This page's job is
-     to sound honest, and heavy imagery would undercut it — so there is exactly one
-     photograph, beside the section it actually illustrates. {% endcomment %}
-  <section class="band pb-0">
+  <section class="band band-clay pb-16 md:pb-24">
     <div class="shell">
       <p class="eyebrow">Thoughtful education</p>
-      <h1 class="font-display text-ink text-display md:text-display-lg mt-3 max-w-3xl leading-[1.05] font-semibold text-balance">
+      <h1 class="font-display text-ink text-display md:text-display-lg lg:text-display-xl mt-3 max-w-4xl leading-[1.02] font-semibold text-balance">
         Every child learns differently
       </h1>
-      <p class="text-muted mt-5 max-w-prose text-lg">
+      <span class="rule-spring mt-7"></span>
+      <p class="text-ink/75 mt-6 max-w-2xl text-xl leading-relaxed">
         An inclusive preschool is not one that treats every child the same. It is one that
         notices what each child needs, and adjusts.
       </p>
     </div>
   </section>
 
-  <section class="band">
-    <div class="shell max-w-3xl space-y-10">
-      <div>
-        <h2 class="font-display text-ink text-xl font-semibold">Noticing early, gently</h2>
-        <p class="text-muted mt-2 leading-relaxed">
-          The early years are when differences in speech, movement, attention or social comfort
-          first become visible. Noticing is not diagnosing — it is paying attention, and telling
-          you what we see.
-        </p>
-      </div>
-      <div>
-        <h2 class="font-display text-ink text-xl font-semibold">Working with families, not around them</h2>
-        <p class="text-muted mt-2 leading-relaxed">
-          You know your child better than we do. Anything we notice, we discuss with you first
-          and privately — and we will never label a child.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <section class="band band-tint">
-    <div class="shell grid items-center gap-10 lg:grid-cols-2">
-      <div>
-        <h2 class="font-display text-ink text-display font-semibold text-balance">Adjusting the room, not the child</h2>
-        <p class="text-muted mt-4 leading-relaxed">
-          A quieter corner, a longer transition, a different way to join in. Most of what an
-          inclusive classroom needs is small, practical, and costs nothing.
-        </p>
-      </div>
-      {% if photo %}
-        <div class="frame frame-3x2">
-          <img src="{{ photo.image.url }}"
-               {% with ss=photo.image|srcset:"800,480" %}{% if ss %}srcset="{{ ss }}" sizes="(min-width: 1024px) 32rem, 90vw"{% endif %}{% endwith %}
-               alt="{{ photo.alt_text }}" loading="lazy" decoding="async">
-        </div>
-      {% endif %}
-    </div>
-  </section>
-
+  {% comment %} Three cards rather than three headings on a wall of prose. This page
+     still carries the least imagery on the site — its job is to sound honest, and
+     photographs of children would undercut a page about noticing difficulty. {% endcomment %}
   <section class="band">
     <div class="shell">
-      <div class="panel-leaf max-w-3xl">
-        <p class="text-ink/85 leading-relaxed">
-          <strong class="text-ink">If you have concerns about your child,</strong> talk to us
-          before you enrol. We would rather tell you honestly what we can and cannot support than
-          promise more than we can give.
-        </p>
+      <h2 class="font-display text-ink text-display font-semibold text-balance">How we work</h2>
+      <span class="rule-spring mt-5"></span>
+
+      <div class="mt-12 grid gap-6 md:grid-cols-3">
+        <div class="a-sky card-bold">
+          <span class="card-mark-lg" aria-hidden="true">1</span>
+          <h3 class="font-display card-title mt-5 text-xl font-semibold">Noticing early, gently</h3>
+          <p class="text-ink/75 mt-3 leading-relaxed">
+            The early years are when differences in speech, movement, attention or social
+            comfort first become visible. Noticing is not diagnosing — it is paying attention,
+            and telling you what we see.
+          </p>
+        </div>
+
+        <div class="a-leaf card-bold">
+          <span class="card-mark-lg" aria-hidden="true">2</span>
+          <h3 class="font-display card-title mt-5 text-xl font-semibold">With families, not around them</h3>
+          <p class="text-ink/75 mt-3 leading-relaxed">
+            You know your child better than we do. Anything we notice, we discuss with you
+            first and privately — and we will never label a child.
+          </p>
+        </div>
+
+        <div class="a-marigold card-bold">
+          <span class="card-mark-lg" aria-hidden="true">3</span>
+          <h3 class="font-display card-title mt-5 text-xl font-semibold">Adjusting the room</h3>
+          <p class="text-ink/75 mt-3 leading-relaxed">
+            A quieter corner, a longer transition, a different way to join in. Most of what an
+            inclusive classroom needs is small, practical, and costs nothing.
+          </p>
+        </div>
       </div>
-      <a href="{% url 'contact' %}" class="btn btn-primary mt-8">Talk to us</a>
+    </div>
+  </section>
+
+  {% if photo %}
+    <section class="band band-tint">
+      <div class="shell grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
+        <div>
+          <h2 class="font-display text-ink text-display font-semibold text-balance">Adjusting the room, not the child</h2>
+          <span class="rule-spring mt-5"></span>
+          <p class="text-muted mt-6 text-lg leading-relaxed">
+            The changes that make a classroom work for one child usually make it better for
+            everyone in it. That is the whole argument for doing them.
+          </p>
+        </div>
+        <div class="a-sky photo-offset">
+          <div class="frame frame-3x2 frame-colour">
+            <img src="{{ photo.image.url }}"
+                 {% with ss=photo.image|srcset:"800,480" %}{% if ss %}srcset="{{ ss }}" sizes="(min-width: 1024px) 32rem, 90vw"{% endif %}{% endwith %}
+                 alt="{{ photo.alt_text }}" loading="lazy" decoding="async">
+          </div>
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
+  {% comment %} The one solid band, and it carries the most important sentence on the
+     site: the promise not to over-promise. {% endcomment %}
+  <section class="a-clay band-solid band">
+    <div class="shell max-w-4xl">
+      <p class="font-display text-display leading-[1.15] font-semibold text-balance">
+        If you have concerns about your child, talk to us before you enrol.
+      </p>
+      <p class="mt-6 text-lg text-white/80">
+        We would rather tell you honestly what we can and cannot support than promise more than
+        we can give.
+      </p>
+      <a href="{% url 'contact' %}" class="btn btn-ghost mt-8">Talk to us</a>
     </div>
   </section>
 {% endblock %}

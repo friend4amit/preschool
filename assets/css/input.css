@@ -622,11 +622,17 @@
   .scrim {
     position: absolute;
     inset: 0;
+    /* Strong enough that the headline is legible over the BRIGHTEST pixel the
+       photograph might have there, not merely over the one it happens to have
+       today. White needs the scrim at ~62% ink to clear 4.5:1 against white
+       underneath; the headline sits in the 35-55% band, so that is where the 72%
+       stop goes. An admin can swap the hero image without re-checking this. */
     background: linear-gradient(
       to top,
-      color-mix(in oklab, var(--color-ink) 78%, transparent),
-      color-mix(in oklab, var(--color-ink) 45%, transparent) 45%,
-      transparent 75%
+      color-mix(in oklab, var(--color-ink) 90%, transparent),
+      color-mix(in oklab, var(--color-ink) 72%, transparent) 55%,
+      color-mix(in oklab, var(--color-ink) 30%, transparent) 80%,
+      transparent 100%
     );
   }
 
