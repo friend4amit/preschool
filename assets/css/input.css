@@ -936,3 +936,147 @@
     color: var(--color-leaf-deep);
   }
 }
+
+@layer components {
+  /* -------------------------------------------------------------------------
+     The site footer.
+
+     Used by the footer block in layouts/public.html, so all seven public pages
+     render it. It was piloted as a home-page-only override first, with the quiet
+     original left in the layout, so the two could be seen side by side.
+
+     COLOUR: this is `--color-leaf-deep`, which is the same green the
+     `.a-leaf .band-solid` band already paints where a page uses one — on the home
+     page that is the pull quote two bands up ("The first years decide…"). That
+     matters more than it sounds: the home page's last screen goes deep green ->
+     pale green -> footer, and if the two deeps are different greens the footer
+     reads as bolted on from another site. An earlier version used a hand-picked
+     #32471f — darker and cooler than anything in `@theme` — and that mismatch was
+     the whole problem.
+
+     The reason it goes through `--footer-bg` rather than using the token
+     directly: `--color-leaf-deep` re-points to a LIGHT green after sunset (it is
+     the hover colour, and a dark page needs a light one), so white type on it
+     would be white on pale green. The dark scheme therefore re-points
+     `--footer-bg` to `--color-leaf-panel`, which is the token that means "a green
+     panel that lifts off the background" in that scheme and is correctly dark
+     there. Same role in both, never a literal.
+
+     Contrast, recomputed for this background — light #3a5427 / dark #2b3d20:
+       white          8.5 / 11.7
+       white 75%      5.6 /  9.0  (tagline, address)
+       white 70%      5.1 /  6.7  (11px bottom bar — the thinnest margin here)
+       spring accent  5.1 /  5.5  (12px uppercase headings)
+     All clear of AA 4.5. */
+  .site-footer {
+    --footer-bg:     var(--color-leaf-deep);
+    --footer-accent: var(--color-spring);
+    background-color: var(--footer-bg);
+    color: #ffffff;
+    margin-top: auto;
+    /* No accent edge along the top. The tonal drop from the pale `band-leaf`
+       call to action above to this one is the separation, and it is a harder
+       edge than any hairline would be. */
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .site-footer {
+      --footer-bg: var(--color-leaf-panel);
+    }
+  }
+
+  .site-footer a {
+    color: #ffffff;
+    text-decoration: none;
+  }
+
+  .site-footer a:hover {
+    color: var(--footer-accent);
+  }
+
+  /* The wordmark. Deliberately NOT `--text-display-lg`: at 56px it was larger
+     than every heading on the page including the hero's, so the footer read as a
+     second front door. At display size it is still the biggest thing down here
+     and no longer competes upward. */
+  .footer-mark {
+    font-family: var(--font-display);
+    font-size: var(--text-display);
+    line-height: var(--text-display--line-height);
+    letter-spacing: var(--text-display--letter-spacing);
+    font-weight: 600;
+    color: #ffffff;
+  }
+
+  .footer-mark span { color: var(--footer-accent); }
+
+  /* Small uppercase column headings. Spring rather than white, so the eye finds
+     the three columns before it reads any of them. */
+  .footer-heading {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--footer-accent);
+  }
+
+  .footer-body { color: color-mix(in oklab, #ffffff 75%, transparent); }
+
+  .footer-rule {
+    display: block;
+    height: 0.375rem;
+    width: 3.5rem;
+    border-radius: 9999px;
+    background-color: var(--footer-accent);
+  }
+
+  /* The link columns sit as ONE flex group at their natural widths rather than
+     as equal fractions of the 64rem shell. Three `1fr` tracks gave each column a
+     293px lane holding ~110px of text, so a phone number floated in the middle of
+     a lane with 180px of empty green either side of it — which is what "the
+     footer is too wide" was describing. Packed left with a fixed gutter, the
+     columns read as a group and the brand block gets the space they were wasting.
+
+     Flex rather than grid for the same reason the previous version reached for
+     auto-fit: how many columns exist depends on what this SiteSettings row has
+     been filled in with, and flex simply packs whichever ones render. */
+  .footer-columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: --spacing(10) --spacing(14);
+  }
+
+  .footer-bottom {
+    border-top: 1px solid color-mix(in oklab, #ffffff 18%, transparent);
+    color: color-mix(in oklab, #ffffff 70%, transparent);
+  }
+
+  /* A social link as a pill rather than an underlined word: two of them in a row
+     read as a set, and a 44px target is the one on a phone that actually gets
+     tapped. */
+  .footer-social {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: --spacing(2) --spacing(5);
+    border-radius: 9999px;
+    border: 1px solid color-mix(in oklab, #ffffff 35%, transparent);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .site-footer .footer-social:hover {
+    background-color: var(--footer-accent);
+    border-color: var(--footer-accent);
+    /* Ink, not white: white on spring measures 1.8:1. */
+    color: #24301a;
+  }
+
+  /* The WhatsApp bubble is fixed at bottom right and sits over this bar on a
+     phone. Keep the copyright out from under it — but only when there is a bubble.
+     The float is gated on `site.whatsapp_number`, so the template adds this class
+     on the same condition rather than reserving 72px against nothing. */
+  @media (width < 48rem) {
+    .footer-bottom-wa { padding-right: 4.5rem; }
+  }
+}

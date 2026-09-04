@@ -54,38 +54,87 @@
 {% endblock %}
 
 {% block footer %}
-  <footer class="border-line bg-sunken mt-auto border-t">
-    <div class="shell grid gap-8 py-12 md:grid-cols-3">
-      <div>
-        <p class="font-display text-ink text-lg font-semibold">Aaroham</p>
-        <p class="text-muted mt-1 text-sm">
-          {% if site.tagline %}{{ site.tagline }}{% else %}Preschool and daycare.{% endif %}
-        </p>
-        {% if site.facebook_url or site.instagram_url %}
-          <p class="mt-4 flex gap-4 text-sm">
-            {% if site.facebook_url %}<a href="{{ site.facebook_url }}" class="text-leaf hover:underline" rel="noopener">Facebook</a>{% endif %}
-            {% if site.instagram_url %}<a href="{{ site.instagram_url }}" class="text-leaf hover:underline" rel="noopener">Instagram</a>{% endif %}
+  {% comment %} The footer every public page renders.
+
+     Piloted on the home page first — it lived in a footer-block override there
+     while the quiet original stayed here, so the two could be compared side by side.
+     It won, so it moved down here and the override is gone. Its CSS is the
+     `.site-footer` block at the foot of assets/css/input.css.
+
+     Brand on the left, the whole link group on the right, in ONE row. The first
+     version stacked them — wordmark across the top, then three equal columns across
+     the full 64rem shell underneath — which left the top-right half empty and
+     stretched each column over twice the width its text needed: a 293px lane holding
+     110px of text, with 180px of green either side. Side by side spends that space
+     once instead of leaving it blank twice, and takes ~215px off the height. {% endcomment %}
+  <footer class="site-footer">
+    <div class="shell py-12 md:py-16">
+      <div class="md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-16">
+
+        <div class="md:max-w-sm">
+          <p class="footer-mark">Aaroham<span>.</span></p>
+          <p class="footer-body mt-4 text-lg">
+            {% if site.tagline %}{{ site.tagline }}{% else %}A gentle first school — where children explore, imagine and create.{% endif %}
           </p>
-        {% endif %}
-      </div>
+          <span class="footer-rule mt-8"></span>
 
-      <div class="text-muted text-sm">
-        <p class="text-ink text-2xs font-medium tracking-widest uppercase">Visit us</p>
-        {% if site.address %}<p class="mt-2 whitespace-pre-line">{{ site.address }}</p>{% endif %}
-        {% if site.phone %}<p class="mt-2"><a href="tel:{{ site.phone }}" class="hover:text-leaf">{{ site.phone }}</a></p>{% endif %}
-        {% if site.email %}<p><a href="mailto:{{ site.email }}" class="hover:text-leaf">{{ site.email }}</a></p>{% endif %}
-      </div>
+          {% if site.facebook_url or site.instagram_url %}
+            <div class="mt-8 flex flex-wrap gap-3">
+              {% if site.instagram_url %}
+                <a class="footer-social" href="{{ site.instagram_url }}" rel="noopener" target="_blank">Instagram</a>
+              {% endif %}
+              {% if site.facebook_url %}
+                <a class="footer-social" href="{{ site.facebook_url }}" rel="noopener" target="_blank">Facebook</a>
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
 
-      <nav aria-label="Footer" class="text-sm">
-        <p class="text-ink text-2xs font-medium tracking-widest uppercase">Pages</p>
-        <ul class="text-muted mt-2 space-y-1.5">
-          {% include "website/partials/nav_links.html" with link_class="hover:text-leaf" %}
-        </ul>
-      </nav>
+        {% comment %} Each column is guarded on having something to say. A heading with
+           nothing under it reads as a page that failed to load. .footer-columns is a
+           wrapping flex row, so whichever ones render simply pack left — which is also
+           what keeps this honest when a SiteSettings field is blank. {% endcomment %}
+        <div class="footer-columns mt-12 md:mt-2">
+          {% if site.address %}
+            <div>
+              <p class="footer-heading">Visit us</p>
+              <p class="footer-body mt-3 text-sm whitespace-pre-line">{{ site.address }}</p>
+            </div>
+          {% endif %}
+
+          {% if site.phone or site.email or site.whatsapp_number %}
+            <div>
+              <p class="footer-heading">Get in touch</p>
+              <ul class="mt-3 space-y-2 text-sm">
+                {% if site.phone %}<li><a href="tel:{{ site.phone }}">{{ site.phone }}</a></li>{% endif %}
+                {% if site.email %}<li><a href="mailto:{{ site.email }}">{{ site.email }}</a></li>{% endif %}
+                {% if site.whatsapp_number %}
+                  <li>
+                    <a href="https://wa.me/{{ site.whatsapp_number }}?text=Hi%2C%20I%27d%20like%20to%20book%20a%20visit%20at%20Aaroham."
+                       target="_blank" rel="noopener">WhatsApp us</a>
+                  </li>
+                {% endif %}
+              </ul>
+            </div>
+          {% endif %}
+
+          <nav aria-label="Footer">
+            <p class="footer-heading">Pages</p>
+            <ul class="mt-3 space-y-2 text-sm">
+              {% include "website/partials/nav_links.html" %}
+            </ul>
+          </nav>
+        </div>
+      </div>
     </div>
 
-    <div class="shell border-line text-2xs text-muted border-t py-5">
-      &copy; Aaroham
+    {% comment %} One left-aligned line rather than two ends of a justify-between:
+       across a 1024px shell that put four words at the far left and three at the far
+       right with 800px of empty green between them, which was the most literal case of
+       the footer being too wide. The keep-clear class applies only when there is
+       actually a WhatsApp bubble to keep clear of. {% endcomment %}
+    <div class="shell footer-bottom {% if site.whatsapp_number %}footer-bottom-wa{% endif %} text-2xs py-6">
+      <p>&copy; Aaroham · Preschool and daycare</p>
     </div>
   </footer>
 {% endblock %}
