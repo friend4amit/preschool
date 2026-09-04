@@ -16,7 +16,7 @@
         <nav aria-label="Parent" class="hidden md:block">
           <ul class="flex items-center gap-1 text-sm">
             <li><a href="{% url 'my_children' %}" class="rounded-lg px-3 py-2 text-muted hover:bg-sage-wash hover:text-sage">My children</a></li>
-            <li><span class="rounded-lg px-3 py-2 text-muted/50" title="Phase 4">Photos</span></li>
+            <li><a href="{% url 'my_photos' %}" class="rounded-lg px-3 py-2 text-muted hover:bg-sage-wash hover:text-sage">Photos</a></li>
             <li><span class="rounded-lg px-3 py-2 text-muted/50" title="Phase 6">Fees</span></li>
           </ul>
         </nav>
@@ -44,7 +44,7 @@
        class="fixed inset-x-0 bottom-0 border-t border-line bg-raised md:hidden">
     <ul class="mx-auto flex max-w-xl items-stretch justify-around text-2xs">
       <li class="flex-1"><a href="{% url 'my_children' %}" class="block px-2 py-3 text-center text-muted active:bg-sage-wash">My children</a></li>
-      <li class="flex-1"><span class="block px-2 py-3 text-center text-muted/50">Photos</span></li>
+      <li class="flex-1"><a href="{% url 'my_photos' %}" class="block px-2 py-3 text-center text-muted active:bg-sage-wash">Photos</a></li>
       <li class="flex-1"><span class="block px-2 py-3 text-center text-muted/50">Fees</span></li>
     </ul>
   </nav>

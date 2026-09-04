@@ -254,3 +254,65 @@ def publishable_among(media_queryset) -> tuple[list[MediaAsset], list[MediaAsset
     for asset in media_queryset:
         (ready if is_publishable(asset) else blocked).append(asset)
     return ready, blocked
+
+
+# --------------------------------------------------------------------------------
+# Storage keys and reconciliation
+# --------------------------------------------------------------------------------
+
+
+def build_key(*, branch: Branch, filename: str, when=None) -> str:
+    """Where a photograph lives in the bucket.
+
+    Branch-prefixed and date-partitioned, with a uuid rather than the uploaded name.
+    Three reasons, all boring and all learned the hard way: two teachers photograph
+    the same moment and both files are called IMG_4821.JPG; a phone filename is
+    attacker-influenced input being interpolated into an object key; and a flat
+    bucket of a hundred thousand objects is one nobody can list.
+    """
+    import uuid
+    from pathlib import PurePosixPath
+
+    when = when or timezone.now()
+    suffix = PurePosixPath(filename).suffix.lower()[:10]
+    return f"photos/{branch.pk}/{when:%Y/%m/%d}/{uuid.uuid4().hex}{suffix}"
+
+
+@transaction.atomic
+def mark_upload_failed(*, media: MediaAsset) -> MediaAsset:
+    media.upload_state = UploadState.FAILED
+    media.save(update_fields=["upload_state", "updated_at"])
+    return media
+
+
+def reconcile_uploads(*, older_than_minutes: int = 60) -> dict:
+    """Confirm every PENDING row against the bucket. Runs nightly.
+
+    A presigned direct upload means the browser can complete the R2 PUT and then fail
+    to tell Django, or tell Django about an object that never arrived. Left alone,
+    both accumulate: storage you are paying for and cannot see, and rows that will
+    never render.
+
+    Only rows older than `older_than_minutes` are touched, so an upload still in
+    flight is not marked failed out from under a teacher on a slow connection.
+
+    Deliberately does NOT delete bucket objects that have no row. That is the other
+    half of the reconciliation and it deletes photographs of children on the strength
+    of a database query — it wants its own command, its own dry run, and a person
+    reading the list first.
+    """
+    from datetime import timedelta
+
+    from integrations import storage_r2
+
+    cutoff = timezone.now() - timedelta(minutes=older_than_minutes)
+    promoted = failed = 0
+    stale = MediaAsset.objects.filter(upload_state=UploadState.PENDING, created_at__lt=cutoff)
+    for media in stale:
+        if storage_r2.exists(key=media.key):
+            confirm_upload(media=media)
+            promoted += 1
+        else:
+            mark_upload_failed(media=media)
+            failed += 1
+    return {"promoted": promoted, "failed": failed}

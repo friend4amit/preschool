@@ -248,3 +248,133 @@ def unread_count(user: User, since) -> int:
     if not guardian_has_consent(user, ConsentPurpose.PHOTOS_IN_APP):
         return 0
     return _published_media_for(children_of(user)).filter(published_at__gt=since).count()
+
+
+# --------------------------------------------------------------------------------
+# Staff day view
+# --------------------------------------------------------------------------------
+
+
+def entries_for_room_on(classroom, day, *, user: User) -> QuerySet[ActivityEntry]:
+    """One room's entries for one day — the child-level ones and the room-level ones
+    together, which is how the teacher wrote them and how they will be published."""
+    from apps.people.selectors import roster
+
+    return (
+        entries_for_user(user)
+        .filter(
+            Q(student__in=roster(classroom.pk, user=user)) | Q(classroom=classroom),
+            occurred_at__date=day,
+        )
+        .select_related("student", "classroom", "author")
+        .order_by("-occurred_at", "-id")
+    )
+
+
+def media_for_room_on(classroom, day, *, user: User) -> QuerySet[MediaAsset]:
+    """One room's photographs for one day, tagged or not.
+
+    Untagged ones are included on purpose: a photo nobody has tagged yet is exactly
+    what the teacher needs to see on this screen, and filtering it out would hide the
+    work still to do.
+    """
+    from apps.people.selectors import roster
+
+    children = roster(classroom.pk, user=user)
+    return (
+        MediaAsset.objects.filter(
+            Q(tags__student__in=children) | Q(tags__isnull=True),
+            branch=classroom.branch,
+            taken_at__date=day,
+        )
+        .distinct()
+        .prefetch_related("tags__student")
+        .order_by("-taken_at", "-id")
+    )
+
+
+def media_for_staff(user: User, media_id: int) -> MediaAsset | None:
+    """One photograph, or None for the caller to turn into a 404.
+
+    An untagged photo has no student to scope through, so it is reached by branch
+    instead. That is the widest this app scopes anything, and it is the price of
+    letting a teacher tag a photo they have just uploaded.
+    """
+    from apps.core.selectors import branches_for_user
+
+    return MediaAsset.objects.filter(branch__in=branches_for_user(user)).filter(pk=media_id).first()
+
+
+def taggable_students(media: MediaAsset, *, user: User) -> list[dict]:
+    """Who the teacher may tag, and whether each one would block publication.
+
+    The blocked marker is computed HERE rather than at publish time, because the plan
+    is explicit that a rule a teacher meets only when the publish button refuses is a
+    rule that gets worked around. Seeing it beside the name while tagging leaves them
+    three good options instead of one dead end.
+    """
+    tagged = set(media.tags.values_list("student_id", flat=True))
+    return [
+        {
+            "student": student,
+            "is_tagged": student.pk in tagged,
+            "blocks_publication": not student_carries(
+                student, ConsentPurpose.PHOTOS_SHARED_WITH_CLASS
+            ),
+        }
+        for student in students_for_user(user).filter(branch=media.branch)
+    ]
+
+
+# --------------------------------------------------------------------------------
+# Serving the bytes
+# --------------------------------------------------------------------------------
+
+
+def media_url(media: MediaAsset) -> str | None:
+    """A short-lived URL for one photograph, or None when it cannot be served.
+
+    ALWAYS call this behind a gate. It does no permission check of its own — by the
+    time a caller has a MediaAsset in hand the consent question is already answered,
+    and re-answering it here would be a second answer to one question.
+
+    When R2 is unconfigured — which is the development machine, deliberately — this
+    returns None and the caller falls back to `media_file`, a Django view that applies
+    the same gate and streams from local disk. plan.md's "don't proxy the bytes
+    through Django" is about production egress costs on R2, not about a laptop with
+    no bucket; the alternative fallback, an unauthenticated /media/ URL, would break
+    the one rule this whole app is built around.
+    """
+    from integrations import storage_r2
+
+    if media.upload_state != UploadState.STORED:
+        return None
+    if not storage_r2.is_configured():
+        return None
+    return storage_r2.presign_get(key=media.key)
+
+
+def feed_days(media_queryset) -> list[dict]:
+    """Group a gated feed into day buckets, newest first, each photo with its URL.
+
+    Grouped in Python over an already-scoped, already-gated queryset rather than with
+    a database grouping, because the feed page is small and this keeps the gate as the
+    single query it needs to be.
+
+    Each photo carries its storage URL, resolved here rather than in the template:
+    templates are display only (see the layer contract), and a template that could
+    reach a storage backend would be one that could reach it without passing the gate.
+
+    `url` is None where R2 is unconfigured. Filling that gap is the VIEW's job, not
+    this module's — the fallback is a Django route, and `django.urls` below the
+    controller layer is exactly what apps/core/tests/test_architecture.py forbids.
+    """
+    from django.utils import timezone as tz
+
+    days: list[dict] = []
+    for asset in media_queryset:
+        day = tz.localtime(asset.taken_at).date()
+        if not days or days[-1]["day"] != day:
+            days.append({"day": day, "media": []})
+        days[-1]["media"].append({"asset": asset, "url": media_url(asset)})
+    return days

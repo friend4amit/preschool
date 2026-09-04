@@ -10,20 +10,18 @@
   <h1 class="mt-1 font-display text-2xl font-semibold text-ink">{{ child.display_name }}</h1>
   <p class="mt-1 text-sm text-muted">Born {{ child.date_of_birth|date:"j F Y" }}</p>
 
-  {% comment %} A stub on purpose. The daily activity feed, photos and announcements are
-     Phase 4 — this page exists now so the login, the scoping and the layout are all
-     proven before there is anything valuable behind them. {% endcomment %}
-  <p class="mt-6">
+  {% comment %} Photos first. implementation-plan.md is blunt that the feed is the thing
+     parents open daily and the reason a school pays, so it is the primary action here
+     and attendance is the quieter one beside it. {% endcomment %}
+  <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+    <a href="{% url 'my_child_photos' child.pk %}" class="btn btn-primary">Photos</a>
+    <a href="{% url 'my_child_diary' child.pk %}"
+       class="rounded-xl border border-line bg-raised px-4 py-2.5 text-center text-sm font-medium text-ink hover:bg-sunken">
+      Their day
+    </a>
     <a href="{% url 'my_child_attendance' child.pk %}"
-       class="btn btn-primary">See this month's attendance</a>
-  </p>
-
-  <div class="rounded-card border-line mt-6 border border-dashed px-4 py-10 text-center">
-    <p class="text-sm text-muted">
-      Daily updates and photos will appear here.
-    </p>
-    <p class="mt-2 text-2xs text-muted">
-      Until then, the school will keep sharing them the way it does today.
-    </p>
+       class="rounded-xl border border-line bg-raised px-4 py-2.5 text-center text-sm font-medium text-ink hover:bg-sunken">
+      Attendance
+    </a>
   </div>
 {% endblock %}

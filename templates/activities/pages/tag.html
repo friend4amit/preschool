@@ -1,0 +1,67 @@
+{% extends "layouts/staff.html" %}
+
+{% block title %}Tag photo — Aaroham{% endblock %}
+
+{% block staff_content %}
+  <h1 class="font-display text-ink text-2xl font-semibold">Who is in this photo?</h1>
+  <p class="text-muted mt-1 text-sm">
+    Tap each child. Nothing is automatic — we do not run face recognition on children.
+  </p>
+
+  {% comment %} Two columns on a laptop, stacked on a phone. Full width, the 4:3 frame
+     was about 940px tall on a desk and pushed the names — the actual point of this
+     screen — below the fold. The photograph is for recognising faces, not for
+     admiring, so it is capped rather than given the whole column. {% endcomment %}
+  <div class="mt-5 lg:grid lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:items-start lg:gap-6">
+  <div class="border-line bg-raised overflow-hidden rounded-2xl border lg:sticky lg:top-4">
+    <div class="bg-sunken aspect-[4/3]">
+      {% if url %}
+        <img src="{{ url }}" alt="" class="h-full w-full object-contain">
+      {% elif media.upload_state == "stored" %}
+        <img src="{% url 'media_file' media.pk %}" alt="" class="h-full w-full object-contain">
+      {% else %}
+        <p class="text-muted flex h-full items-center justify-center text-sm">
+          {{ media.get_upload_state_display }} — nothing to show yet.
+        </p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div>
+  {% comment %} The state of play, stated before the list rather than after it, so the
+     teacher knows what they are looking for as they read down. {% endcomment %}
+  <div class="mt-4 rounded-2xl border p-4 lg:mt-0
+              {% if blocked %}border-clay/30 bg-clay-wash{% elif is_publishable %}border-leaf/30 bg-leaf-wash{% else %}border-line bg-raised{% endif %}">
+    {% if blocked %}
+      <p class="text-ink text-sm">
+        <strong>Held back.</strong>
+        No sharing consent on record for
+        {% for student in blocked %}{{ student.display_name }}{% if not forloop.last %}, {% endif %}{% endfor %}.
+        Drop the tag, crop them out, or keep this one for their own family.
+      </p>
+    {% elif is_publishable %}
+      <p class="text-ink text-sm"><strong>Ready.</strong> Every child tagged here may be shown to other families.</p>
+    {% else %}
+      <p class="text-muted text-sm">Tag at least one child before this can be published.</p>
+    {% endif %}
+
+    {% if is_publishable and not media.is_published %}
+      <form method="post" action="{% url 'activities_publish_photo' media.pk %}" class="mt-3">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary btn-sm">Publish this photo</button>
+      </form>
+    {% elif media.is_published %}
+      <p class="text-leaf mt-2 text-2xs">Published {{ media.published_at|date:"j M, H:i" }}.</p>
+    {% endif %}
+  </div>
+
+  <ul class="border-line bg-raised mt-4 overflow-hidden rounded-2xl border px-3 lg:mt-0">
+    {% for row in candidates %}
+      {% include "activities/partials/tag_row.html" %}
+    {% empty %}
+      <li class="text-muted px-1 py-6 text-center text-sm">No children to tag.</li>
+    {% endfor %}
+  </ul>
+  </div>
+  </div>
+{% endblock %}

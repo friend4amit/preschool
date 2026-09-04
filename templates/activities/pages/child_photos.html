@@ -1,0 +1,62 @@
+{% extends "layouts/parent.html" %}
+
+{% comment %} The feed. This is the thing parents open every day and, per
+   implementation-plan.md, the reason a school pays — so it is the one screen in the
+   product that gets to be mostly picture.
+
+   Grouped into days by `taken_at` rather than upload time. Teachers write the morning
+   up in the evening, and a feed ordered by upload shows a parent the day backwards.
+{% endcomment %}
+
+{% block title %}{{ child.display_name }}'s photos — Aaroham{% endblock %}
+
+{% block parent_content %}
+  <div class="flex flex-wrap items-baseline justify-between gap-2">
+    <h1 class="font-display text-ink text-2xl font-semibold">{{ child.display_name }}</h1>
+    <a href="{% url 'my_child_diary' child.pk %}" class="text-leaf text-sm hover:underline">Their day →</a>
+  </div>
+
+  {% if not has_consent %}
+    {% comment %} Consent is off by default, so this is the first thing most families
+       see. It has to explain rather than just be empty — a blank screen reads as a
+       broken app, and the fix is a conversation with the office. {% endcomment %}
+    <div class="border-line bg-sunken mt-5 rounded-2xl border p-5">
+      <h2 class="font-display text-ink text-base font-semibold">Photos are switched off</h2>
+      <p class="text-muted mt-2 text-sm">
+        We only show you photographs of {{ child.display_name }} once you have told us
+        we may. Ask at the office and we will record your answer — you can change it
+        again at any time, and it takes effect immediately.
+      </p>
+    </div>
+  {% elif days %}
+    {% for bucket in days %}
+      <section class="mt-6">
+        {% comment %} A day separator, not a timestamp per photo. A parent scrolling
+           wants to know "is this today or Friday", not the minute. {% endcomment %}
+        <h2 class="text-2xs text-muted sticky top-0 z-10 -mx-5 bg-surface/90 px-5 py-2 font-medium tracking-widest uppercase backdrop-blur">
+          {{ bucket.day|date:"l, j F" }}
+        </h2>
+        <ul class="mt-2 grid grid-cols-2 gap-2">
+          {% for item in bucket.media %}
+            {% comment %} `item.url` is a presigned R2 URL where the bucket exists and
+               the gated Django view otherwise, resolved in the selector — never an
+               unauthenticated /media/ path. {% endcomment %}
+            <li class="border-line bg-raised overflow-hidden rounded-xl border">
+              <span class="bg-sunken block aspect-square">
+                <img src="{{ item.url }}" alt="{{ item.asset.caption }}" loading="lazy"
+                     decoding="async" class="h-full w-full object-cover">
+              </span>
+              {% if item.asset.caption %}
+                <span class="text-2xs text-muted block px-3 py-2">{{ item.asset.caption }}</span>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endfor %}
+  {% else %}
+    <p class="border-line text-muted mt-5 rounded-2xl border border-dashed px-4 py-12 text-center text-sm">
+      Nothing yet today. Photographs appear here once the teacher has published the day.
+    </p>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "layouts/parent.html" %}
+
+{% comment %} The written day, and the incidents.
+
+   Incidents are at the TOP and unacknowledged ones carry a button, because an
+   incident is not a feed item a parent scrolls past — it is a record that says the
+   family was told, and the acknowledgement is what makes that true.
+{% endcomment %}
+
+{% block title %}{{ child.display_name }}'s day — Aaroham{% endblock %}
+
+{% block parent_content %}
+  <div class="flex flex-wrap items-baseline justify-between gap-2">
+    <h1 class="font-display text-ink text-2xl font-semibold">{{ child.display_name }}</h1>
+    <a href="{% url 'my_child_photos' child.pk %}" class="text-leaf text-sm hover:underline">Photos →</a>
+  </div>
+
+  {% if incidents %}
+    <section class="mt-5">
+      <h2 class="text-2xs text-muted font-medium tracking-widest uppercase">If something happened</h2>
+      <ul class="mt-2 space-y-3">
+        {% for incident in incidents %}
+          <li class="rounded-2xl border p-4
+                     {% if incident.is_acknowledged %}border-line bg-raised{% else %}border-stop/30 bg-stop-wash{% endif %}">
+            <div class="flex flex-wrap items-baseline gap-2">
+              <span class="text-ink font-medium">{{ incident.get_severity_display }}</span>
+              <span class="text-2xs text-muted ml-auto">{{ incident.occurred_at|date:"j M Y, H:i" }}</span>
+            </div>
+            <p class="text-ink mt-2 text-sm">{{ incident.what_happened }}</p>
+            <p class="text-muted mt-2 text-sm"><strong class="text-ink">What we did:</strong> {{ incident.action_taken }}</p>
+
+            {% if incident.is_acknowledged %}
+              <p class="text-2xs text-muted mt-3">
+                Seen {{ incident.acknowledged_at|date:"j M, H:i" }}.
+              </p>
+            {% else %}
+              <form method="post" action="{% url 'incident_acknowledge' incident.pk %}" class="mt-3">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary btn-sm">I have read this</button>
+              </form>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+
+  <section class="mt-6">
+    <h2 class="text-2xs text-muted font-medium tracking-widest uppercase">Their day</h2>
+    {% if entries %}
+      <ul class="border-line bg-raised mt-2 overflow-hidden rounded-2xl border px-4">
+        {% for entry in entries %}
+          <li class="border-line border-b py-4 last:border-b-0">
+            <div class="flex flex-wrap items-baseline gap-2">
+              <span class="text-ink text-sm font-medium">{{ entry.get_kind_display }}</span>
+              {% comment %} A room entry is marked as one, so "everyone napped" does not
+                 read as a note written about this child in particular. {% endcomment %}
+              {% if entry.classroom %}
+                <span class="bg-sunken text-2xs text-muted rounded-full px-2 py-0.5">{{ entry.classroom.name }}</span>
+              {% endif %}
+              <span class="text-2xs text-muted ml-auto">{{ entry.occurred_at|date:"j M, H:i" }}</span>
+            </div>
+            {% if entry.body %}<p class="text-muted mt-1 text-sm">{{ entry.body }}</p>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="border-line text-muted mt-2 rounded-2xl border border-dashed px-4 py-12 text-center text-sm">
+        Nothing published yet. The day appears here once the teacher has finished writing it up.
+      </p>
+    {% endif %}
+  </section>
+{% endblock %}

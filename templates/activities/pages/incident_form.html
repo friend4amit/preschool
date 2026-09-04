@@ -1,0 +1,24 @@
+{% extends "layouts/staff.html" %}
+
+{% block title %}Incident — {{ student.display_name }} — Aaroham{% endblock %}
+
+{% block staff_content %}
+  <h1 class="font-display text-ink text-2xl font-semibold">
+    Incident — {{ student.display_name }}
+  </h1>
+  {% comment %} Said plainly, because the teacher filling this in should know before
+     they start rather than discover afterwards. {% endcomment %}
+  <p class="text-muted mt-1 max-w-prose text-sm">
+    This goes to the family straight away. There is no draft — an incident somebody is
+    still deciding whether to mention is the thing this record exists to prevent.
+  </p>
+
+  <form method="post" class="prose-form mt-6 max-w-md space-y-4">
+    {% csrf_token %}
+    {% include "partials/form_fields.html" with form=form %}
+    <div class="flex items-center gap-3 pt-2">
+      <button type="submit" class="btn btn-primary">Record it</button>
+      <a href="{% url 'student_detail' student.pk %}" class="text-muted hover:text-ink text-sm">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

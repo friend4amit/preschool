@@ -1,0 +1,34 @@
+{% comment %} One candidate child on the tagging screen. An htmx target, so it extends
+   nothing.
+
+   The blocked marker is the point of this partial. The plan is explicit that a rule a
+   teacher meets only when the publish button refuses is a rule that gets worked
+   around — seeing "no sharing consent" beside the name WHILE tagging leaves them
+   three good options (drop the tag, crop it, keep it for that family) instead of one
+   dead end at the end of the day.
+{% endcomment %}
+
+<li id="tag-{{ row.student.pk }}"
+    class="border-line flex flex-wrap items-center gap-3 border-b px-1 py-3 last:border-b-0">
+  <span class="min-w-0 flex-1">
+    <span class="text-ink block truncate font-medium">{{ row.student.display_name }}</span>
+    {% if row.blocks_publication %}
+      <span class="text-2xs text-clay block">
+        No sharing consent on record — tagging this child holds the photo back.
+      </span>
+    {% endif %}
+  </span>
+
+  <form method="post"
+        action="{% url 'activities_toggle_tag' media.pk row.student.pk %}"
+        hx-post="{% url 'activities_toggle_tag' media.pk row.student.pk %}"
+        hx-target="#tag-{{ row.student.pk }}"
+        hx-swap="outerHTML">
+    {% csrf_token %}
+    <button type="submit"
+            class="min-h-11 rounded-lg border px-4 text-sm font-medium
+                   {% if row.is_tagged %}bg-leaf text-on-leaf border-leaf{% else %}border-line bg-surface text-muted hover:bg-sunken hover:text-ink{% endif %}">
+      {% if row.is_tagged %}In this photo{% else %}Tag{% endif %}
+    </button>
+  </form>
+</li>
