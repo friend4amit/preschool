@@ -27,6 +27,11 @@ htmlcov/
 .claude/*.local.md
 .claude/settings.local.json
 
+# Superdesign canvas working state. init/ is generated repo analysis and
+# resume.json holds remote project and draft ids — both are re-creatable from the
+# code, and the ids are per-account rather than per-repo.
+.superdesign/
+
 # OS
 .DS_Store
 Thumbs.db
