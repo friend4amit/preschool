@@ -378,6 +378,18 @@ Budget generously. Photo handling has a long tail: orientation, HEIC, huge files
 
 > **The multi-child photo rule.** Most classroom photos contain several children, so consent is not one flag — see the four consent purposes in [`plan.md`](./plan.md#compliance--a-design-input-not-an-afterthought). Two things to build here: **a photo publishes only if every tagged child has `photos_shared_with_class`**, and the teacher sees a blocked-photo indicator *at tagging time* with the reason, so they can drop the tag, crop, or keep it for that child's own family. Build the indicator — a rule the teacher discovers only at publish time gets worked around.
 
+> **The multi-guardian question, decided during the build.** The rule above settles which
+> *children* must consent and is silent on which *guardians*, and a child routinely has
+> two. `Consent.guardian` points at `User` while `Guardian.user` is nullable, so a
+> guardian on the record with no portal account cannot record an answer at all — which
+> means "all guardians must have granted" would permanently block those children on an
+> absence rather than a refusal. The rule implemented in `apps/activities/selectors.py`
+> is therefore: **a child carries a purpose when at least one guardian has actively
+> granted it and no guardian has a recorded refusal.** A recorded "no" outranks another
+> guardian's "yes", because otherwise revocability means nothing for a child with two
+> parents. Recorded here rather than left in the code so the next person meets the
+> decision before they meet the query.
+
 **Video is out of scope for v1** — and say so to the school rather than leaving it ambiguous, because they will ask. Short clips are what parents most want after photos, but they bring transcoding, thumbnails, playback, and a storage bill an order of magnitude larger. Revisit once photos are boring.
 
 ### Done when

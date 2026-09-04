@@ -74,6 +74,57 @@ def delete(*, key: str) -> None:
     _client().delete_object(Bucket=settings.R2_BUCKET, Key=key)
 
 
+def presign_put(*, key: str, content_type: str = "", expires_in: int = 900) -> str:
+    """A URL the browser may PUT one object to, and nothing else.
+
+    Direct-to-R2: the photograph never passes through Django. A 12 MP phone photo
+    through the VPS would occupy a gunicorn worker for the length of a 4G upload, and
+    there are three workers.
+
+    Scoped to one key and one method, and short-lived — fifteen minutes is longer than
+    an upload on a bad connection and shorter than a URL is useful to anyone who
+    finds it later.
+    """
+    params = {"Bucket": settings.R2_BUCKET, "Key": key}
+    if content_type:
+        params["ContentType"] = content_type
+    return _client().generate_presigned_url("put_object", Params=params, ExpiresIn=expires_in)
+
+
+def presign_get(*, key: str, expires_in: int = 300) -> str:
+    """A short-lived URL to read one object.
+
+    The bucket is private, so this is the only way a photograph reaches a browser.
+    Five minutes: long enough to render a feed, short enough that a forwarded link is
+    dead by the time it is opened. Do not lengthen this to make caching work — the
+    authorisation lives in the code that decides whether to call this at all, and a
+    long-lived URL moves it somewhere nobody can revoke.
+    """
+    return _client().generate_presigned_url(
+        "get_object",
+        Params={"Bucket": settings.R2_BUCKET, "Key": key},
+        ExpiresIn=expires_in,
+    )
+
+
+def exists(*, key: str) -> bool:
+    """Whether an object actually landed. The nightly reconciliation's question.
+
+    404 means the browser never completed its PUT; every other error is a real fault
+    and is allowed to propagate rather than being reported as "missing", which would
+    make the reconciliation delete rows on an outage.
+    """
+    from botocore.exceptions import ClientError
+
+    try:
+        _client().head_object(Bucket=settings.R2_BUCKET, Key=key)
+    except ClientError as error:
+        if error.response.get("Error", {}).get("Code") in {"404", "NoSuchKey", "NotFound"}:
+            return False
+        raise
+    return True
+
+
 def public_media():
     """The storage marketing images live in — world-readable, cached, indexable.
 
