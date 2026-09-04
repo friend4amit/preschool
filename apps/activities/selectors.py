@@ -222,10 +222,41 @@ def entries_for_child_of(user: User, student_id: int):
     child = children_of(user).filter(pk=student_id).first()
     if child is None:
         return None, ActivityEntry.objects.none()
-    rooms = child.enrollments.filter(left_on__isnull=True).values("classroom")
     return child, ActivityEntry.objects.filter(
-        Q(student=child) | Q(classroom__in=rooms), is_published=True
+        Q(student=child) | _room_entries_for(child), is_published=True
     ).order_by("-occurred_at", "-id")
+
+
+def _room_entries_for(child: Student) -> Q:
+    """Room entries from the rooms this child was in AT THE TIME, not the room they
+    are in now.
+
+    The obvious version filters `enrollments__left_on__isnull=True` and is wrong: a
+    child who moves from Nursery A to Nursery B in June then loses every Nursery A
+    entry from March out of their own history, permanently. Enrollment rows are never
+    deleted precisely so that history stays answerable — see apps/people/models.py.
+
+    apps.attendance.services.mark already settled this in the other direction, by
+    capturing the room at marking time so that "a child moved to another room in June
+    does not retroactively change which room they were in during March". Same rule,
+    read back: match each enrollment against the window it was open for.
+
+    A child has one enrollment per academic year, so the OR is a handful of clauses
+    rather than a join that has to be reasoned about.
+    """
+    windows = Q()
+    found = False
+    for classroom_id, joined_on, left_on in child.enrollments.values_list(
+        "classroom_id", "joined_on", "left_on"
+    ):
+        found = True
+        clause = Q(classroom_id=classroom_id, occurred_at__date__gte=joined_on)
+        if left_on is not None:
+            clause &= Q(occurred_at__date__lte=left_on)
+        windows |= clause
+    # An empty Q() matches EVERYTHING when OR'd into a filter, which would hand a
+    # never-enrolled child every room entry in the school.
+    return windows if found else Q(pk__in=[])
 
 
 def incidents_for_child_of(user: User, student_id: int):

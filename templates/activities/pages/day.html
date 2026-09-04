@@ -1,4 +1,5 @@
 {% extends "layouts/staff.html" %}
+{% load static %}
 
 {% comment %} The teacher's day: notes and photographs on ONE screen, because they are
    published together. A second page is a page somebody forgets, and the failure mode
@@ -114,6 +115,29 @@
       </p>
     </div>
 
+    {% comment %} The upload control. A plain file input rather than a drag-and-drop
+       zone: the teacher is on a phone, where "drag" means nothing and the OS picker
+       already offers the camera. `multiple` because a morning is not one photo.
+
+       There is no non-JavaScript path here and there cannot be — a presigned PUT to
+       Cloudflare needs a script. Every OTHER control on this screen is a real form
+       that works without one, which is why this is the only place that degrades. {% endcomment %}
+    <form class="border-line bg-raised mt-3 rounded-2xl border p-4"
+          data-photo-uploader
+          data-upload-url="{% url 'activities_upload_url' room.pk %}"
+          onsubmit="return false;">
+      {% csrf_token %}
+      <label class="text-ink block text-sm font-medium" for="photo-input">Add photographs</label>
+      <input id="photo-input" type="file" accept="image/*" multiple data-photo-input
+             class="text-muted mt-2 block w-full text-sm file:mr-3 file:min-h-11 file:rounded-xl
+                    file:border file:border-line file:bg-surface file:px-4 file:text-sm
+                    file:font-medium file:text-ink hover:file:bg-sunken">
+      <p class="text-2xs text-muted mt-2" data-photo-status>
+        Resized in your browser before sending, so this works on mobile data. Tag the
+        children afterwards — nothing is published until you do.
+      </p>
+    </form>
+
     {% if photos %}
       <ul class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {% for item in photos %}
@@ -190,4 +214,9 @@
       </ul>
     </section>
   {% endif %}
+{% endblock %}
+
+{% comment %} Deferred, and only on this page — no other screen uploads anything. {% endcomment %}
+{% block extra_body %}
+  <script src="{% static 'js/photo-upload.js' %}" defer></script>
 {% endblock %}

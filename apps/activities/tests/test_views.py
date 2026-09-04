@@ -371,3 +371,25 @@ def test_photos_nav_goes_to_the_picker_when_there_is_more_than_one_child(
 
     assert response.status_code == 302
     assert response["Location"] == reverse("my_children")
+
+
+def test_the_day_screen_offers_a_way_to_add_photographs(client, signed_in_teacher, room):
+    """Regression: `upload_url` and `confirm_upload` existed and were tested, but
+    nothing on any page called them — a teacher could not add a photograph at all, and
+    the only rows in the grid were ones made in a shell."""
+    body = client.get(reverse("activities_day", args=[room.pk])).content.decode()
+
+    assert 'type="file"' in body
+    assert reverse("activities_upload_url", args=[room.pk]) in body
+    assert "photo-upload.js" in body
+
+
+def test_a_malformed_student_field_is_not_a_500(client, signed_in_teacher, room):
+    """A teacher meeting a stack trace on a phone has no idea which field did it."""
+    response = client.post(
+        reverse("activities_quick_entry", args=[room.pk]),
+        {"kind": ActivityKind.MEAL, "student": "not-a-number"},
+    )
+
+    assert response.status_code == 302
+    assert ActivityEntry.objects.count() == 0

@@ -174,6 +174,26 @@ These cost hours now and weeks later. They are decided; don't relitigate them in
 - **R2 is unconfigured on this machine**, so `backup_database` refuses. That is the
   intended behaviour, not a bug: a backup that silently no-ops is worse than one that
   fails. `./scripts/backup-local.sh` covers the local case.
+- **`reconcile_uploads` has no schedule.** `apps/activities/services.py` carries it and
+  it is correct, but nothing calls it on a timer — same shape as the backup above, and
+  it belongs with the deploy rather than in the repo. Until it runs, a photograph whose
+  browser completed the R2 PUT and then failed to tell Django stays `pending` forever
+  and never reaches a feed. It deliberately does NOT delete bucket objects with no row;
+  that half deletes photographs of children on the strength of a query and wants its
+  own command, its own dry run, and a person reading the list first.
+- **`unread_count` is implemented and tested but nothing renders it.** The plan asks for
+  an unread badge since last visit; the selector answers it using the same gated query
+  as the feed, so the badge can never promise a photo the feed withholds. What is
+  missing is somewhere to keep "last visit" — there is no field for it, and the session
+  is the obvious cheap answer.
+- **Photo upload is unverified against real R2.** The browser path
+  (`static/js/photo-upload.js` -> presigned PUT -> confirm) is written and the
+  endpoints are tested against a stub, but no upload has ever reached a real bucket
+  because `R2_*` is unset here. That round trip is the first thing to check when the
+  bucket exists — before, not after, the rest of the phase is trusted.
+- **Thumbnails are declared and never written.** `MediaAsset.thumbnail_key` exists;
+  nothing generates one. The feed currently serves the full (browser-downscaled) image
+  at grid size.
 - **The Phase 2 screens have never been seen below ~1218px.** Chrome on Windows will
   not size a window narrower than that, so the phone layout is written but unverified —
   the plan's "renders at 390px" check is outstanding. The one to look at first is the

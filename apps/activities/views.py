@@ -132,16 +132,23 @@ def quick_entry(request: HttpRequest, classroom_id: int) -> HttpResponse:
         messages.error(request, "That is not something we can record.")
         return redirect(_day_url(room, writing))
 
-    student_id = request.POST.get("student", "0")
     occurred = _occurred_on(writing)
+    # Not `int(...)` bare: a malformed POST is a mistake, not a crash, and a teacher
+    # meeting a 500 on a phone has no idea the field was the problem.
+    raw = request.POST.get("student", "0")
+    try:
+        student_id = int(raw or 0)
+    except ValueError:
+        messages.error(request, "That is not a child we know about.")
+        return redirect(_day_url(room, writing))
 
-    if student_id in ("", "0"):
+    if not student_id:
         services.record_for_classroom(
             classroom=room, occurred_at=occurred, author=request.user, **form.cleaned_data
         )
         messages.success(request, f"Recorded for the whole of {room.name}.")
     else:
-        student = _student_or_404(request, int(student_id))
+        student = _student_or_404(request, student_id)
         services.record_entry(
             branch=room.branch,
             student=student,
@@ -459,15 +466,18 @@ def acknowledge(request: HttpRequest, incident_id: int) -> HttpResponse:
 
 @login_required
 def media_file(request: HttpRequest, media_id: int) -> FileResponse:
-    """Stream one photograph, for the case where R2 is unconfigured.
+    """Stream one photograph from local storage, applying the same gate as the feed.
 
-    This exists so a laptop with no bucket still shows a working feed, and it applies
-    the SAME gate as the feed rather than a looser one — the alternative fallback, an
-    unauthenticated /media/ URL, would break the rule this whole app is built around.
+    Narrow by design, and worth being honest about when it runs. With R2 configured,
+    `media_url` returns a presigned URL and nothing routes here. With R2 absent the
+    upload endpoint answers 503, so no NEW photograph can reach local storage either —
+    what this serves is rows that got there another way: a fixture, a management
+    command, or a bucket that was configured and later was not.
 
-    plan.md's "do not proxy the bytes through Django" is about R2 egress in
-    production, where `media_url` returns a presigned URL and this view is never
-    reached.
+    It exists rather than an unauthenticated /media/ URL because that would put a
+    permanent public link on a photograph of a child and hole the rule this whole app
+    is built around. plan.md's "do not proxy the bytes through Django" is about R2
+    egress in production, which is exactly the case that never reaches this view.
     """
     from django.core.files.storage import default_storage
 

@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 
 from apps.activities import selectors, services
 from apps.activities.models import ActivityEntry, ActivityKind, IncidentSeverity, UploadState
+from apps.people.services import enroll_student
 
 pytestmark = pytest.mark.django_db
 
@@ -260,3 +261,81 @@ def test_the_feed_orders_by_taken_at_not_upload_time(
     _, feed = selectors.feed_for_child_of(parent_a, child_a.pk)
 
     assert list(feed) == [afternoon, morning]
+
+
+# --------------------------------------------------------------------------------
+# Room entries and the room the child was actually in
+# --------------------------------------------------------------------------------
+
+
+def test_a_room_entry_survives_the_child_moving_rooms(
+    branch, teacher, room, year, child_a, parent_a
+):
+    """Regression: the feed derived the child's rooms from CURRENT enrollment, so a
+    child who moved to another room in June lost every entry from their old room out
+    of their own history — permanently.
+
+    Enrollment rows are never deleted precisely so history stays answerable, and
+    apps.attendance.services.mark already settled the same question in the other
+    direction by capturing the room at marking time.
+    """
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.core.models import Classroom
+
+    march = timezone.now() - timedelta(days=90)
+    old_entry = services.record_for_classroom(
+        classroom=room, kind=ActivityKind.NAP, occurred_at=march, author=teacher
+    )
+    services.publish_entries(entries=[old_entry])
+
+    # The child moves on. The old enrollment closes rather than disappearing.
+    enrollment = child_a.enrollments.get()
+    enrollment.joined_on = march.date() - timedelta(days=10)
+    enrollment.left_on = (march + timedelta(days=30)).date()
+    enrollment.save(update_fields=["joined_on", "left_on"])
+
+    new_room = Classroom.objects.create(branch=branch, name="Nursery B", capacity=20)
+    enroll_student(student=child_a, classroom=new_room, academic_year=year)
+
+    _, entries = selectors.entries_for_child_of(parent_a, child_a.pk)
+
+    assert list(entries) == [old_entry]
+
+
+def test_a_room_entry_from_before_the_child_joined_is_not_theirs(
+    branch, teacher, room, child_a, parent_a
+):
+    """The window cuts both ways — a child who joined in June has no claim on the
+    room's March entries."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    before = timezone.now() - timedelta(days=90)
+    entry = services.record_for_classroom(
+        classroom=room, kind=ActivityKind.NAP, occurred_at=before, author=teacher
+    )
+    services.publish_entries(entries=[entry])
+
+    enrollment = child_a.enrollments.get()
+    enrollment.joined_on = (timezone.now() - timedelta(days=10)).date()
+    enrollment.save(update_fields=["joined_on"])
+
+    _, entries = selectors.entries_for_child_of(parent_a, child_a.pk)
+
+    assert list(entries) == []
+
+
+def test_a_child_with_no_enrollment_gets_no_room_entries(branch, teacher, room, child_a, parent_a):
+    """An empty Q() matches everything when OR'd into a filter, which would hand a
+    never-enrolled child every room entry in the school."""
+    entry = services.record_for_classroom(classroom=room, kind=ActivityKind.NAP, author=teacher)
+    services.publish_entries(entries=[entry])
+    child_a.enrollments.all().delete()
+
+    _, entries = selectors.entries_for_child_of(parent_a, child_a.pk)
+
+    assert list(entries) == []
