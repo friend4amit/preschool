@@ -29,6 +29,10 @@ uv run lint-imports                       # layer contract
 uv run python manage.py backup_database   # the nightly one: pg_dump -> R2, then prune
 uv run python manage.py backup_database --list
 
+uv run python manage.py repair_passwords   # accounts the old admin locked out; reports
+uv run python manage.py repair_passwords --rehash      # keep the password, hash it
+uv run python manage.py repair_passwords --invalidate  # wipe it, issue fresh links
+
 uv run python manage.py reconcile_uploads  # settle pending photo uploads against R2
 uv run python manage.py prune_media --retention          # DPDP sweep, DRY RUN
 uv run python manage.py prune_media --student 7          # one family's erasure, DRY RUN
@@ -127,6 +131,28 @@ Dependencies point **downward only**. Two mechanisms keep this honest, both in C
 
 A view longer than ~15 lines, or containing an `if` about business meaning, has logic
 that belongs a layer down.
+
+## A bug worth not repeating
+
+**`/admin` registered `User` on a plain `admin.ModelAdmin` from phase 0 to phase 4.**
+Django renders `password` as the ordinary CharField the model declares, so an operator
+resetting a parent's password through the admin saved the **raw string into the hash
+column**. Those accounts could never log in again, and the password sat readable in the
+database and in every `pg_dump` taken while it was there. Three accounts in the local
+prod database were hit before anyone noticed, and nothing in a 395-test suite did —
+because nothing asserted anything about an admin *form*.
+
+Fixed in `apps/core/admin.py` by subclassing `django.contrib.auth.admin.UserAdmin`,
+which is the only correct way to register a user model. `apps/core/tests/
+test_admin_access.py` now edits a user through the admin and asserts their password
+still works; all three of those tests go red against the old registration.
+`manage.py repair_passwords` finds and fixes what it already broke.
+
+The general lesson, which is the reason this is written down: **the layer contract
+does not cover `admin.py`.** `lint-imports` and `test_architecture.py` police views,
+services, selectors and models, and the admin sits outside all of it while being able
+to write to every table. Anything registered there deserves a test that exercises the
+form, not just the permission.
 
 ## Non-negotiables
 

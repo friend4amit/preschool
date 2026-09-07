@@ -112,3 +112,41 @@ def is_staff_member(user: User) -> bool:
     if not user.is_authenticated:
         return False
     return user.is_superuser or user.memberships.filter(role__in=STAFF_ROLES).exists()
+
+
+# --------------------------------------------------------------------------------
+# Damaged password hashes
+# --------------------------------------------------------------------------------
+#
+# The admin registered `User` on a plain `ModelAdmin` for four phases, so the change
+# form offered `password` as an ordinary text box and saved whatever was typed into
+# it straight into the hash column. Those accounts cannot log in — `check_password`
+# has no hasher to identify — and their password is sitting in the database, and in
+# every pg_dump taken since, as readable text.
+#
+# The admin is fixed (`apps/core/admin.py`, with tests that go red on the old code).
+# This is how you find what it already broke: `manage.py repair_passwords`.
+
+
+def password_state(user: User) -> str:
+    """One of `hashed`, `unset`, or `plaintext`.
+
+    `unset` is the normal, healthy state for an account created by an admin whose
+    set-password link has not been used yet — Django writes an unusable marker, not a
+    hash, and that is correct. Only `plaintext` is damage.
+    """
+    from django.contrib.auth.hashers import identify_hasher
+
+    if not user.has_usable_password():
+        return "unset"
+    try:
+        identify_hasher(user.password)
+    except (ValueError, TypeError):
+        return "plaintext"
+    return "hashed"
+
+
+def accounts_with_plaintext_passwords() -> list[User]:
+    """Every account the admin bug locked out. Cheap enough to walk in Python — the
+    hasher prefix is not something a database index can answer, and this runs once."""
+    return [user for user in User.objects.order_by("pk") if password_state(user) == "plaintext"]

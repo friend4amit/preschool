@@ -126,3 +126,28 @@ def set_password(*, user: User, raw_password: str) -> User:
     user.set_password(raw_password)
     user.save(update_fields=["password"])
     return user
+
+
+@transaction.atomic
+def rehash_password(*, user: User) -> User:
+    """Re-hash a password the admin bug stored as plain text, preserving it.
+
+    The account can log in again with the password its owner already knows, which is
+    the fastest route back to a working portal. It does NOT undo the disclosure: that
+    string was readable in the database, and is still readable in every backup taken
+    while it was there. For anyone whose password might be reused elsewhere, prefer
+    `invalidate_password` and hand over a fresh link.
+    """
+    user.set_password(user.password)
+    user.save(update_fields=["password"])
+    return user
+
+
+@transaction.atomic
+def invalidate_password(*, user: User) -> User:
+    """Wipe a password and return the account to "waiting for a set-password link" —
+    the state a freshly created account is in. Nobody can log in until a new link is
+    used, which is the point."""
+    user.set_unusable_password()
+    user.save(update_fields=["password"])
+    return user
