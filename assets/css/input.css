@@ -420,6 +420,37 @@
   .band-leaf  { background-color: var(--color-leaf-panel); }
   .band-clay  { background-color: var(--color-clay-wash); }
 
+  /* Bands that stop short of the right edge.
+     ---------------------------------------------------------------------------
+     A band is normally full bleed: colour edge to edge, content held in by
+     .shell. These two break that deliberately — the COLOUR itself becomes a
+     panel, so the page gains a ragged right edge instead of four identical
+     slabs.
+
+     The measurement that matters is the left one. Each panel starts exactly
+     where .shell starts, so the text inside it lands on the same vertical line
+     as every other band on the page. That is what makes the short right edge
+     read as a decision rather than as something broken — the eye checks the
+     left margin, not the right.
+
+     `margin-inline-start` resolves its percentage against the parent's inline
+     size, which is the viewport here, so this reproduces .shell's own centring
+     maths: max(0, (100% - 64rem) / 2). Below 64rem it collapses to 0 and the
+     panel simply fills the width, which is the honest answer on a phone.
+
+     Narrowing starts at md: on purpose. Half of a 390px phone is 195px, which
+     is not a column, it is a gutter. See the mobile-first rule in CLAUDE.md. */
+  @media (width >= 48rem) {
+    .band-two-thirds,
+    .band-half {
+      margin-inline-start: max(0px, calc((100% - 64rem) / 2));
+      margin-inline-end: auto;
+    }
+
+    .band-two-thirds { width: min(100%, calc(64rem * 2 / 3)); }
+    .band-half       { width: min(100%, calc(64rem / 2)); }
+  }
+
   /* A panel inside a band — the pull-out on a prose page. Same colour, same rule:
      ink on it, never white. */
   .panel-leaf {

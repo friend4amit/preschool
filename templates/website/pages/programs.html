@@ -5,7 +5,15 @@
 {% block meta_description %}Playgroup, Nursery, LKG, UKG and daycare for ages 1½ to 6. Children move up when they are ready, not on a date.{% endblock %}
 
 {% block content %}
-  <section class="band band-marigold pb-16 md:pb-24">
+  {% comment %} The three coloured sections stop short of the right edge — the hero
+     at two thirds, the pull quote and the closing call at a half — while the
+     programme cards between them stay full width. Four equal slabs read as a
+     wall; a ragged right edge gives the page somewhere to breathe and keeps the
+     cards, which are the actual content, as the widest thing on it.
+
+     They all still START on the .shell line, so every heading down the page sits
+     on the same vertical. The rules are in assets/css/input.css. {% endcomment %}
+  <section class="band band-marigold band-two-thirds pb-16 md:pb-24">
     <div class="shell">
       <p class="eyebrow">Programmes</p>
       <h1 class="font-display text-ink text-display md:text-display-lg lg:text-display-xl mt-3 max-w-4xl leading-[1.02] font-semibold text-balance">
@@ -72,7 +80,7 @@
     </div>
   </section>
 
-  <section class="a-clay band-solid band">
+  <section class="a-clay band-solid band band-half">
     <div class="shell max-w-4xl">
       <p class="font-display text-display leading-[1.15] font-semibold text-balance">
         Children move up when they are ready, not on a date.
@@ -84,7 +92,7 @@
     </div>
   </section>
 
-  <section class="band band-leaf">
+  <section class="band band-leaf band-half">
     <div class="shell">
       <h2 class="font-display text-ink text-display font-semibold text-balance">Not sure where your child fits?</h2>
       <p class="text-ink/80 mt-3 max-w-prose text-lg">
