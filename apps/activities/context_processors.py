@@ -35,6 +35,11 @@ def _last_visit(request):
     Seeded to *now* on first sight rather than to the epoch. A parent logging in for
     the first time should not be met with a badge counting every photograph the school
     has ever published of their child — that is a history, not news.
+
+    "First sight" is the first page that RENDERS the badge, not the first request:
+    this runs inside the lazy callable, so a parent whose first authenticated page has
+    no badge on it is seeded a page later. The behaviour is the same either way — the
+    seed is only ever "now" — but the timing is worth stating rather than assuming.
     """
     stamp = request.session.get(SESSION_KEY)
     if stamp:

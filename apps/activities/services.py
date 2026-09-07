@@ -382,9 +382,11 @@ def _forget_object(key: str, *, commit: bool) -> bool:
 def forget_media(*, media: MediaAsset, commit: bool = False) -> dict:
     """Delete one photograph: its thumbnail, its object, and its row.
 
-    The row goes last. If the object delete raises, the row survives and the asset can
-    be tried again; the other order leaves an object nothing points at, which is the
-    exact condition this module exists to prevent.
+    The object goes first and the row last. If the storage delete raises, the row
+    survives and the whole thing can simply be run again; the other order leaves an
+    object nothing points at, which is the exact condition this module exists to
+    prevent. Callers have to preserve that property too — see the note on ordering in
+    `erase_student_media`.
     """
     keys = [media.key] + ([media.thumbnail_key] if media.thumbnail_key else [])
     removed = [key for key in keys if _forget_object(key, commit=commit)]
@@ -418,13 +420,21 @@ def erase_student_media(*, student: Student, commit: bool = False) -> dict:
     entries = ActivityEntry.objects.filter(student=student)
     entry_count = entries.count()
 
-    deleted = []
+    # Order matters, and it is the opposite of what reads naturally.
+    #
+    # The photographs go FIRST, while the tags that make them findable still exist.
+    # Deleting the tags first would mean that a storage failure partway through a
+    # multi-photo erasure left objects in the bucket with nothing pointing at them and
+    # nothing able to find them again — recoverable only through `--orphans`, which is
+    # a much worse recovery than "run it again". This way a failure leaves the child's
+    # tags intact and the whole operation repeatable, which is what `forget_media`
+    # claims and what makes that claim true here too.
+    deleted = [forget_media(media=asset, commit=commit) for asset in orphaned]
+
     if commit:
         with transaction.atomic():
             MediaTag.objects.filter(student=student).delete()
             entries.delete()
-    for asset in orphaned:
-        deleted.append(forget_media(media=asset, commit=commit))
 
     return {
         "student_id": student.pk,
@@ -470,6 +480,13 @@ def orphan_objects(*, prefix: str = "photos/", older_than_hours: int = 24) -> li
     The age floor matters. A key is written to the bucket by the browser moments
     before Django hears about it, so anything recent is far more likely to be an
     upload in flight than an orphan.
+
+    **Deliberately unscoped.** Every other read of media in this app goes through a
+    `for_user` selector; this one reads `MediaAsset.objects` across all branches, and
+    has to — an object in the bucket is only an orphan if NO branch claims it, and a
+    scoped query would report branch two's photographs as branch one's litter. Phase
+    8's "audit every selector for branch scoping" will not see this because it lives
+    in services.py, so it is called out here instead.
     """
     from datetime import timedelta
 

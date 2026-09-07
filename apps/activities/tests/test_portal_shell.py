@@ -346,3 +346,45 @@ def test_the_badge_pluralises(client, branch, teacher, child_a, parent_a, consen
     body = client.get(reverse("my_children")).content.decode()
 
     assert "2 new photos" in body
+
+
+def test_every_url_the_worker_caches_actually_exists(client):
+    """The failure this catches is silent by construction.
+
+    `cache.add()` is wrapped in a `.catch()` so one bad URL cannot abort the whole
+    install — which means a SHELL entry that 404s leaves the worker installed, the
+    offline page uncached, and the one reason the worker exists quietly not working.
+    Nothing in the browser complains.
+
+    So: read the allowlist out of the rendered worker and prove every entry resolves
+    to something real. Static URLs are checked through the staticfiles machinery
+    rather than over HTTP, because nothing serves /static/ in tests — and that is also
+    the check that matters, since under the deployed manifest storage the URL in this
+    file is the HASHED one and it is the storage that knows whether it exists.
+    """
+    import re
+
+    from django.conf import settings
+    from django.contrib.staticfiles import finders
+    from django.contrib.staticfiles.storage import staticfiles_storage
+
+    body = client.get("/sw.js").content.decode()
+    shell = body.split("const SHELL = [", 1)[1].split("];", 1)[0]
+    urls = re.findall(r'"([^"]+)"', shell)
+
+    assert len(urls) >= 5, f"Suspiciously short allowlist: {urls}"
+
+    missing = []
+    for url in urls:
+        if url.startswith(settings.STATIC_URL):
+            name = url[len(settings.STATIC_URL) :]
+            if not (finders.find(name) or staticfiles_storage.exists(name)):
+                missing.append(url)
+        elif client.get(url).status_code != 200:
+            missing.append(url)
+
+    assert not missing, (
+        f"The service worker caches {missing}, which do not exist. The install "
+        "swallows the failure, so this would ship as a worker that quietly never "
+        "caches the offline page."
+    )
