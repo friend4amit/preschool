@@ -1,0 +1,14 @@
+{% comment %} Photographs published since this browser last opened the feed.
+
+   `portal_unread` comes from a context processor and is lazy — it costs a query only
+   where a template actually renders it, which is this file and nowhere else. The
+   count runs the SAME gated query as the feed, so the badge can never promise a photo
+   the feed then withholds.
+
+   Hidden at zero rather than shown as "0": a badge that is always there is furniture,
+   and stops being read.
+{% endcomment %}
+{% if portal_unread %}
+  <span class="bg-leaf text-on-leaf inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-[0.625rem] leading-none font-semibold tabular-nums"
+        aria-label="{{ portal_unread }} new photo{{ portal_unread|pluralize }}">{{ portal_unread }}</span>
+{% endif %}

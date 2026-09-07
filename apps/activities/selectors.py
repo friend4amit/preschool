@@ -362,8 +362,12 @@ def taggable_students(media: MediaAsset, *, user: User) -> list[dict]:
 # --------------------------------------------------------------------------------
 
 
-def media_url(media: MediaAsset) -> str | None:
+def media_url(media: MediaAsset, *, prefer_thumbnail: bool = False) -> str | None:
     """A short-lived URL for one photograph, or None when it cannot be served.
+
+    `prefer_thumbnail` asks for the small version and silently falls back to the full
+    one when the worker has not been round yet — a feed that showed gaps until a
+    background job finished would be a worse feed than one that is briefly heavier.
 
     ALWAYS call this behind a gate. It does no permission check of its own — by the
     time a caller has a MediaAsset in hand the consent question is already answered,
@@ -382,7 +386,8 @@ def media_url(media: MediaAsset) -> str | None:
         return None
     if not storage_r2.is_configured():
         return None
-    return storage_r2.presign_get(key=media.key)
+    key = media.thumbnail_key if (prefer_thumbnail and media.thumbnail_key) else media.key
+    return storage_r2.presign_get(key=key)
 
 
 def feed_days(media_queryset) -> list[dict]:
@@ -407,5 +412,92 @@ def feed_days(media_queryset) -> list[dict]:
         day = tz.localtime(asset.taken_at).date()
         if not days or days[-1]["day"] != day:
             days.append({"day": day, "media": []})
-        days[-1]["media"].append({"asset": asset, "url": media_url(asset)})
+        # The grid renders each of these in a square roughly 180px across. Asking for
+        # the thumbnail is the difference between a day of photographs costing a
+        # parent a few hundred KB and costing them several megabytes.
+        days[-1]["media"].append({"asset": asset, "url": media_url(asset, prefer_thumbnail=True)})
     return days
+
+
+# --------------------------------------------------------------------------------
+# Retention
+# --------------------------------------------------------------------------------
+#
+# Photographs of children accumulate indefinitely by default, which is the wrong
+# default under the DPDP Act — the plan calls this out and names "a year after a child
+# leaves" as the common answer. The number lives in `settings.MEDIA_RETENTION_DAYS`
+# and still wants the school's sign-off; what is decided here is the *shape* of the
+# question, which does not depend on the number.
+#
+# Two rules, deliberately separate because they answer to different facts:
+#
+#   tagged     a photo expires once EVERY child tagged in it left long enough ago.
+#              One child still on the roll keeps the whole photograph, because it is
+#              their photograph too.
+#   untagged   a photo nobody ever tagged expires on its own age. A year after it was
+#              taken it is not waiting to be tagged, it is a picture of children that
+#              no rule in this codebase can reason about — which is the worst kind to
+#              keep.
+#
+# Nothing here deletes. These are reads; `services.prune_expired_media` decides, and
+# only when a person has read the dry run first.
+
+
+def departure_date(student: Student):
+    """The day a child stopped attending, or None while they are still on the roll.
+
+    None for a child with no enrolment row at all, which reads as "still here" and so
+    keeps their photographs. That is the safe direction: retention deletes, and a
+    record too thin to answer the question is not permission to answer it as yes.
+    """
+    dates = list(student.enrollments.values_list("left_on", flat=True))
+    if not dates or any(date is None for date in dates):
+        return None
+    return max(dates)
+
+
+def students_gone_since(cutoff) -> QuerySet[Student]:
+    """Children whose last enrolment ended on or before `cutoff`.
+
+    A child with any open enrolment is excluded by the `Max` being null — a row with
+    `left_on IS NULL` propagates, which is exactly the answer wanted and is why this
+    is one aggregate rather than two queries.
+    """
+    from django.db.models import Max
+
+    return (
+        Student.objects.annotate(last_left=Max("enrollments__left_on"))
+        .filter(last_left__isnull=False, last_left__lte=cutoff)
+        .exclude(enrollments__left_on__isnull=True)
+    )
+
+
+def media_expired_by_retention(*, window_days: int, as_of=None) -> QuerySet[MediaAsset]:
+    """Photographs past the retention window, by either rule above.
+
+    Returns a queryset so the caller can count it, page it, or print it without this
+    module deciding how much of it fits in memory.
+    """
+    from datetime import timedelta
+
+    from django.utils import timezone as tz
+
+    as_of = as_of or tz.localdate()
+    cutoff = as_of - timedelta(days=window_days)
+
+    gone = students_gone_since(cutoff)
+    # Assets every one of whose tags points at a child in `gone`. Stated as "has a
+    # tag, and has no tag pointing anywhere else", because SQL can answer that and
+    # cannot answer "for all" directly.
+    all_tags_expired = (
+        MediaAsset.objects.filter(tags__isnull=False)
+        .exclude(tags__student__in=Student.objects.exclude(pk__in=gone.values("pk")))
+        .values("pk")
+    )
+    never_tagged = MediaAsset.objects.filter(tags__isnull=True, taken_at__date__lte=cutoff).values(
+        "pk"
+    )
+
+    return MediaAsset.objects.filter(Q(pk__in=all_tags_expired) | Q(pk__in=never_tagged)).order_by(
+        "taken_at", "pk"
+    )

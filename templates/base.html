@@ -16,6 +16,18 @@
     <link rel="preload" href="{% static 'fonts/karla-latin.woff2' %}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
 
+    {% comment %} The installable portal. The manifest is rendered by a view rather
+       than shipped as a static file — it names hashed asset URLs, and WhiteNoise's
+       manifest storage only knows them at collectstatic time. iOS ignores manifest
+       icons entirely and wants its own tag, hence the apple line.
+
+       `theme_color` here and in the manifest have to agree, or Android paints the
+       status bar one colour on the web and another once installed. {% endcomment %}
+    <link rel="manifest" href="{% url 'manifest' %}">
+    <meta name="theme-color" content="#3a5427">
+    <link rel="icon" href="{% static 'img/favicon.png' %}" sizes="32x32">
+    <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
+
     <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
 
     {% block extra_head %}{% endblock %}

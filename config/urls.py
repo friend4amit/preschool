@@ -15,6 +15,12 @@ urlpatterns = [
     # operator tool, never a staff-facing surface. See docs/plan.md.
     path("admin/", admin.site.urls),
     path("healthz", core_views.healthz, name="healthz"),
+    # The installable portal. Both are served from the site ROOT rather than from
+    # /static/ — a service worker's scope cannot be broader than the path it came
+    # from, and one under /static/ could never control /portal/. See apps/core/views.
+    path("manifest.webmanifest", core_views.manifest, name="manifest"),
+    path("sw.js", core_views.service_worker, name="service_worker"),
+    path("offline/", core_views.offline, name="offline"),
     path("robots.txt", robots_txt, name="robots"),
     path(
         "sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="django.contrib.sitemaps.views.sitemap"

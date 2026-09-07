@@ -29,6 +29,15 @@ uv run lint-imports                       # layer contract
 uv run python manage.py backup_database   # the nightly one: pg_dump -> R2, then prune
 uv run python manage.py backup_database --list
 
+uv run python manage.py reconcile_uploads  # settle pending photo uploads against R2
+uv run python manage.py prune_media --retention          # DPDP sweep, DRY RUN
+uv run python manage.py prune_media --student 7          # one family's erasure, DRY RUN
+uv run python manage.py prune_media --orphans            # bucket objects with no row
+#   ...none of the three delete anything without --commit. That is deliberate: the
+#   subject is a photograph of a child, so the default is a report you read first.
+
+uv run python scripts/make_icons.py       # regenerate the PWA icons from the palette
+
 uv run python manage.py seed_media --source <wp-content/uploads>   # marketing photos
 uv run python manage.py seed_media --source <path> --dry-run       # report, write nothing
 ```
@@ -174,26 +183,38 @@ These cost hours now and weeks later. They are decided; don't relitigate them in
 - **R2 is unconfigured on this machine**, so `backup_database` refuses. That is the
   intended behaviour, not a bug: a backup that silently no-ops is worse than one that
   fails. `./scripts/backup-local.sh` covers the local case.
-- **`reconcile_uploads` has no schedule.** `apps/activities/services.py` carries it and
-  it is correct, but nothing calls it on a timer — same shape as the backup above, and
-  it belongs with the deploy rather than in the repo. Until it runs, a photograph whose
+- **`reconcile_uploads` has no schedule.** `manage.py reconcile_uploads` exists and is
+  correct, but nothing calls it on a timer — same shape as the backup above, and it
+  belongs with the deploy rather than in the repo. Until it runs, a photograph whose
   browser completed the R2 PUT and then failed to tell Django stays `pending` forever
-  and never reaches a feed. It deliberately does NOT delete bucket objects with no row;
-  that half deletes photographs of children on the strength of a query and wants its
-  own command, its own dry run, and a person reading the list first.
-- **`unread_count` is implemented and tested but nothing renders it.** The plan asks for
-  an unread badge since last visit; the selector answers it using the same gated query
-  as the feed, so the badge can never promise a photo the feed withholds. What is
-  missing is somewhere to keep "last visit" — there is no field for it, and the session
-  is the obvious cheap answer.
+  and never reaches a feed. The same is true of **`manage.py prune_media --retention`**,
+  which is the DPDP sweep and wants a monthly cron line rather than a nightly one.
+- **The unread badge is per browser.** "Last visit" lives in the session
+  (`apps/activities/context_processors.py`), which is the cheap answer and costs no
+  migration — but a parent who reads the feed on their phone still sees a badge on the
+  laptop. Fine for "since last visit"; not fine for the per-item read receipts Phase 7
+  wants for announcements, which is the point at which this earns a column.
 - **Photo upload is unverified against real R2.** The browser path
   (`static/js/photo-upload.js` -> presigned PUT -> confirm) is written and the
   endpoints are tested against a stub, but no upload has ever reached a real bucket
   because `R2_*` is unset here. That round trip is the first thing to check when the
   bucket exists — before, not after, the rest of the phase is trusted.
-- **Thumbnails are declared and never written.** `MediaAsset.thumbnail_key` exists;
-  nothing generates one. The feed currently serves the full (browser-downscaled) image
-  at grid size.
+- **Thumbnails are written but have never touched R2.** `services.build_thumbnail` is
+  enqueued from `confirm_upload` and is exercised end to end against local disk; the R2
+  branch of it (download, resize, upload) is as unverified as the upload path above,
+  and for the same reason. Check both in the same sitting when the bucket exists.
+- **"Installing the PWA gives an Aaroham icon" is unverified.** The manifest validates,
+  the worker registers, and Chrome does fire `beforeinstallprompt` on the portal — but
+  actually installing and seeing the icon on a home screen cannot be done from this
+  Windows machine. It is the one Phase 4 exit criterion still open, and it wants the
+  same real cheap Android as the mobile check below.
+
+- **The retention window is a placeholder.** `MEDIA_RETENTION_DAYS` defaults to 365 —
+  the plan's suggestion, not the school's decision. The *shape* of the sweep does not
+  depend on the number, but the number needs signing off before the first photograph is
+  actually deleted. `prune_media` reports unless given `--commit`, so nothing goes until
+  someone reads a list.
+
 - **The Phase 2 screens have never been seen below ~1218px.** Chrome on Windows will
   not size a window narrower than that, so the phone layout is written but unverified —
   the plan's "renders at 390px" check is outstanding. The one to look at first is the

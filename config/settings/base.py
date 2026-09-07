@@ -65,6 +65,10 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                # The parent portal's unread badge. Lazy — it costs nothing on a
+                # template that never renders it, which is every public and staff
+                # page. See apps/activities/context_processors.py.
+                "apps.activities.context_processors.portal_unread",
             ],
         },
     },
@@ -148,3 +152,11 @@ R2_ENDPOINT_URL = env("R2_ENDPOINT_URL", default="")
 
 BACKUP_PREFIX = env("BACKUP_PREFIX", default="backups/postgres/")
 BACKUP_RETENTION_DAYS = env.int("BACKUP_RETENTION_DAYS", default=30)
+
+# --- Retention on children's photographs ---------------------------------------------
+# Photos accumulate indefinitely by default, which is the wrong default under the DPDP
+# Act. A year after a child leaves is the common answer and is what this defaults to —
+# but the number is the SCHOOL'S to sign off, not this file's, and until they have it
+# is a placeholder that happens to run. Nothing applies it on a timer: see
+# `manage.py prune_media`, which reports unless told to commit.
+MEDIA_RETENTION_DAYS = env.int("MEDIA_RETENTION_DAYS", default=365)

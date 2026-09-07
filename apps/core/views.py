@@ -32,6 +32,43 @@ def healthz(request: HttpRequest) -> HttpResponse:
     return HttpResponse("ok", content_type="text/plain")
 
 
+# --- the installable portal ------------------------------------------------------------
+#
+# Both of these are rendered rather than shipped as static files, and for the same
+# reason: they name other static assets, and WhiteNoise's manifest storage hashes those
+# names at collectstatic time. A hand-written `/static/css/app.css` in a service worker
+# would 404 in production on the first deploy and never be noticed, because a worker
+# that fails to install fails quietly.
+
+
+def manifest(request: HttpRequest) -> HttpResponse:
+    """The web app manifest. Served from the site root so its scope can be /portal/."""
+    return render(
+        request, "core/pwa/manifest.webmanifest", content_type="application/manifest+json"
+    )
+
+
+def service_worker(request: HttpRequest) -> HttpResponse:
+    """The service worker, at the ROOT path deliberately.
+
+    A worker's scope cannot be broader than the directory it is served from, so one
+    at /static/sw.js could never control /portal/. This is the whole reason it is a
+    view rather than a file.
+    """
+    response = render(request, "core/pwa/sw.js", content_type="text/javascript")
+    # Browsers revalidate a worker at most every 24h by default; this asks for it
+    # every time, so a deploy that changes the allowlist takes effect on the next
+    # visit rather than tomorrow.
+    response["Cache-Control"] = "no-cache"
+    return response
+
+
+def offline(request: HttpRequest) -> HttpResponse:
+    """What a parent sees when they open the app with no signal. Cached by the worker,
+    so it must not reference anything the worker has not also cached."""
+    return render(request, "core/pages/offline.html")
+
+
 class LoginView(auth_views.LoginView):
     template_name = "core/pages/login.html"
     authentication_form = PhoneAuthenticationForm

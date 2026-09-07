@@ -390,6 +390,27 @@ Budget generously. Photo handling has a long tail: orientation, HEIC, huge files
 > parents. Recorded here rather than left in the code so the next person meets the
 > decision before they meet the query.
 
+> **Retention and erasure, decided during the build.** The plan says "decide a
+> retention window with the school" and is right that the number is theirs. But the
+> *shape* of the question is not, and waiting on a meeting is how a DPDP obligation
+> ends up shipping a phase late — so the path is built and the number is a setting
+> (`MEDIA_RETENTION_DAYS`, defaulting to the year this document suggests). Three
+> decisions were made building it, all in `manage.py prune_media`:
+>
+> - **A photo expires only once every tagged child has gone.** One child still on the
+>   roll keeps the whole photograph. That is the multi-child rule pointing backwards,
+>   and it has to match or a family loses pictures because another family left.
+> - **Erasing one child does not delete a photograph of three.** Their tags go; the
+>   asset goes only if the tags left nobody in it. A shared photo belongs to every
+>   family in it, and one family's request is not the others' answer.
+> - **`IncidentReport` is not erased.** It is a safety record naming a member of staff,
+>   the school may be required to hold it, and deleting it on request would let the
+>   record of an injury be removed by asking. The command says so where the operator
+>   reads it rather than deciding quietly.
+>
+> Everything reports and deletes nothing without `--commit`. Wrong default for most
+> commands; right one when the subject is a photograph of a child.
+
 **Video is out of scope for v1** — and say so to the school rather than leaving it ambiguous, because they will ask. Short clips are what parents most want after photos, but they bring transcoding, thumbnails, playback, and a storage bill an order of magnitude larger. Revisit once photos are boring.
 
 ### Done when

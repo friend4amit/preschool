@@ -27,12 +27,17 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from apps.activities import forms, selectors, services
+from apps.activities import context_processors, forms, selectors, services
 from apps.activities.models import ActivityKind
 from apps.core import selectors as core_selectors
 from apps.people import selectors as people_selectors
 
 staff_required = user_passes_test(core_selectors.is_staff_member)
+
+
+# One screen and a bit on a phone, at two columns. Small enough that the first paint
+# is quick on mobile data, large enough that a scroll does not fetch every flick.
+FEED_PAGE_SIZE = 24
 
 
 def _day_from(request: HttpRequest) -> date_type:
@@ -392,35 +397,54 @@ def my_photos(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def my_child_photos(request: HttpRequest, student_id: int) -> HttpResponse:
-    """The feed. Reverse-chronological by `taken_at`, grouped into days.
+    """The feed. Reverse-chronological by `taken_at`, grouped into days, paged.
 
     `feed_for_child_of` returns (None, empty) both for a child that is not this user's
     and for one that does not exist, so a 404 here leaks neither.
+
+    Paging is htmx infinite scroll over a real paginator, which means the no-JS path
+    is a "Load older photographs" link to `?page=2` and works — the same rule the
+    student list follows. The one subtlety is `after`: page two frequently starts
+    partway through a day page one already headed, and re-emitting that heading would
+    print "Friday, 3 April" twice down the column.
     """
     child, feed = selectors.feed_for_child_of(request.user, student_id)
     if child is None:
         raise Http404("No such child.")
 
+    from django.core.paginator import Paginator
+
     from apps.core.models import ConsentPurpose
+
+    page = Paginator(feed, FEED_PAGE_SIZE).get_page(request.GET.get("page"))
 
     # The selector leaves `url` None where R2 is unconfigured, because naming a Django
     # route is the controller's job. Fill it with the gated fallback view here.
-    days = selectors.feed_days(feed)
+    days = selectors.feed_days(page.object_list)
     for bucket in days:
         for item in bucket["media"]:
-            item["url"] = item["url"] or reverse("media_file", args=[item["asset"].pk])
+            item["url"] = item["url"] or (
+                reverse("media_file", args=[item["asset"].pk]) + "?size=thumb"
+            )
 
-    return render(
-        request,
-        "activities/pages/child_photos.html",
-        {
-            "child": child,
-            "days": days,
-            "has_consent": selectors.guardian_has_consent(
-                request.user, ConsentPurpose.PHOTOS_IN_APP
-            ),
-        },
-    )
+    context = {
+        "child": child,
+        "days": days,
+        "page": page,
+        # True when this page opens inside a day the previous one already headed.
+        "continues_day": bool(days) and request.GET.get("after") == days[0]["day"].isoformat(),
+        "last_day": days[-1]["day"].isoformat() if days else "",
+        "has_consent": selectors.guardian_has_consent(request.user, ConsentPurpose.PHOTOS_IN_APP),
+    }
+
+    if request.headers.get("HX-Request"):
+        return render(request, "activities/partials/feed_page.html", context)
+
+    # Only a full page view counts as a visit. An htmx request for page four is the
+    # same visit still going, and clearing the badge there would clear it against
+    # photographs published while the parent was mid-scroll.
+    context_processors.mark_feed_visited(request)
+    return render(request, "activities/pages/child_photos.html", context)
 
 
 @login_required
@@ -496,9 +520,19 @@ def media_file(request: HttpRequest, media_id: int) -> FileResponse:
             raise Http404("No such photo.")
 
     media = MediaAsset.objects.filter(pk=media_id).first()
-    if media is None or not default_storage.exists(media.key):
+    if media is None:
         raise Http404("No such photo.")
-    return FileResponse(default_storage.open(media.key, "rb"))
+
+    # `?size=thumb` is the local mirror of the presigned thumbnail URL, so the feed
+    # grid is light on this path too. It falls back to the full image rather than
+    # 404ing when the worker has not built one yet.
+    key = media.key
+    if request.GET.get("size") == "thumb" and media.thumbnail_key:
+        key = media.thumbnail_key
+
+    if not default_storage.exists(key):
+        raise Http404("No such photo.")
+    return FileResponse(default_storage.open(key, "rb"))
 
 
 # --- helpers ----------------------------------------------------------------------------

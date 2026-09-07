@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %} The one page the service worker keeps. It must not reference anything the
+   worker has not also cached — no photographs, no nav that needs a session, nothing
+   that would render as a broken box on a phone with no signal. Its own icon is on the
+   allowlist for exactly that reason. {% endcomment %}
+
+{% block title %}No connection — Aaroham{% endblock %}
+
+{% block main_class %}mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-5 py-16 text-center{% endblock %}
+
+{% block content %}
+  <img src="{% static 'img/icon-192.png' %}" alt="" width="72" height="72" class="rounded-2xl">
+  <h1 class="font-display text-ink mt-6 text-2xl font-semibold">You are offline</h1>
+  <p class="text-muted mt-2 text-sm">
+    Aaroham needs a connection to show you today. Nothing has been lost — the moment
+    you are back on wifi or mobile data, pull down to try again.
+  </p>
+  <button type="button" onclick="window.location.reload()" class="btn btn-primary btn-sm mt-6">
+    Try again
+  </button>
+{% endblock %}
