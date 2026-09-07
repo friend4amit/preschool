@@ -420,35 +420,26 @@
   .band-leaf  { background-color: var(--color-leaf-panel); }
   .band-clay  { background-color: var(--color-clay-wash); }
 
-  /* Bands that stop short of the right edge.
+  /* Bands that take up less vertical room.
      ---------------------------------------------------------------------------
-     A band is normally full bleed: colour edge to edge, content held in by
-     .shell. These two break that deliberately — the COLOUR itself becomes a
-     panel, so the page gains a ragged right edge instead of four identical
-     slabs.
+     The lever here is `padding-block`, and it has to be, because a band's height
+     is its content plus its air and only the air can move. Scaling the box itself
+     would clip the headline it exists to hold.
 
-     The measurement that matters is the left one. Each panel starts exactly
-     where .shell starts, so the text inside it lands on the same vertical line
-     as every other band on the page. That is what makes the short right edge
-     read as a decision rather than as something broken — the eye checks the
-     left margin, not the right.
+     So "two thirds as tall" means two thirds of the band's breathing room, which
+     on a page like Programmes is most of what you are looking at: the closing
+     call is 251px of text inside 192px of padding. Take a third out and the
+     section visibly tightens without a word of it moving.
 
-     `margin-inline-start` resolves its percentage against the parent's inline
-     size, which is the viewport here, so this reproduces .shell's own centring
-     maths: max(0, (100% - 64rem) / 2). Below 64rem it collapses to 0 and the
-     panel simply fills the width, which is the honest answer on a phone.
+     Both breakpoints, because .band itself changes at md: — 4rem of air on a
+     phone, 6rem on a laptop — and a fraction that only applied to one of them
+     would quietly stop being a fraction on the other. */
+  .band-two-thirds-tall { padding-block: calc(--spacing(16) * 2 / 3); }
+  .band-half-tall       { padding-block: calc(--spacing(16) / 2); }
 
-     Narrowing starts at md: on purpose. Half of a 390px phone is 195px, which
-     is not a column, it is a gutter. See the mobile-first rule in CLAUDE.md. */
   @media (width >= 48rem) {
-    .band-two-thirds,
-    .band-half {
-      margin-inline-start: max(0px, calc((100% - 64rem) / 2));
-      margin-inline-end: auto;
-    }
-
-    .band-two-thirds { width: min(100%, calc(64rem * 2 / 3)); }
-    .band-half       { width: min(100%, calc(64rem / 2)); }
+    .band-two-thirds-tall { padding-block: calc(--spacing(24) * 2 / 3); }
+    .band-half-tall       { padding-block: calc(--spacing(24) / 2); }
   }
 
   /* A panel inside a band — the pull-out on a prose page. Same colour, same rule:

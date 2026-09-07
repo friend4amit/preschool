@@ -5,15 +5,20 @@
 {% block meta_description %}Playgroup, Nursery, LKG, UKG and daycare for ages 1½ to 6. Children move up when they are ready, not on a date.{% endblock %}
 
 {% block content %}
-  {% comment %} The three coloured sections stop short of the right edge — the hero
-     at two thirds, the pull quote and the closing call at a half — while the
-     programme cards between them stay full width. Four equal slabs read as a
-     wall; a ragged right edge gives the page somewhere to breathe and keeps the
-     cards, which are the actual content, as the widest thing on it.
+  {% comment %} The three coloured sections are shorter than a default band — the
+     hero at two thirds, the pull quote and the closing call at a half — while the
+     programme cards between them keep their full height. The cards are the actual
+     content of this page, and the sections around them were spending more vertical
+     room on air than the thing a parent came to read.
 
-     They all still START on the .shell line, so every heading down the page sits
-     on the same vertical. The rules are in assets/css/input.css. {% endcomment %}
-  <section class="band band-marigold band-two-thirds pb-16 md:pb-24">
+     Height here means padding: the copy does not move, the space around it closes
+     up. The rules are in assets/css/input.css.
+
+     Note the hero has no pb-* utility. It used to carry `pb-16 md:pb-24`, which
+     restated .band's own padding exactly and so did nothing — but a utility beats a
+     component class, so left in place it would have taken two thirds off the top and
+     none off the bottom. {% endcomment %}
+  <section class="band band-marigold band-two-thirds-tall">
     <div class="shell">
       <p class="eyebrow">Programmes</p>
       <h1 class="font-display text-ink text-display md:text-display-lg lg:text-display-xl mt-3 max-w-4xl leading-[1.02] font-semibold text-balance">
@@ -80,7 +85,7 @@
     </div>
   </section>
 
-  <section class="a-clay band-solid band band-half">
+  <section class="a-clay band-solid band band-half-tall">
     <div class="shell max-w-4xl">
       <p class="font-display text-display leading-[1.15] font-semibold text-balance">
         Children move up when they are ready, not on a date.
@@ -92,7 +97,7 @@
     </div>
   </section>
 
-  <section class="band band-leaf band-half">
+  <section class="band band-leaf band-half-tall">
     <div class="shell">
       <h2 class="font-display text-ink text-display font-semibold text-balance">Not sure where your child fits?</h2>
       <p class="text-ink/80 mt-3 max-w-prose text-lg">
