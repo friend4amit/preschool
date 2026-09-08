@@ -19,6 +19,9 @@ urlpatterns = [
     path("<int:classroom_id>/record/", views.quick_entry, name="activities_quick_entry"),
     path("<int:classroom_id>/publish/", views.publish_day, name="activities_publish_day"),
     path("<int:classroom_id>/upload-url/", views.upload_url, name="activities_upload_url"),
+    # Where the bytes go when there is no R2 bucket. Stands in for the presigned PUT,
+    # so the browser has one upload path rather than two. See views.upload_direct.
+    path("photo/<int:media_id>/put/", views.upload_direct, name="activities_upload_direct"),
     path("photo/<int:media_id>/", views.tag_photo, name="activities_tag"),
     path(
         "photo/<int:media_id>/tag/<int:student_id>/",

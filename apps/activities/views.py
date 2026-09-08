@@ -28,7 +28,7 @@ from django.http import FileResponse, Http404, HttpRequest, HttpResponse, JsonRe
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.activities import context_processors, forms, selectors, services
 from apps.activities.models import ActivityKind, IncidentReport, MediaAsset
@@ -289,18 +289,19 @@ def upload_url(request: HttpRequest, classroom_id: int) -> JsonResponse:
     orphan nobody is looking for, whereas a row without an object is exactly what the
     nightly reconciliation is built to find.
 
-    503 rather than 500 when R2 is absent. It is a configuration state, not a fault,
-    and the message says so — this is the development machine's normal condition.
+    Two destinations, and the browser cannot tell them apart. With R2 configured the
+    `url` is a presigned PUT straight to Cloudflare. Without it, the `url` is
+    `upload_direct` below and the bytes come through Django to local disk.
+
+    The fallback exists because a school with no bucket yet should still be able to
+    use the product, and because the storage this stack falls back to is a docker
+    volume that survives a rebuild. It is NOT a second way of doing it when R2 is
+    present: this branch is chosen by configuration, never by the caller.
     """
     room = _room_or_404(request, classroom_id)
     form = forms.UploadRequestForm(request.POST)
     if not form.is_valid():
         return JsonResponse({"error": form.errors.as_text()}, status=400)
-
-    if not storage_r2.is_configured():
-        return JsonResponse(
-            {"error": "Photo storage is not configured on this server yet."}, status=503
-        )
 
     key = services.build_key(branch=room.branch, filename=form.cleaned_data["filename"])
     media = services.register_upload(
@@ -309,13 +310,61 @@ def upload_url(request: HttpRequest, classroom_id: int) -> JsonResponse:
         uploaded_by=request.user,
         content_type=form.cleaned_data["content_type"],
     )
+    if storage_r2.is_configured():
+        destination = storage_r2.presign_put(
+            key=key, content_type=form.cleaned_data["content_type"]
+        )
+    else:
+        destination = reverse("activities_upload_direct", kwargs={"media_id": media.pk})
     return JsonResponse(
         {
             "media_id": media.pk,
-            "url": storage_r2.presign_put(key=key, content_type=form.cleaned_data["content_type"]),
+            "url": destination,
             "confirm": reverse("activities_confirm_upload", kwargs={"media_id": media.pk}),
         }
     )
+
+
+@login_required
+@staff_required
+@require_http_methods(["PUT"])
+def upload_direct(request: HttpRequest, media_id: int) -> JsonResponse:
+    """Receive a photograph's bytes, for stacks with no R2. The presigned PUT's stand-in.
+
+    Same shape as the presigned URL it replaces — one key, one method, one object —
+    so `photo-upload.js` needs no branch of its own and there is only one upload path
+    to reason about.
+
+    Refuses outright when R2 IS configured. Otherwise this would be a second, slower,
+    worker-occupying route to the same bucket, reachable by anyone who kept an old
+    URL, and the presigned design would be advice rather than a rule.
+
+    `_media_or_404` is what scopes it: a teacher at another branch gets 404, not 403,
+    and cannot write bytes into a row they were never shown.
+    """
+    if storage_r2.is_configured():
+        raise Http404("Photographs are uploaded directly to storage on this server.")
+
+    media = _media_or_404(request, media_id)
+    try:
+        services.store_upload_locally(
+            media=media,
+            stream=request,
+            declared_length=_content_length(request),
+        )
+    except ValidationError as error:
+        return JsonResponse({"error": error.messages[0]}, status=400)
+    return JsonResponse({"ok": True})
+
+
+def _content_length(request: HttpRequest) -> int | None:
+    """What the browser says it is sending. Checked before reading so an oversized
+    upload is refused up front rather than after it has all arrived — but never
+    trusted instead of counting, because a header is a claim."""
+    try:
+        return int(request.headers.get("Content-Length", ""))
+    except (TypeError, ValueError):
+        return None
 
 
 @login_required

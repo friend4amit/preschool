@@ -170,19 +170,32 @@ def test_publishing_one_photo_reports_the_blocking_child_by_name(
 # --- uploads ----------------------------------------------------------------------------
 
 
-def test_asking_for_an_upload_url_says_so_plainly_when_r2_is_absent(
-    client, signed_in_teacher, room
+def test_the_upload_destination_is_the_presigned_url_when_r2_is_configured(
+    client, signed_in_teacher, room, monkeypatch
 ):
-    """503, not 500. R2 being unconfigured is this machine's normal state, and a
-    stack trace would send somebody hunting for a bug that is not there."""
+    """With a bucket, the bytes must go straight to Cloudflare and not through here.
+
+    This asserted a 503 until the local-disk fallback existed — correct then, because
+    there was nowhere for a photograph to go without R2, but it left the feature dead
+    on every stack that had no bucket. The no-R2 branch now has its own file,
+    test_local_upload.py; this one guards the branch that must NOT change: a school
+    with R2 never proxies a 12 MP photo through a gunicorn worker.
+    """
+    monkeypatch.setattr("integrations.storage_r2.is_configured", lambda: True)
+    monkeypatch.setattr(
+        "integrations.storage_r2.presign_put",
+        lambda **kwargs: "https://bucket.r2.example/" + kwargs["key"],
+    )
+
     response = client.post(
         reverse("activities_upload_url", args=[room.pk]),
         {"filename": "IMG_4821.HEIC", "content_type": "image/heic"},
     )
 
-    assert response.status_code == 503
-    assert "not configured" in response.json()["error"]
-    assert MediaAsset.objects.count() == 0, "no row should be written when we cannot presign"
+    assert response.status_code == 200
+    body = response.json()
+    assert body["url"].startswith("https://bucket.r2.example/")
+    assert MediaAsset.objects.count() == 1, "the row is written before the browser starts"
 
 
 def test_an_unacceptable_content_type_is_refused(client, signed_in_teacher, room):

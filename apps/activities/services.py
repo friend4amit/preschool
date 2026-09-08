@@ -191,6 +191,62 @@ def register_upload(
     )
 
 
+# The ceiling on a photograph the browser sends through Django rather than straight
+# to R2. The uploader downscales to 1600px first, which puts a normal phone photo
+# comfortably under a megabyte; this is sized for the exception — a HEIC the browser
+# could not decode and therefore uploaded untouched. Beyond that it is not a
+# classroom photo and a gunicorn worker should not be holding it.
+MAX_LOCAL_UPLOAD_BYTES = 15 * 1024 * 1024
+
+
+@transaction.atomic
+def store_upload_locally(*, media: MediaAsset, stream, declared_length: int | None = None):
+    """Write an uploaded photograph to the default storage, for stacks with no R2.
+
+    plan.md's "do not proxy the bytes through Django" is about R2 egress and about a
+    12 MP original occupying a worker for the length of a 4G upload. Neither applies
+    here: there is no bucket to be egress-billed, and the browser has already
+    downscaled to 1600px before this is called. What the rule protects against is a
+    school running this way *with* R2 available, which `views.upload_url` prevents by
+    only ever routing here when R2 is absent.
+
+    Read in chunks rather than through `request.body`, which would pull the whole
+    photograph into memory and trip DATA_UPLOAD_MAX_MEMORY_SIZE at 2.5 MB — a limit
+    meant for form posts, not for the one endpoint whose entire job is a file.
+
+    Raises ValidationError if the upload runs over MAX_LOCAL_UPLOAD_BYTES. The row
+    stays PENDING in that case, which is exactly the state the nightly reconciliation
+    knows how to settle.
+    """
+    if media.upload_state != UploadState.PENDING:
+        # Not merely tidiness. Without this, a replayed PUT would overwrite a
+        # photograph that teachers have already tagged and published.
+        raise ValidationError("That upload has already been completed.")
+
+    if declared_length is not None and declared_length > MAX_LOCAL_UPLOAD_BYTES:
+        raise ValidationError("That photograph is too large.")
+
+    chunks, total = [], 0
+    while True:
+        chunk = stream.read(64 * 1024)
+        if not chunk:
+            break
+        total += len(chunk)
+        if total > MAX_LOCAL_UPLOAD_BYTES:
+            raise ValidationError("That photograph is too large.")
+        chunks.append(chunk)
+
+    if not total:
+        raise ValidationError("That upload was empty.")
+
+    payload = b"".join(chunks)
+    # `save()` may pick a different name if something is already there; the row has
+    # to point at what was actually written, not at what we asked for.
+    media.key = default_storage.save(media.key, ContentFile(payload))
+    media.save(update_fields=["key", "updated_at"])
+    return media, total
+
+
 @transaction.atomic
 def confirm_upload(*, media: MediaAsset, byte_size=None, width=None, height=None) -> MediaAsset:
     """The browser reported the PUT succeeded. Promote PENDING to STORED."""

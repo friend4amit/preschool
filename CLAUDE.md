@@ -154,6 +154,31 @@ services, selectors and models, and the admin sits outside all of it while being
 to write to every table. Anything registered there deserves a test that exercises the
 form, not just the permission.
 
+## `/media/` is an allowlist, not a directory
+
+Caddy serves **only** `/media/marketing/*` and `/media/team/*`, and 404s everything
+else under `/media/`. It used to serve the whole media root with `handle_path
+/media/*` — no session, no permission check — while three fields wrote into that same
+root: `Student.photo`, `AuthorizedPickup.photo` and **`Document.file`**, the last
+holding birth certificates, immunisation records and guardian ID. Their paths are the
+student id plus the *original filename*, so `/media/students/3/documents/
+birth-certificate.pdf` was a guess rather than a secret. Nothing rendered those files
+so nothing had leaked, but the first document upload would have walked through it.
+
+Two rules follow, and neither is optional:
+
+- **A new `upload_to` is private by default.** Making it public is a deliberate line
+  in `deploy/Caddyfile`. A denylist would grow a hole the first time somebody added a
+  field; this way the mistake fails closed.
+- **Anything private that needs a URL gets a gated view**, never a storage `.url()`.
+  `apps/activities/views.media_file` is the pattern: it applies the same consent gate
+  as the feed before streaming a byte. `Student.photo`, `AuthorizedPickup.photo` and
+  `Document.file` have no screen yet — when they get one, they need that view, not
+  `{{ student.photo.url }}`.
+
+The public site's own images are unaffected: they live under `marketing/` via the
+`public_media` storage, which is a separate, world-readable bucket in production.
+
 ## Non-negotiables
 
 These cost hours now and weeks later. They are decided; don't relitigate them in code.
@@ -224,7 +249,9 @@ These cost hours now and weeks later. They are decided; don't relitigate them in
   (`static/js/photo-upload.js` -> presigned PUT -> confirm) is written and the
   endpoints are tested against a stub, but no upload has ever reached a real bucket
   because `R2_*` is unset here. That round trip is the first thing to check when the
-  bucket exists — before, not after, the rest of the phase is trusted.
+  bucket exists — before, not after, the rest of the phase is trusted. Without R2 the
+  same three steps run against `views.upload_direct`, which writes to the `media_data`
+  volume; that path IS exercised end to end (`tests/test_local_upload.py`).
 - **Thumbnails are written but have never touched R2.** `services.build_thumbnail` is
   enqueued from `confirm_upload` and is exercised end to end against local disk; the R2
   branch of it (download, resize, upload) is as unverified as the upload path above,

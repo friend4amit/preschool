@@ -12,14 +12,54 @@
 	encode zstd gzip
 
 	# Uploaded media, for the case where R2 is not configured and Django's
-	# storage falls back to local disk. With R2 public configured this block is
-	# never reached, because .url() returns an absolute URL on another host.
+	# storage falls back to local disk. With R2 public configured these blocks
+	# are never reached, because .url() returns an absolute URL on another host.
 	#
 	# This does not contradict the note above: static files are WhiteNoise's job.
 	# Media never was.
-	handle_path /media/* {
-		root * /srv/media
+	#
+	# ---------------------------------------------------------------------------
+	# ONLY THE PUBLIC PREFIXES ARE SERVED, AND THAT IS THE WHOLE POINT.
+	#
+	# This used to be `handle_path /media/*`, which served the entire media root
+	# to anyone who asked, with no session and no permission check. Three model
+	# fields write into that same root — Student.photo, AuthorizedPickup.photo
+	# and Document.file, the last of which holds birth certificates,
+	# immunisation records and guardian ID. Their paths are built from the
+	# student id and the ORIGINAL filename, so
+	# `/media/students/3/documents/birth-certificate.pdf` is a guess, not a
+	# secret. Nothing rendered those files, so nothing had leaked, but the door
+	# was open and the first document upload would have walked through it.
+	#
+	# An ALLOWLIST, not a denylist. A denylist grows a hole the first time
+	# somebody adds an upload_to; this way a new prefix is private until someone
+	# deliberately makes it public, which is the correct direction for a system
+	# whose files are photographs of children.
+	#
+	# Anything private that needs a URL gets a gated Django view — see
+	# apps/activities/views.media_file, which applies the same consent check as
+	# the feed before streaming a byte.
+	# ---------------------------------------------------------------------------
+
+	# Marketing images: hero, programmes, gallery, site logo. These are on the
+	# public website, must be cacheable and indexable, and contain no child whose
+	# guardian has not consented under photos_in_marketing.
+	handle_path /media/marketing/* {
+		root * /srv/media/marketing
 		file_server
+	}
+
+	# Staff portraits on /our-team/. Public by intent for the same reason.
+	handle_path /media/team/* {
+		root * /srv/media/team
+		file_server
+	}
+
+	# Everything else under /media/ is private. Refuse it here rather than
+	# letting it fall through to the reverse proxy, so the answer does not depend
+	# on Django happening to have no route for it.
+	handle /media/* {
+		respond "Not found" 404
 	}
 
 	reverse_proxy web:8000
