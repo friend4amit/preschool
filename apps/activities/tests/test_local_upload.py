@@ -213,3 +213,60 @@ def test_anonymous_cannot_upload(client, branch):
 
     assert put.status_code in (302, 403, 404)
     assert not default_storage.exists(media.key)
+
+
+# --------------------------------------------------------------------------------
+# Seeing what you just uploaded
+# --------------------------------------------------------------------------------
+
+
+def test_a_teacher_can_view_a_photo_they_have_not_tagged_yet(client, signed_in_teacher, room):
+    """The bug the local fallback exposed.
+
+    `media_for_user` scopes through the tags, so an untagged photograph belongs to no
+    student and was visible to nobody — including the teacher who had just uploaded it
+    and was opening it in order to tag it. Invisible while nothing could reach local
+    storage; a broken image on the tagging screen the moment uploads landed there.
+    """
+    grant = client.post(
+        reverse("activities_upload_url", args=[room.pk]),
+        {"filename": "IMG_7.jpg", "content_type": "image/jpeg"},
+    ).json()
+    client.put(grant["url"], data=_jpeg(), content_type="image/jpeg")
+    client.post(grant["confirm"], {"byte_size": 10})
+
+    media = MediaAsset.objects.get(pk=grant["media_id"])
+    assert media.tags.count() == 0, "the point of the test is that it is untagged"
+
+    response = client.get(reverse("media_file", args=[media.pk]))
+
+    assert response.status_code == 200
+
+
+def test_the_tagging_screen_and_its_image_agree_on_who_may_look(
+    client, signed_in_teacher, room, org
+):
+    """The page is scoped by `media_for_staff` and the image by `media_file`. If the
+    two disagree, one of them is wrong — here, that a teacher elsewhere gets the same
+    404 from both rather than a page they can open and an image they cannot."""
+    from apps.core.models import Role, User
+    from apps.core.services import create_branch, grant_membership
+
+    grant = client.post(
+        reverse("activities_upload_url", args=[room.pk]),
+        {"filename": "IMG_8.jpg", "content_type": "image/jpeg"},
+    ).json()
+    client.put(grant["url"], data=_jpeg(), content_type="image/jpeg")
+    client.post(grant["confirm"], {"byte_size": 10})
+    media_id = grant["media_id"]
+
+    assert client.get(reverse("activities_tag", args=[media_id])).status_code == 200
+    assert client.get(reverse("media_file", args=[media_id])).status_code == 200
+
+    elsewhere = create_branch(organization=org, name="Third", slug="third")
+    outsider = User.objects.create_user(phone="9100000098", full_name="Far Teacher")
+    grant_membership(user=outsider, branch=elsewhere, role=Role.TEACHER)
+    client.force_login(outsider)
+
+    assert client.get(reverse("activities_tag", args=[media_id])).status_code == 404
+    assert client.get(reverse("media_file", args=[media_id])).status_code == 404

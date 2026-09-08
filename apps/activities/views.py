@@ -538,21 +538,28 @@ def acknowledge(request: HttpRequest, incident_id: int) -> HttpResponse:
 def media_file(request: HttpRequest, media_id: int) -> FileResponse:
     """Stream one photograph from local storage, applying the same gate as the feed.
 
-    Narrow by design, and worth being honest about when it runs. With R2 configured,
-    `media_url` returns a presigned URL and nothing routes here. With R2 absent the
-    upload endpoint answers 503, so no NEW photograph can reach local storage either —
-    what this serves is rows that got there another way: a fixture, a management
-    command, or a bucket that was configured and later was not.
+    With R2 configured, `media_url` returns a presigned URL and nothing routes here.
+    Without it this is the ONLY way a photograph reaches a browser — every image on
+    the day screen, the tagging screen and the parent feed comes through here — so it
+    has to answer for staff and parents alike.
 
     It exists rather than an unauthenticated /media/ URL because that would put a
     permanent public link on a photograph of a child and hole the rule this whole app
     is built around. plan.md's "do not proxy the bytes through Django" is about R2
     egress in production, which is exactly the case that never reaches this view.
+
+    Staff are scoped by BRANCH, not by tag, and that is load-bearing rather than
+    lax. `media_for_user` scopes through the tags, so a photograph nobody has tagged
+    yet belongs to no student and is visible to no one — including the teacher who
+    uploaded it thirty seconds ago and is trying to open it in order to tag it. That
+    was invisible while no photograph could reach local storage; the moment uploads
+    started landing here it became a broken image on the one screen that fixes it.
+    `media_for_staff` is the same branch scope the tagging page itself uses, so the
+    page and its image can no longer disagree about who may see what.
     """
-    visible = selectors.media_for_user(request.user)
-    if not visible.filter(pk=media_id).exists():
-        # Fall back to the parent path: a guardian is not staff, so `media_for_user`
-        # is empty for them and the gated feed is the only thing that may answer.
+    if selectors.media_for_staff(request.user, media_id) is None:
+        # Not staff for this branch. Fall back to the parent path — the gated feed is
+        # the only other thing entitled to answer, and it applies the consent check.
         allowed = {
             asset.pk
             for child in people_selectors.children_of(request.user)
