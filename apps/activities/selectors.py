@@ -16,12 +16,23 @@ Nothing here knows what HTTP is. The view turns an empty result into a 404 — n
 403, because a family must not learn that another family's photo ids exist.
 """
 
-from django.db.models import Exists, OuterRef, Q, QuerySet
+from datetime import timedelta
 
-from apps.activities.models import ActivityEntry, IncidentReport, MediaAsset, UploadState
+from django.db.models import Exists, Max, OuterRef, Q, QuerySet
+from django.utils import timezone
+
+from apps.activities.models import (
+    ActivityEntry,
+    IncidentReport,
+    MediaAsset,
+    MediaTag,
+    UploadState,
+)
 from apps.core.models import Consent, ConsentPurpose, User
+from apps.core.selectors import branches_for_user
 from apps.people.models import Student, StudentGuardian
-from apps.people.selectors import children_of, students_for_user
+from apps.people.selectors import children_of, roster, students_for_user
+from integrations import storage_r2
 
 # --------------------------------------------------------------------------------
 # Consent
@@ -168,8 +179,6 @@ def _published_media_for(students) -> QuerySet[MediaAsset]:
         purpose=ConsentPurpose.PHOTOS_SHARED_WITH_CLASS,
     ).filter(Q(granted=False) | Q(revoked_at__isnull=False))
 
-    from apps.activities.models import MediaTag
-
     blocked = (
         MediaTag.objects.filter(media=OuterRef("pk"))
         .annotate(has_yes=Exists(consenting), has_no=Exists(refusing))
@@ -289,8 +298,6 @@ def unread_count(user: User, since) -> int:
 def entries_for_room_on(classroom, day, *, user: User) -> QuerySet[ActivityEntry]:
     """One room's entries for one day — the child-level ones and the room-level ones
     together, which is how the teacher wrote them and how they will be published."""
-    from apps.people.selectors import roster
-
     return (
         entries_for_user(user)
         .filter(
@@ -309,8 +316,6 @@ def media_for_room_on(classroom, day, *, user: User) -> QuerySet[MediaAsset]:
     what the teacher needs to see on this screen, and filtering it out would hide the
     work still to do.
     """
-    from apps.people.selectors import roster
-
     children = roster(classroom.pk, user=user)
     return (
         MediaAsset.objects.filter(
@@ -331,8 +336,6 @@ def media_for_staff(user: User, media_id: int) -> MediaAsset | None:
     instead. That is the widest this app scopes anything, and it is the price of
     letting a teacher tag a photo they have just uploaded.
     """
-    from apps.core.selectors import branches_for_user
-
     return MediaAsset.objects.filter(branch__in=branches_for_user(user)).filter(pk=media_id).first()
 
 
@@ -380,8 +383,6 @@ def media_url(media: MediaAsset, *, prefer_thumbnail: bool = False) -> str | Non
     no bucket; the alternative fallback, an unauthenticated /media/ URL, would break
     the one rule this whole app is built around.
     """
-    from integrations import storage_r2
-
     if media.upload_state != UploadState.STORED:
         return None
     if not storage_r2.is_configured():
@@ -405,11 +406,9 @@ def feed_days(media_queryset) -> list[dict]:
     this module's — the fallback is a Django route, and `django.urls` below the
     controller layer is exactly what apps/core/tests/test_architecture.py forbids.
     """
-    from django.utils import timezone as tz
-
     days: list[dict] = []
     for asset in media_queryset:
-        day = tz.localtime(asset.taken_at).date()
+        day = timezone.localtime(asset.taken_at).date()
         if not days or days[-1]["day"] != day:
             days.append({"day": day, "media": []})
         # The grid renders each of these in a square roughly 180px across. Asking for
@@ -463,8 +462,6 @@ def students_gone_since(cutoff) -> QuerySet[Student]:
     `left_on IS NULL` propagates, which is exactly the answer wanted and is why this
     is one aggregate rather than two queries.
     """
-    from django.db.models import Max
-
     return (
         Student.objects.annotate(last_left=Max("enrollments__left_on"))
         .filter(last_left__isnull=False, last_left__lte=cutoff)
@@ -478,11 +475,7 @@ def media_expired_by_retention(*, window_days: int, as_of=None) -> QuerySet[Medi
     Returns a queryset so the caller can count it, page it, or print it without this
     module deciding how much of it fits in memory.
     """
-    from datetime import timedelta
-
-    from django.utils import timezone as tz
-
-    as_of = as_of or tz.localdate()
+    as_of = as_of or timezone.localdate()
     cutoff = as_of - timedelta(days=window_days)
 
     gone = students_gone_since(cutoff)

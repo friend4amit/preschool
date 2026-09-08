@@ -10,8 +10,18 @@ would write children's images into browser cache storage, and Phase 4's own "rev
 photos_in_app hides the feed on the next request" would quietly become false.
 """
 
+import io
+import json
+import re
+
 import pytest
+from django.conf import settings
+from django.contrib.staticfiles import finders
+from django.contrib.staticfiles.storage import staticfiles_storage
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.urls import reverse
+from PIL import Image
 
 from apps.activities import services, views
 from apps.activities.context_processors import SESSION_KEY
@@ -33,6 +43,18 @@ def _consent_to_everything(consent_for, user):
     consent_for(user, ConsentPurpose.PHOTOS_SHARED_WITH_CLASS)
 
 
+def _jpeg_in_storage(key, *, size, colour=(120, 140, 90)) -> int:
+    """Put a real JPEG at `key` and return its byte count.
+
+    Real bytes rather than a stub: `build_thumbnail` opens what it finds and hands it
+    to Pillow, so b"not-a-jpeg" would fail the decode rather than exercise the resize.
+    """
+    buffer = io.BytesIO()
+    Image.new("RGB", size, colour).save(buffer, format="JPEG")
+    default_storage.save(key, ContentFile(buffer.getvalue()))
+    return len(buffer.getvalue())
+
+
 # --------------------------------------------------------------------------------
 # The PWA surfaces
 # --------------------------------------------------------------------------------
@@ -41,8 +63,6 @@ def _consent_to_everything(consent_for, user):
 def test_the_manifest_is_served_and_points_at_the_portal(client):
     """`start_url` is /portal/ and not /. The home-screen icon belongs to a signed-in
     parent; landing them on the enquiry page would be a stranger's answer."""
-    import json
-
     response = client.get(reverse("manifest"))
 
     assert response.status_code == 200
@@ -273,19 +293,11 @@ def test_a_stranger_cannot_page_another_familys_feed(client, child_b, parent_a, 
 def test_a_thumbnail_is_built_and_the_feed_prefers_it(branch, teacher, child_a):
     """The feed grid renders these at roughly 180px. Serving the 1600px original into
     that square is the difference between a few hundred KB and several megabytes."""
-    import io
-
-    from django.core.files.base import ContentFile
-    from django.core.files.storage import default_storage
-    from PIL import Image
-
-    buffer = io.BytesIO()
-    Image.new("RGB", (1600, 1200), (120, 140, 90)).save(buffer, format="JPEG")
     key = "photos/1/thumb/big.jpg"
-    default_storage.save(key, ContentFile(buffer.getvalue()))
+    byte_size = _jpeg_in_storage(key, size=(1600, 1200))
 
     media = services.register_upload(branch=branch, key=key, uploaded_by=teacher)
-    services.confirm_upload(media=media, byte_size=len(buffer.getvalue()))
+    services.confirm_upload(media=media, byte_size=byte_size)
 
     services.build_thumbnail(media=media)
     media.refresh_from_db()
@@ -301,16 +313,8 @@ def test_a_thumbnail_is_built_and_the_feed_prefers_it(branch, teacher, child_a):
 
 def test_building_a_thumbnail_twice_is_free(branch, teacher):
     """Idempotent, so a retried task is not a second round trip to storage."""
-    import io
-
-    from django.core.files.base import ContentFile
-    from django.core.files.storage import default_storage
-    from PIL import Image
-
-    buffer = io.BytesIO()
-    Image.new("RGB", (800, 600), (200, 200, 200)).save(buffer, format="JPEG")
     key = "photos/1/thumb/twice.jpg"
-    default_storage.save(key, ContentFile(buffer.getvalue()))
+    _jpeg_in_storage(key, size=(800, 600), colour=(200, 200, 200))
 
     media = services.register_upload(branch=branch, key=key, uploaded_by=teacher)
     services.confirm_upload(media=media)
@@ -362,12 +366,6 @@ def test_every_url_the_worker_caches_actually_exists(client):
     the check that matters, since under the deployed manifest storage the URL in this
     file is the HASHED one and it is the storage that knows whether it exists.
     """
-    import re
-
-    from django.conf import settings
-    from django.contrib.staticfiles import finders
-    from django.contrib.staticfiles.storage import staticfiles_storage
-
     body = client.get("/sw.js").content.decode()
     shell = body.split("const SHELL = [", 1)[1].split("];", 1)[0]
     urls = re.findall(r'"([^"]+)"', shell)

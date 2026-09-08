@@ -27,8 +27,11 @@ CREAM = (251, 247, 241)  # --color-surface
 CANVAS = 1024
 
 
-def _sprout(size: int, *, inset: float) -> Image.Image:
+def _sprout(*, inset: float) -> Image.Image:
     """The mark on a transparent ground: a stem and two leaves, centred.
+
+    Always drawn at CANVAS and downsampled by the caller — that is where the
+    anti-aliasing comes from, so this takes no size of its own.
 
     `inset` is the fraction of the canvas left empty around the drawing. The maskable
     icon needs a large one — Android's safe zone is the middle 80% of the circle, and
@@ -73,10 +76,10 @@ def _icon(size: int, *, maskable: bool) -> Image.Image:
     if maskable:
         # A full bleed square. The launcher decides the shape; we must not.
         draw.rectangle([0, 0, CANVAS, CANVAS], fill=LEAF_DEEP)
-        ground.alpha_composite(_sprout(size, inset=0.24))
+        ground.alpha_composite(_sprout(inset=0.24))
     else:
         draw.rounded_rectangle([0, 0, CANVAS, CANVAS], radius=CANVAS * 0.22, fill=LEAF_DEEP)
-        ground.alpha_composite(_sprout(size, inset=0.14))
+        ground.alpha_composite(_sprout(inset=0.14))
     return ground.resize((size, size), Image.LANCZOS)
 
 
@@ -102,7 +105,8 @@ def main() -> None:
     # Apple ignores the manifest and wants its own tag, on an opaque ground: iOS
     # composites a transparent touch icon onto black.
     apple = Image.new("RGB", (180, 180), CREAM)
-    apple.paste(_icon(180, maskable=False), (0, 0), _icon(180, maskable=False))
+    mark = _icon(180, maskable=False)
+    apple.paste(mark, (0, 0), mark)
     path = OUT / "apple-touch-icon.png"
     apple.save(path)
     written.append(path)

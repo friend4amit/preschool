@@ -17,10 +17,13 @@ Three things worth stating rather than inferring:
 """
 
 from datetime import date as date_type
+from datetime import datetime, time
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import ValidationError
+from django.core.files.storage import default_storage
+from django.core.paginator import Paginator
 from django.http import FileResponse, Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -28,9 +31,11 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from apps.activities import context_processors, forms, selectors, services
-from apps.activities.models import ActivityKind
+from apps.activities.models import ActivityKind, IncidentReport, MediaAsset
 from apps.core import selectors as core_selectors
+from apps.core.models import ConsentPurpose
 from apps.people import selectors as people_selectors
+from integrations import storage_r2
 
 staff_required = user_passes_test(core_selectors.is_staff_member)
 
@@ -287,8 +292,6 @@ def upload_url(request: HttpRequest, classroom_id: int) -> JsonResponse:
     503 rather than 500 when R2 is absent. It is a configuration state, not a fault,
     and the message says so — this is the development machine's normal condition.
     """
-    from integrations import storage_r2
-
     room = _room_or_404(request, classroom_id)
     form = forms.UploadRequestForm(request.POST)
     if not form.is_valid():
@@ -412,10 +415,6 @@ def my_child_photos(request: HttpRequest, student_id: int) -> HttpResponse:
     if child is None:
         raise Http404("No such child.")
 
-    from django.core.paginator import Paginator
-
-    from apps.core.models import ConsentPurpose
-
     page = Paginator(feed, FEED_PAGE_SIZE).get_page(request.GET.get("page"))
 
     # The selector leaves `url` None where R2 is unconfigured, because naming a Django
@@ -471,8 +470,6 @@ def acknowledge(request: HttpRequest, incident_id: int) -> HttpResponse:
     family's incident — which would put the wrong name on the one record that exists
     to say who was told.
     """
-    from apps.activities.models import IncidentReport
-
     incident = (
         IncidentReport.objects.filter(
             pk=incident_id, student__in=people_selectors.children_of(request.user)
@@ -503,10 +500,6 @@ def media_file(request: HttpRequest, media_id: int) -> FileResponse:
     is built around. plan.md's "do not proxy the bytes through Django" is about R2
     egress in production, which is exactly the case that never reaches this view.
     """
-    from django.core.files.storage import default_storage
-
-    from apps.activities.models import MediaAsset
-
     visible = selectors.media_for_user(request.user)
     if not visible.filter(pk=media_id).exists():
         # Fall back to the parent path: a guardian is not staff, so `media_for_user`
@@ -544,8 +537,6 @@ def _occurred_on(writing: date_type):
     Midday rather than midnight so a `taken_at`-ordered feed does not put a backfilled
     note either side of a real one by an accident of timezone.
     """
-    from datetime import datetime, time
-
     now = timezone.localtime()
     if writing == now.date():
         return now

@@ -5,12 +5,22 @@ silent: a branch admin who reaches /admin sees every branch's data.
 """
 
 import pytest
+from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.urls import reverse
 
 from apps.core.models import Organization, Role
 from apps.core.services import create_branch, grant_membership
 
 pytestmark = pytest.mark.django_db
+
+# The BranchMembership inline's empty management form. Its prefix is the FK's
+# related_name, and the admin rejects a POST that arrives without it.
+EMPTY_MEMBERSHIP_INLINE = {
+    "memberships-TOTAL_FORMS": "0",
+    "memberships-INITIAL_FORMS": "0",
+    "memberships-MIN_NUM_FORMS": "0",
+    "memberships-MAX_NUM_FORMS": "1000",
+}
 
 
 @pytest.fixture
@@ -54,8 +64,6 @@ def test_anonymous_is_redirected_away_from_the_admin(client):
 def test_the_admin_never_offers_an_editable_password_box(client, django_user_model):
     """The change form must show a hash and a link to the change-password screen —
     never a text input that writes straight to the column."""
-    from django.contrib.auth.forms import ReadOnlyPasswordHashField
-
     root = django_user_model.objects.create_superuser(phone="9000000003", password="pw")
     parent = django_user_model.objects.create_user(phone="9000000004", password="pw")
     client.force_login(root)
@@ -63,7 +71,6 @@ def test_the_admin_never_offers_an_editable_password_box(client, django_user_mod
     response = client.get(reverse("admin:core_user_change", args=[parent.pk]))
     form = response.context["adminform"].form
 
-    assert isinstance(form.fields["password"].widget.attrs.get("class", ""), str)
     assert isinstance(form.fields["password"], ReadOnlyPasswordHashField), (
         "User is registered on a plain ModelAdmin. Typing into this field stores the "
         "raw string as the password hash and locks the account out permanently."
@@ -86,11 +93,7 @@ def test_saving_a_user_in_the_admin_cannot_destroy_their_password(client, django
             "is_active": "on",
             "date_joined_0": "2026-01-01",
             "date_joined_1": "00:00:00",
-            # The BranchMembership inline. Its prefix is the FK's related_name.
-            "memberships-TOTAL_FORMS": "0",
-            "memberships-INITIAL_FORMS": "0",
-            "memberships-MIN_NUM_FORMS": "0",
-            "memberships-MAX_NUM_FORMS": "1000",
+            **EMPTY_MEMBERSHIP_INLINE,
         },
     )
 
@@ -114,10 +117,7 @@ def test_adding_a_user_in_the_admin_hashes_the_password(client, django_user_mode
             "usable_password": "true",
             "password1": "Aaroham#2026x",
             "password2": "Aaroham#2026x",
-            "memberships-TOTAL_FORMS": "0",
-            "memberships-INITIAL_FORMS": "0",
-            "memberships-MIN_NUM_FORMS": "0",
-            "memberships-MAX_NUM_FORMS": "1000",
+            **EMPTY_MEMBERSHIP_INLINE,
         },
     )
 

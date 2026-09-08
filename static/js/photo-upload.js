@@ -21,8 +21,8 @@
   var MAX_EDGE = 1600; // Plenty for a phone feed, and roughly a tenth of the bytes.
   var JPEG_QUALITY = 0.82;
 
-  function csrfToken(form) {
-    var field = form.querySelector('input[name="csrfmiddlewaretoken"]');
+  function csrfToken(root) {
+    var field = root.querySelector('input[name="csrfmiddlewaretoken"]');
     return field ? field.value : "";
   }
 

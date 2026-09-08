@@ -10,9 +10,20 @@ photos teaches a teacher that the feature is unreliable, which is worse than a
 message naming the child whose consent is missing.
 """
 
+import io
+import logging
+import tempfile
+import uuid
+from datetime import timedelta
+from pathlib import Path, PurePosixPath
+
+from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.db import transaction
 from django.utils import timezone
+from PIL import Image, ImageOps
 
 from apps.activities.models import (
     ActivityEntry,
@@ -22,9 +33,12 @@ from apps.activities.models import (
     MediaTag,
     UploadState,
 )
-from apps.activities.selectors import blocked_tags, is_publishable
+from apps.activities.selectors import blocked_tags, is_publishable, media_expired_by_retention
 from apps.core.models import Branch, Classroom, User
 from apps.people.models import Student
+from integrations import storage_r2
+
+logger = logging.getLogger(__name__)
 
 # --------------------------------------------------------------------------------
 # Activity entries
@@ -200,14 +214,15 @@ def confirm_upload(*, media: MediaAsset, byte_size=None, width=None, height=None
 def _enqueue_thumbnail(media_id: int) -> None:
     """Fire and forget. A thumbnail that never gets built costs the feed a larger
     image, not a broken one, so a queue that is down must not fail the upload."""
+    # Local, and it has to stay local: tasks.py imports this module, so hoisting this
+    # to the top would be a circular import at load time. Every other import in this
+    # file is at the top; this is the exception and this is why.
     from apps.activities import tasks
 
     try:
         tasks.build_thumbnail_task.enqueue(media_id=media_id)
     except Exception:  # noqa: BLE001 — see the docstring; this must not propagate.
-        import logging
-
-        logging.getLogger(__name__).warning("Could not enqueue thumbnail for %s", media_id)
+        logger.warning("Could not enqueue thumbnail for %s", media_id)
 
 
 @transaction.atomic
@@ -289,9 +304,6 @@ def build_key(*, branch: Branch, filename: str, when=None) -> str:
     attacker-influenced input being interpolated into an object key; and a flat
     bucket of a hundred thousand objects is one nobody can list.
     """
-    import uuid
-    from pathlib import PurePosixPath
-
     when = when or timezone.now()
     suffix = PurePosixPath(filename).suffix.lower()[:10]
     return f"photos/{branch.pk}/{when:%Y/%m/%d}/{uuid.uuid4().hex}{suffix}"
@@ -320,10 +332,6 @@ def reconcile_uploads(*, older_than_minutes: int = 60) -> dict:
     of a database query — it wants its own command, its own dry run, and a person
     reading the list first.
     """
-    from datetime import timedelta
-
-    from integrations import storage_r2
-
     cutoff = timezone.now() - timedelta(minutes=older_than_minutes)
     promoted = failed = 0
     stale = MediaAsset.objects.filter(upload_state=UploadState.PENDING, created_at__lt=cutoff)
@@ -361,10 +369,6 @@ def _forget_object(key: str, *, commit: bool) -> bool:
     Both backends, because the dev machine has no bucket and an erasure path that
     only works in production is one nobody ever watches run.
     """
-    from django.core.files.storage import default_storage
-
-    from integrations import storage_r2
-
     if storage_r2.is_configured():
         if not storage_r2.exists(key=key):
             return False
@@ -455,10 +459,6 @@ def prune_expired_media(*, window_days: int | None = None, commit: bool = False)
     cron on the VPS — and unlike the backup, it should be read before it is trusted,
     so `--dry-run` is the default of the command that calls it.
     """
-    from django.conf import settings
-
-    from apps.activities.selectors import media_expired_by_retention
-
     window_days = window_days or settings.MEDIA_RETENTION_DAYS
     expired = list(media_expired_by_retention(window_days=window_days))
     results = [forget_media(media=asset, commit=commit) for asset in expired]
@@ -488,10 +488,6 @@ def orphan_objects(*, prefix: str = "photos/", older_than_hours: int = 24) -> li
     8's "audit every selector for branch scoping" will not see this because it lives
     in services.py, so it is called out here instead.
     """
-    from datetime import timedelta
-
-    from integrations import storage_r2
-
     cutoff = timezone.now() - timedelta(hours=older_than_hours)
     stored = storage_r2.objects(prefix=prefix)
     known = set(
@@ -522,8 +518,6 @@ THUMBNAIL_QUALITY = 78
 def thumbnail_key_for(key: str) -> str:
     """Alongside the original, suffixed. Same prefix, so one `list_objects_v2` sees
     both and the retention sweep deletes them together without a second lookup."""
-    from pathlib import PurePosixPath
-
     path = PurePosixPath(key)
     return str(path.with_name(f"{path.stem}_thumb.jpg"))
 
@@ -545,14 +539,6 @@ def build_thumbnail(*, media: MediaAsset) -> MediaAsset:
     Idempotent: a row that already has a thumbnail is left alone, so a retried task is
     free rather than a second round trip to storage.
     """
-    import io
-
-    from django.core.files.base import ContentFile
-    from django.core.files.storage import default_storage
-    from PIL import Image
-
-    from integrations import storage_r2
-
     if media.upload_state != UploadState.STORED or media.thumbnail_key:
         return media
 
@@ -560,9 +546,6 @@ def build_thumbnail(*, media: MediaAsset) -> MediaAsset:
     using_r2 = storage_r2.is_configured()
 
     if using_r2:
-        import tempfile
-        from pathlib import Path
-
         with tempfile.TemporaryDirectory() as tmp:
             source = storage_r2.download(key=media.key, destination=Path(tmp) / "source")
             payload = _downscale(Image.open(source))
@@ -583,11 +566,8 @@ def build_thumbnail(*, media: MediaAsset) -> MediaAsset:
 
 def _downscale(image) -> bytes:
     """One image to JPEG bytes at THUMBNAIL_EDGE. Not a service — pure, and the only
-    place Pillow is touched, so a format problem has one place to be fixed."""
-    import io
-
-    from PIL import Image, ImageOps
-
+    place the resize and the encode options live, so a format problem has one place to
+    be fixed rather than one per storage backend."""
     # `exif_transpose` first: a phone stores the rotation in a tag and Pillow does not
     # apply it on open, so without this a portrait photo thumbnails on its side.
     image = ImageOps.exif_transpose(image)

@@ -122,10 +122,15 @@
        There is no non-JavaScript path here and there cannot be — a presigned PUT to
        Cloudflare needs a script. Every OTHER control on this screen is a real form
        that works without one, which is why this is the only place that degrades. {% endcomment %}
-    <form class="border-line bg-raised mt-3 rounded-2xl border p-4"
-          data-photo-uploader
-          data-upload-url="{% url 'activities_upload_url' room.pk %}"
-          onsubmit="return false;">
+    {% comment %} A div, not a form, and that is the point. Nothing here submits: the
+       CSRF token is read by the script and spent on three fetches, and there is no
+       endpoint behind an ordinary POST of this markup. As a <form> it needed an
+       `onsubmit="return false"` to stop Enter firing a GET that would put the CSRF
+       token in the query string — visible in history, logs and the Referer header.
+       A container has nothing to suppress. {% endcomment %}
+    <div class="border-line bg-raised mt-3 rounded-2xl border p-4"
+         data-photo-uploader
+         data-upload-url="{% url 'activities_upload_url' room.pk %}">
       {% csrf_token %}
       <label class="text-ink block text-sm font-medium" for="photo-input">Add photographs</label>
       <input id="photo-input" type="file" accept="image/*" multiple data-photo-input
@@ -136,7 +141,7 @@
         Resized in your browser before sending, so this works on mobile data. Tag the
         children afterwards — nothing is published until you do.
       </p>
-    </form>
+    </div>
 
     {% if photos %}
       <ul class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">

@@ -17,7 +17,11 @@
     Aaroham needs a connection to show you today. Nothing has been lost — the moment
     you are back on wifi or mobile data, pull down to try again.
   </p>
-  <button type="button" onclick="window.location.reload()" class="btn btn-primary btn-sm mt-6">
-    Try again
-  </button>
+  {% comment %} The EMPTY href is deliberate, not an oversight. `respondWith` does not
+     rewrite the document URL, so this resolves against the page the parent was
+     actually trying to reach and re-requests THAT — not the offline page itself. A
+     link rather than a scripted button because `cache.add()` in the worker swallows a
+     failed entry, and the one control on the one page that must work with no network
+     should not depend on a second cache entry having landed. {% endcomment %}
+  <a href="" class="btn btn-primary btn-sm mt-6">Try again</a>
 {% endblock %}

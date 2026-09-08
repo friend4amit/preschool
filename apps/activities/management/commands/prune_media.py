@@ -19,6 +19,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from apps.activities import services
 from apps.people.models import Student
+from integrations import storage_r2
 
 
 class Command(BaseCommand):
@@ -104,8 +105,6 @@ class Command(BaseCommand):
         self._report(result["media_deleted"], result["objects_removed"], commit)
 
     def _orphans(self, *, commit):
-        from integrations import storage_r2
-
         if not storage_r2.is_configured():
             raise CommandError("R2 is not configured; there is no bucket to compare against.")
 

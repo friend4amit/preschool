@@ -24,7 +24,10 @@ unless a template actually renders `portal_unread`.
 """
 
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django.utils.functional import lazy
+
+from apps.activities import selectors
 
 SESSION_KEY = "portal_last_visit"
 
@@ -43,8 +46,6 @@ def _last_visit(request):
     """
     stamp = request.session.get(SESSION_KEY)
     if stamp:
-        from django.utils.dateparse import parse_datetime
-
         parsed = parse_datetime(stamp)
         if parsed is not None:
             return parsed
@@ -74,8 +75,6 @@ def portal_unread(request):
         user = getattr(request, "user", None)
         if user is None or not user.is_authenticated:
             return 0
-        from apps.activities import selectors
-
         return selectors.unread_count(user, _last_visit(request))
 
     # `lazy(..., int)` rather than SimpleLazyObject, and the difference is not

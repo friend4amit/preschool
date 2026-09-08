@@ -5,7 +5,11 @@ This file proves we can find and fix the accounts it already broke — which is 
 separate claim, and the one that matters to the three people who cannot log in.
 """
 
+from io import StringIO
+
 import pytest
+from django.core.management import call_command
+from django.core.management.base import CommandError
 
 from apps.core import selectors, services
 
@@ -63,10 +67,6 @@ def test_invalidating_returns_the_account_to_waiting_for_a_link(django_user_mode
 
 
 def test_the_command_reports_and_changes_nothing_by_default(django_user_model):
-    from io import StringIO
-
-    from django.core.management import call_command
-
     plain = _damage(django_user_model.objects.create_user(phone="9000007"), "hunter2!x")
     out = StringIO()
 
@@ -80,9 +80,6 @@ def test_the_command_reports_and_changes_nothing_by_default(django_user_model):
 
 
 def test_the_command_refuses_both_answers_at_once(django_user_model):
-    from django.core.management import call_command
-    from django.core.management.base import CommandError
-
     _damage(django_user_model.objects.create_user(phone="9000008"), "hunter2!x")
 
     with pytest.raises(CommandError):
@@ -90,10 +87,6 @@ def test_the_command_refuses_both_answers_at_once(django_user_model):
 
 
 def test_the_command_rehashes_when_told_to(django_user_model):
-    from io import StringIO
-
-    from django.core.management import call_command
-
     plain = _damage(django_user_model.objects.create_user(phone="9000009"), "hunter2!x")
 
     call_command("repair_passwords", "--rehash", stdout=StringIO())

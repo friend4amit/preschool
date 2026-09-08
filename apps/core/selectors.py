@@ -8,6 +8,7 @@ Note there is no HTTP here: no request, no get_object_or_404, no 404s. Selectors
 take a user and return querysets. The view decides what an empty result means.
 """
 
+from django.contrib.auth.hashers import identify_hasher
 from django.db.models import QuerySet
 
 from apps.core.models import (
@@ -135,8 +136,6 @@ def password_state(user: User) -> str:
     set-password link has not been used yet — Django writes an unusable marker, not a
     hash, and that is correct. Only `plaintext` is damage.
     """
-    from django.contrib.auth.hashers import identify_hasher
-
     if not user.has_usable_password():
         return "unset"
     try:
