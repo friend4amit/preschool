@@ -28,7 +28,7 @@ from django.db import transaction
 from PIL import Image, ImageOps
 
 from apps.core.selectors import current_branch_fallback
-from apps.website.models import GalleryImage, ImagePlacement, Program, SiteSettings
+from apps.website.models import GalleryImage, ImagePlacement, Program, SiteSettings, TeamMember
 
 # --- what must never be published -----------------------------------------------------
 
@@ -112,6 +112,15 @@ GALLERY = [
 ]
 GALLERY_WIDTHS = (800, 400)
 
+# Staff portraits. Matched to a TeamMember by NAME, because a portrait belongs to a
+# person rather than to a placement — and because seed_website creates those rows
+# from the same names, so the two commands agree without either importing the other.
+#
+# Dr. Surashree Shome's portrait is in the same dump directory and is deliberately
+# absent from this list. It is also caught by BLOCKED above, so adding it here by
+# accident still would not ship it.
+PORTRAITS = [("Prachi Tamrakar", "2026/02/prachi-tamrakar.png", (800, 400))]
+
 # Programme slug -> source. A programme whose source is missing simply keeps no
 # image and renders as a text card.
 PROGRAM_IMAGES = {
@@ -165,6 +174,7 @@ class Command(BaseCommand):
         with transaction.atomic():
             self._hero(branch)
             self._placed(branch)
+            self._portraits(branch)
             self._gallery(branch)
             self._programs(branch)
             if self.dry_run:
@@ -206,6 +216,24 @@ class Command(BaseCommand):
                 row.placement, row.alt_text = placement, alt
                 row.save(update_fields=["placement", "alt_text"])
                 self._attach(row, "image", name)
+
+    def _portraits(self, branch):
+        """Attach staff portraits to team members seed_website has already created.
+
+        Skips a name with no row rather than creating one: this command owns images,
+        seed_website owns people, and a TeamMember conjured here would have a face and
+        no biography.
+        """
+        for name, rel, widths in PORTRAITS:
+            member = TeamMember.objects.filter(branch=branch, name=name).first()
+            if member is None:
+                self.stdout.write(
+                    self.style.WARNING(f"  no team member named {name!r} — run seed_website first")
+                )
+                continue
+            stored = self._convert(rel, "team", widths)
+            if stored:
+                self._attach(member, "photo", stored)
 
     def _gallery(self, branch):
         for order, (rel, alt) in enumerate(GALLERY):

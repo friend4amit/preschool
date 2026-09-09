@@ -150,7 +150,14 @@ class TeamMember(BranchScopedModel):
     role = models.CharField(max_length=200, blank=True)
     credentials = models.CharField(max_length=300, blank=True)
     bio = models.TextField(blank=True)
-    photo = models.ImageField(upload_to="team/", blank=True)
+    # `public_media`, like every other image on the marketing site — and unlike the
+    # default storage, which in production is the PRIVATE bucket children's photos
+    # live in. A staff portrait on /our-team/ has to be world-readable, and
+    # `seed_media` already writes these through public_media; declaring the field on
+    # the default storage meant the two agreed only by accident, on a machine where
+    # both fall back to local disk. The day R2_PUBLIC_BUCKET is set they would stop
+    # agreeing and every team photograph would 404.
+    photo = models.ImageField(upload_to="team/", blank=True, storage=public_media, max_length=200)
     order = models.PositiveIntegerField(default=0)
     is_published = models.BooleanField(default=True)
 
