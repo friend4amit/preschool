@@ -39,7 +39,7 @@ Each phase ends in something **deployed and usable by a real person**, not a bra
 | 4 | [Daily activities & photos](#phase-4--daily-activities--photos) | 12–14 | **Parents** |
 | 5 | [AI daily reports](#phase-5--ai-daily-reports) | 4–5 | Teachers |
 | 6 | [Fees & UPI](#phase-6--fees--upi) | 15–17 | Office staff, parents |
-| 7 | [Announcements & dashboards](#phase-7--announcements-reports--dashboards) | 6–8 | The owner |
+| 7 | [Announcements & dashboards](#phase-7--announcements-reports--dashboards) | 6–8 | The owner — **built early, ahead of 5 and 6** |
 | 8 | [Branch two](#phase-8--branch-two) | 4–5 | The owner |
 | 9 | [Beyond](#phase-9--beyond-not-scheduled) | — | — |
 
@@ -514,6 +514,52 @@ This is why the phase is 15–17 days rather than 12. A GST invoice is a statuto
 - Parent-facing announcements feed inside the portal, feeding the same unread badge as photos.
 
 **Done when** the owner uses the dashboard instead of asking the office.
+
+### Built out of order, and what that cost
+
+**Phase 7 was built after Phase 4, skipping 5 and 6.** That was a deliberate call, not a
+drift; this section records it so the phase map and the code agree.
+
+Two items above **could not be built and were not stubbed**:
+
+| Asked for | Why it is absent |
+|---|---|
+| Dashboard tile: unpaid invoice total and count | No `Invoice`, no `Payment` — those are Phase 6. |
+| Fee ledger CSV | Same. |
+
+Both places say so on screen rather than rendering a zero: the dashboard carries a
+dashed "Fees — needs Phase 6" tile, and `/staff/reports/files/` names the fee ledger as
+not built. A tile reading `0 outstanding` against a schema with no invoices in it is a
+confident wrong answer, and the owner has no way to tell it from a true one. **When
+Phase 6 lands, those two are part of it**, not a follow-up.
+
+Three decisions worth carrying forward:
+
+- **Two apps, not one.** `apps/announcements` owns the models and both sides of the
+  notice board. `apps/reports` owns the dashboard and the exports and has no models —
+  it reads across `people`, `attendance`, `activities` and `website`. It could not live
+  in `apps/core`, which is what every other app imports *from*; a dashboard selector
+  reaching up into `people` would invert the direction the layer contract is built on.
+  Both are registered in `.importlinter`'s `containers`, which is **not** automatic —
+  `exhaustive = false` means an unlisted app is silently unpoliced.
+- **Read receipts are a table, and only for announcements.** `AnnouncementRead` is the
+  column that `apps/activities/context_processors.py` said this phase would earn. The
+  photo badge still counts from the session and was deliberately left alone: "since last
+  visit" is a browser-local question, and migrating it would mean a row per photo per
+  guardian for a badge that already works. The visible consequence is that the portal's
+  two badges behave differently, which is argued in both files.
+- **A notice is not gated on consent.** The photo feed is, because a photograph is a
+  picture of a child. A notice is the school talking to the parents of its own students
+  and there is no purpose to consent to — a guardian who declined `photos_in_app` must
+  still be told the school is shut on Monday. The enrolment gate is the only one.
+  `apps/announcements/tests/test_selectors.py` asserts this rather than leaving it
+  implied, because copying the consent check across out of symmetry is the obvious
+  mistake.
+
+**Still open against "done when":** the owner has not used it yet, and the mobile-checked
+gate is outstanding for the same reason it is outstanding for Phases 2 and 4 — no real
+phone on this machine. The dashboard is laptop-first by design, so it is the notice feed
+and its badge that want the phone.
 
 ---
 

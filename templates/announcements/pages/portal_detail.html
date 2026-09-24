@@ -1,0 +1,21 @@
+{% extends "layouts/parent.html" %}
+
+{% comment %} One notice. Reaching this page is what records the read receipt — see
+   apps/announcements/views.my_announcement. {% endcomment %}
+
+{% block title %}{{ announcement.title }} — Aaroham{% endblock %}
+
+{% block parent_content %}
+  <p class="text-2xs text-muted"><a href="{% url 'my_announcements' %}" class="hover:underline">← Notices</a></p>
+
+  <h1 class="font-display text-ink mt-2 text-2xl font-semibold">{{ announcement.title }}</h1>
+  <p class="text-2xs text-muted mt-1">
+    {{ announcement.published_at|date:"j M Y" }} · {{ announcement.audience }}
+  </p>
+
+  <div class="text-ink mt-5 text-sm leading-relaxed whitespace-pre-line">{{ announcement.body }}</div>
+
+  {% if announcement.expires_on %}
+    <p class="text-2xs text-muted mt-6">This notice comes down after {{ announcement.expires_on|date:"j M Y" }}.</p>
+  {% endif %}
+{% endblock %}

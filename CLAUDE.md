@@ -124,7 +124,10 @@ integrations/       vendor wrappers (R2, Anthropic, UPI, email) — imports no d
 
 Dependencies point **downward only**. Two mechanisms keep this honest, both in CI:
 
-- `uv run lint-imports` — the direction of dependencies (`.importlinter`).
+- `uv run lint-imports` — the direction of dependencies (`.importlinter`). **A new app
+  is not covered until you add it to `containers`.** The contract sets
+  `exhaustive = false`, so an unlisted app is not a failure, it is silence — which is
+  the same shape of gap as `admin.py` below.
 - `apps/core/tests/test_architecture.py` — bans `django.http`, `django.shortcuts` etc.
   below the view layer. AST-based, so it covers new apps automatically; you don't have
   to register them anywhere.
@@ -240,11 +243,14 @@ These cost hours now and weeks later. They are decided; don't relitigate them in
   browser completed the R2 PUT and then failed to tell Django stays `pending` forever
   and never reaches a feed. The same is true of **`manage.py prune_media --retention`**,
   which is the DPDP sweep and wants a monthly cron line rather than a nightly one.
-- **The unread badge is per browser.** "Last visit" lives in the session
-  (`apps/activities/context_processors.py`), which is the cheap answer and costs no
-  migration — but a parent who reads the feed on their phone still sees a badge on the
-  laptop. Fine for "since last visit"; not fine for the per-item read receipts Phase 7
-  wants for announcements, which is the point at which this earns a column.
+- **The PHOTO unread badge is per browser, and still is.** "Last visit" lives in the
+  session (`apps/activities/context_processors.py`), which is the cheap answer and costs
+  no migration — but a parent who reads the feed on their phone still sees a badge on
+  the laptop. Phase 7 arrived and took the other half of this: announcements got
+  `AnnouncementRead`, a real per-item receipt, so the portal now carries **two badges
+  that are counted differently on purpose**. The photo one was deliberately not
+  migrated — a row per photo per guardian is a lot of table for a badge that works.
+  Both files argue it; don't "unify" them without reading either.
 - **Photo upload is unverified against real R2.** The browser path
   (`static/js/photo-upload.js` -> presigned PUT -> confirm) is written and the
   endpoints are tested against a stub, but no upload has ever reached a real bucket

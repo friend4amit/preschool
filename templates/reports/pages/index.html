@@ -1,0 +1,50 @@
+{% extends "layouts/staff.html" %}
+
+{% block title %}Registers and exports — Aaroham{% endblock %}
+
+{% block staff_content %}
+  <h1 class="font-display text-ink text-2xl font-semibold">Registers and exports</h1>
+  <p class="text-muted mt-1 max-w-prose text-sm">
+    The CSVs open in Excel. They carry children's names and guardians' phone numbers,
+    so a downloaded copy is personal data — keep it the way the school keeps the paper
+    register, not in a shared drive.
+  </p>
+
+  <section class="border-line bg-raised mt-6 rounded-2xl border p-4">
+    <h2 class="text-ink font-medium">Student roster</h2>
+    <p class="text-muted mt-1 text-sm">Every enrolled child with their room and primary guardian.</p>
+    <div class="mt-3 flex flex-wrap items-center gap-3">
+      <a href="{% url 'roster_csv' %}" class="btn btn-sm">Whole school</a>
+      {% for room in classrooms %}
+        <a href="{% url 'roster_csv' %}?classroom={{ room.pk }}" class="text-leaf text-sm hover:underline">{{ room.name }}</a>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="border-line bg-raised mt-4 rounded-2xl border p-4">
+    <h2 class="text-ink font-medium">Monthly attendance</h2>
+    <p class="text-muted mt-1 text-sm">
+      This month. Add <code class="text-2xs">?month=YYYY-MM</code> for an earlier one.
+    </p>
+    {% if classrooms %}
+      <ul class="mt-3 space-y-2">
+        {% for room in classrooms %}
+          <li class="flex flex-wrap items-baseline gap-3 text-sm">
+            <span class="text-ink">{{ room.name }}</span>
+            <a href="{% url 'attendance_register' room.pk %}" class="text-leaf hover:underline">Printable register</a>
+            <a href="{% url 'attendance_csv' room.pk %}" class="text-leaf hover:underline">CSV summary</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-muted mt-3 text-sm">No classrooms yet.</p>
+    {% endif %}
+  </section>
+
+  {% comment %} Named rather than silently missing. Somebody will come here looking for
+     it, and "not built yet" is a better answer than an absence. {% endcomment %}
+  <section class="border-line mt-4 rounded-2xl border border-dashed p-4">
+    <h2 class="text-muted font-medium">Fee ledger</h2>
+    <p class="text-muted mt-1 text-sm">Needs Phase 6. There are no invoices to export yet.</p>
+  </section>
+{% endblock %}

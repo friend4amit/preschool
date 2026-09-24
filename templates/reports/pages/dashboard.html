@@ -1,0 +1,168 @@
+{% extends "layouts/staff.html" %}
+
+{% comment %} The owner's morning screen.
+
+   Fixed layout, no filters, no pagination. The value is that the same numbers are in
+   the same places every day, so it is read in ten seconds rather than studied.
+
+   Two tiles the phase asks for are absent: unpaid invoice total, and count. Phase 6
+   has not been built, so there is no Invoice to count. The empty slot below says so
+   rather than showing a confident zero — see apps/reports/selectors.py.
+{% endcomment %}
+
+{% block title %}Dashboard — Aaroham{% endblock %}
+
+{% block staff_content %}
+  <div class="flex flex-wrap items-baseline justify-between gap-3">
+    <h1 class="font-display text-ink text-2xl font-semibold">This morning</h1>
+    <span class="text-2xs text-muted">{{ attendance.date|date:"l, j F Y" }}</span>
+  </div>
+
+  <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    {# Attendance #}
+    <section class="border-line bg-raised rounded-2xl border p-4">
+      <h2 class="text-2xs text-muted font-medium tracking-widest uppercase">Attendance</h2>
+      {% if attendance.rate is not None %}
+        <p class="font-display text-ink mt-2 text-3xl font-semibold tabular-nums">{{ attendance.rate }}%</p>
+        <p class="text-muted mt-1 text-sm">
+          {{ attendance.present }} in, {{ attendance.absent }} out of {{ attendance.counted }} marked.
+        </p>
+      {% else %}
+        <p class="font-display text-muted mt-2 text-3xl font-semibold">—</p>
+        <p class="text-muted mt-1 text-sm">Nobody marked yet today.</p>
+      {% endif %}
+      {% if attendance.unmarked %}
+        <p class="text-stop mt-2 text-sm">{{ attendance.unmarked }} still unmarked.</p>
+      {% endif %}
+    </section>
+
+    {# Roll #}
+    <section class="border-line bg-raised rounded-2xl border p-4">
+      <h2 class="text-2xs text-muted font-medium tracking-widest uppercase">On the roll</h2>
+      <p class="font-display text-ink mt-2 text-3xl font-semibold tabular-nums">{{ enrolled }}</p>
+      <p class="text-muted mt-1 text-sm">Children currently enrolled.</p>
+    </section>
+
+    {# Enquiries #}
+    <section class="border-line bg-raised rounded-2xl border p-4">
+      <h2 class="text-2xs text-muted font-medium tracking-widest uppercase">New enquiries</h2>
+      <p class="font-display text-ink mt-2 text-3xl font-semibold tabular-nums">{{ enquiries|length }}</p>
+      <p class="text-muted mt-1 text-sm">
+        {% if enquiries %}
+          <a href="{% url 'enquiry_list' %}" class="text-leaf hover:underline">Nobody has called them yet →</a>
+        {% else %}
+          All picked up.
+        {% endif %}
+      </p>
+    </section>
+
+    {# Fees — the tile this phase cannot build #}
+    <section class="border-line rounded-2xl border border-dashed p-4">
+      <h2 class="text-2xs text-muted font-medium tracking-widest uppercase">Fees</h2>
+      <p class="font-display text-muted/50 mt-2 text-3xl font-semibold">—</p>
+      <p class="text-muted mt-1 text-sm">
+        Outstanding needs Phase 6. There are no invoices to count yet, and a zero here
+        would read as "everyone has paid".
+      </p>
+    </section>
+  </div>
+
+  <div class="mt-4 grid gap-3 lg:grid-cols-2">
+    {# Absent today — the list, because the office rings these #}
+    <section class="border-line bg-raised rounded-2xl border p-4">
+      <h2 class="text-2xs text-muted font-medium tracking-widest uppercase">Not in today</h2>
+      {% if absent %}
+        <ul class="mt-3 space-y-2">
+          {% for record in absent %}
+            <li class="flex items-baseline gap-2 text-sm">
+              <a href="{% url 'student_detail' record.student.pk %}" class="text-ink hover:underline">
+                {{ record.student.display_name }}
+              </a>
+              <span class="text-2xs text-muted">{{ record.classroom.name|default:"—" }}</span>
+              {% if record.reason %}<span class="text-2xs text-muted ml-auto">{{ record.reason }}</span>{% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted mt-3 text-sm">Nobody marked absent.</p>
+      {% endif %}
+    </section>
+
+    {# Photographs #}
+    <section class="border-line bg-raised rounded-2xl border p-4">
+      <h2 class="text-2xs text-muted font-medium tracking-widest uppercase">Photographs</h2>
+      <p class="text-ink mt-3 text-sm">
+        <strong class="tabular-nums">{{ photos.published }}</strong> published since
+        {{ photos.since|date:"j M" }}.
+      </p>
+      {% if photos.awaiting_publish %}
+        <p class="text-muted mt-1 text-sm">
+          {{ photos.awaiting_publish }} uploaded but not published yet.
+        </p>
+      {% endif %}
+      {% comment %} Stuck uploads are on this screen rather than only in a management
+         command because nothing else tells anyone. A photo whose browser finished the
+         PUT and then failed to say so stays pending forever and never reaches a feed;
+         reconcile_uploads fixes it but has no schedule yet (CLAUDE.md). {% endcomment %}
+      {% if photos.pending %}
+        <p class="text-stop mt-2 text-sm">
+          {{ photos.pending }} upload{{ photos.pending|pluralize }} never finished.
+          Run <code class="text-2xs">manage.py reconcile_uploads</code>.
+        </p>
+      {% endif %}
+    </section>
+  </div>
+
+  <div class="mt-4 grid gap-3 lg:grid-cols-2">
+    {# Enrolment trend #}
+    <section class="border-line bg-raised rounded-2xl border p-4">
+      <h2 class="text-2xs text-muted font-medium tracking-widest uppercase">Joined and left</h2>
+      <table class="mt-3 w-full text-sm">
+        <thead>
+          <tr class="text-2xs text-muted text-left uppercase">
+            <th class="font-medium">Month</th>
+            <th class="text-right font-medium">Joined</th>
+            <th class="text-right font-medium">Left</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in trend %}
+            <tr class="border-line border-t">
+              <td class="text-ink py-1.5">{{ row.month|date:"M Y" }}</td>
+              <td class="text-ink py-1.5 text-right tabular-nums">{{ row.joined }}</td>
+              <td class="text-muted py-1.5 text-right tabular-nums">{{ row.left }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    {# Latest notices #}
+    <section class="border-line bg-raised rounded-2xl border p-4">
+      <div class="flex items-baseline justify-between gap-2">
+        <h2 class="text-2xs text-muted font-medium tracking-widest uppercase">Latest notices</h2>
+        <a href="{% url 'announcement_list' %}" class="text-2xs text-leaf hover:underline">All →</a>
+      </div>
+      {% if announcements %}
+        <ul class="mt-3 space-y-2">
+          {% for announcement in announcements %}
+            <li class="text-sm">
+              <a href="{% url 'announcement_detail' announcement.pk %}" class="text-ink hover:underline">
+                {{ announcement.title }}
+              </a>
+              <span class="text-2xs text-muted">· {{ announcement.published_at|date:"j M" }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted mt-3 text-sm">
+          Nothing published. <a href="{% url 'announcement_new' %}" class="text-leaf hover:underline">Write one →</a>
+        </p>
+      {% endif %}
+    </section>
+  </div>
+
+  <p class="text-2xs text-muted mt-5">
+    <a href="{% url 'report_index' %}" class="hover:underline">Registers and exports →</a>
+  </p>
+{% endblock %}

@@ -24,6 +24,11 @@
                 Photos{% include "activities/partials/unread_badge.html" %}
               </a>
             </li>
+            <li>
+              <a href="{% url 'my_announcements' %}" class="flex items-center gap-1.5 rounded-lg px-3 py-2 text-muted hover:bg-sage-wash hover:text-sage">
+                Notices{% include "announcements/partials/unread_badge.html" %}
+              </a>
+            </li>
             <li><span class="rounded-lg px-3 py-2 text-muted/50" title="Phase 6">Fees</span></li>
           </ul>
         </nav>
@@ -75,6 +80,11 @@
       <li class="flex-1">
         <a href="{% url 'my_photos' %}" class="flex items-center justify-center gap-1 px-2 py-3 text-center text-muted active:bg-sage-wash">
           Photos{% include "activities/partials/unread_badge.html" %}
+        </a>
+      </li>
+      <li class="flex-1">
+        <a href="{% url 'my_announcements' %}" class="flex items-center justify-center gap-1 px-2 py-3 text-center text-muted active:bg-sage-wash">
+          Notices{% include "announcements/partials/unread_badge.html" %}
         </a>
       </li>
       <li class="flex-1"><span class="block px-2 py-3 text-center text-muted/50">Fees</span></li>

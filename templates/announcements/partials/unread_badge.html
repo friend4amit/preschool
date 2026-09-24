@@ -1,0 +1,18 @@
+{% comment %} Notices this guardian has not opened.
+
+   The second badge in the portal, and counted differently from the photo one on
+   purpose. `portal_announcements_unread` comes from a context processor and is lazy,
+   so it costs a query only where a template renders it — this file and nowhere else.
+
+   The difference a parent can see: this one counts read RECEIPTS, so opening a notice
+   on the phone clears it on the laptop too. The photo badge counts from a session
+   timestamp and does not. The argument for both is in
+   apps/activities/context_processors.py.
+
+   Hidden at zero rather than shown as "0", same as the photo badge: a badge that is
+   always there is furniture, and stops being read.
+{% endcomment %}
+{% if portal_announcements_unread %}
+  <span class="bg-leaf text-on-leaf inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-[0.625rem] leading-none font-semibold tabular-nums"
+        aria-label="{{ portal_announcements_unread }} unread notice{{ portal_announcements_unread|pluralize }}">{{ portal_announcements_unread }}</span>
+{% endif %}

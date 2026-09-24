@@ -8,6 +8,7 @@ looks like a staff one is a permission bug waiting to be written.
 from django.urls import path
 
 from apps.activities import views as activities_views
+from apps.announcements import views as announcements_views
 from apps.attendance import views as attendance_views
 from apps.people import views
 
@@ -20,6 +21,12 @@ urlpatterns = [
         name="my_child_attendance",
     ),
     path("photos/", activities_views.my_photos, name="my_photos"),
+    path("notices/", announcements_views.my_announcements, name="my_announcements"),
+    path(
+        "notices/<int:announcement_id>/",
+        announcements_views.my_announcement,
+        name="my_announcement",
+    ),
     path(
         "children/<int:student_id>/photos/",
         activities_views.my_child_photos,

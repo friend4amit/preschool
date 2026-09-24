@@ -29,9 +29,11 @@ INSTALLED_APPS = [
     "django_tasks_db",
     "simple_history",
     "apps.activities",
+    "apps.announcements",
     "apps.attendance",
     "apps.core",
     "apps.people",
+    "apps.reports",
     "apps.website",
 ]
 
@@ -65,10 +67,13 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                # The parent portal's unread badge. Lazy — it costs nothing on a
-                # template that never renders it, which is every public and staff
-                # page. See apps/activities/context_processors.py.
+                # The parent portal's two unread badges. Both lazy — they cost
+                # nothing on a template that never renders them, which is every
+                # public and staff page. Photos count from a session timestamp;
+                # notices count read receipts, and the difference is argued in
+                # apps/activities/context_processors.py.
                 "apps.activities.context_processors.portal_unread",
+                "apps.announcements.context_processors.portal_announcements",
             ],
         },
     },
