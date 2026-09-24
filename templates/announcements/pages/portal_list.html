@@ -1,0 +1,46 @@
+{% extends "layouts/parent.html" %}
+
+{% comment %} The parent's notice board.
+
+   Unread rows carry a dot rather than bold type. Bold on a phone at this width reads
+   as a heading, and a list where half the items look like headings has no hierarchy
+   left to spend on the pinned ones.
+
+   The list does NOT mark anything read — opening a notice does. "It appeared in a list
+   they scrolled past" is not the claim the receipt is meant to make.
+{% endcomment %}
+
+{% block title %}Notices — Aaroham{% endblock %}
+
+{% block parent_content %}
+  <h1 class="font-display text-ink text-2xl font-semibold">Notices</h1>
+
+  {% if announcements %}
+    <ul class="mt-5 space-y-3">
+      {% for announcement in announcements %}
+        <li>
+          <a href="{% url 'my_announcement' announcement.pk %}"
+             class="border-line bg-raised hover:border-leaf/40 block rounded-2xl border p-4">
+            <div class="flex items-baseline gap-2">
+              {% if not announcement.is_read %}
+                <span class="bg-leaf mt-1.5 size-2 shrink-0 rounded-full" aria-hidden="true"></span>
+              {% endif %}
+              <span class="text-ink font-medium">{{ announcement.title }}</span>
+              <span class="text-2xs text-muted ml-auto shrink-0">{{ announcement.published_at|date:"j M" }}</span>
+            </div>
+            <p class="text-muted mt-1 text-sm">{{ announcement.body|truncatewords:20 }}</p>
+            <p class="text-2xs text-muted mt-2">
+              {% if announcement.is_pinned %}Pinned · {% endif %}
+              {{ announcement.audience }}
+              {% if not announcement.is_read %} · <span class="text-leaf">Unread</span>{% endif %}
+            </p>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="border-line text-muted mt-5 rounded-2xl border border-dashed px-4 py-10 text-center text-sm">
+      Nothing from the school right now.
+    </p>
+  {% endif %}
+{% endblock %}

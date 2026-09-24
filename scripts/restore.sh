@@ -190,6 +190,7 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "config.settings.dev"
 django.setup()
 
 from apps.activities.models import ActivityEntry, IncidentReport, MediaAsset
+from apps.announcements.models import Announcement, AnnouncementRead
 from apps.attendance.models import AttendanceRecord, PickupRecord
 from apps.core.models import Branch, Consent, Organization, User
 from apps.people.models import Enrollment, Guardian, Student
@@ -212,6 +213,8 @@ counts = {
     "activity entries": ActivityEntry.objects.count(),
     "incidents": IncidentReport.objects.count(),
     "media assets": MediaAsset.objects.count(),
+    "announcements": Announcement.objects.count(),
+    "read receipts": AnnouncementRead.objects.count(),
 }
 width = max(len(k) for k in counts)
 for name, count in counts.items():

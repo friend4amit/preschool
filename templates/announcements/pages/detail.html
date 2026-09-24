@@ -1,0 +1,54 @@
+{% extends "layouts/staff.html" %}
+
+{% block title %}{{ announcement.title }} — Aaroham{% endblock %}
+
+{% block staff_content %}
+  <p class="text-2xs text-muted"><a href="{% url 'announcement_list' %}" class="hover:underline">← Notices</a></p>
+
+  <h1 class="font-display text-ink mt-2 text-2xl font-semibold">{{ announcement.title }}</h1>
+  <p class="text-muted mt-1 text-sm">
+    {{ announcement.audience }}
+    {% if announcement.author %} · written by {{ announcement.author.full_name }}{% endif %}
+    {% if announcement.expires_on %} · stops showing after {{ announcement.expires_on|date:"j M Y" }}{% endif %}
+  </p>
+
+  <div class="border-line bg-raised text-ink mt-5 rounded-2xl border px-5 py-4 text-sm whitespace-pre-line">{{ announcement.body }}</div>
+
+  {% comment %} The read receipt, which is the reason AnnouncementRead is a table and
+     not a session key. The denominator counts guardian ACCOUNTS of currently enrolled
+     children — a family whose portal login was never created cannot read a notice, and
+     counting them would make every notice look unread forever. {% endcomment %}
+  <section class="mt-6">
+    <h2 class="text-2xs text-muted font-medium tracking-widest uppercase">Read by</h2>
+    {% if announcement.is_published %}
+      <p class="text-ink mt-2 text-sm">
+        <strong class="tabular-nums">{{ read_count }}</strong> of
+        <strong class="tabular-nums">{{ audience_size }}</strong>
+        parent account{{ audience_size|pluralize }}.
+      </p>
+      {% if not audience_size %}
+        <p class="text-muted mt-1 text-sm">
+          Nobody in this audience has a portal login yet, so nobody can read it.
+        </p>
+      {% endif %}
+    {% else %}
+      <p class="text-muted mt-2 text-sm">Not published, so nobody has seen it.</p>
+    {% endif %}
+  </section>
+
+  <div class="mt-6 flex items-center gap-3">
+    {% if announcement.is_published %}
+      <form method="post" action="{% url 'announcement_unpublish' announcement.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm">Withdraw it</button>
+      </form>
+      <p class="text-2xs text-muted">Withdrawing hides it. Who already read it stays on record.</p>
+    {% else %}
+      <form method="post" action="{% url 'announcement_publish' announcement.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary btn-sm">Publish it</button>
+      </form>
+      <p class="text-2xs text-muted">Parents see it on their next visit.</p>
+    {% endif %}
+  </div>
+{% endblock %}

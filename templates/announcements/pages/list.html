@@ -1,0 +1,51 @@
+{% extends "layouts/staff.html" %}
+
+{% block title %}Notices — Aaroham{% endblock %}
+
+{% block staff_content %}
+  <div class="flex flex-wrap items-baseline justify-between gap-3">
+    <h1 class="font-display text-ink text-2xl font-semibold">Notices</h1>
+    <a href="{% url 'announcement_new' %}" class="btn btn-primary btn-sm">Write one</a>
+  </div>
+  <p class="text-muted mt-1 max-w-prose text-sm">
+    Drafts sit here until somebody publishes them. Nothing on this page has reached a
+    parent unless it says so.
+  </p>
+
+  {% if announcements %}
+    <ul class="border-line bg-raised mt-5 overflow-hidden rounded-2xl border px-3">
+      {% for announcement in announcements %}
+        <li class="border-line border-b px-1 py-4 last:border-b-0">
+          <div class="flex flex-wrap items-baseline gap-2">
+            <a href="{% url 'announcement_detail' announcement.pk %}" class="text-ink font-medium hover:underline">
+              {{ announcement.title }}
+            </a>
+
+            {% if announcement.is_pinned %}
+              <span class="bg-sage-wash text-sage text-2xs rounded-full px-2 py-0.5 font-medium">Pinned</span>
+            {% endif %}
+
+            {% if announcement.is_published %}
+              <span class="bg-leaf-wash text-leaf text-2xs rounded-full px-2 py-0.5 font-medium">Published</span>
+            {% else %}
+              <span class="bg-sunken text-muted text-2xs rounded-full px-2 py-0.5 font-medium">Draft</span>
+            {% endif %}
+
+            {% if announcement.has_expired %}
+              <span class="bg-sunken text-muted text-2xs rounded-full px-2 py-0.5 font-medium">Expired</span>
+            {% endif %}
+
+            <span class="text-2xs text-muted ml-auto">
+              {% if announcement.published_at %}{{ announcement.published_at|date:"j M Y" }}{% else %}Not published{% endif %}
+            </span>
+          </div>
+          <p class="text-muted mt-1 text-sm">{{ announcement.audience }} · {{ announcement.body|truncatewords:22 }}</p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="border-line text-muted mt-5 rounded-2xl border border-dashed px-4 py-10 text-center text-sm">
+      No notices yet. The first one is usually the term dates.
+    </p>
+  {% endif %}
+{% endblock %}

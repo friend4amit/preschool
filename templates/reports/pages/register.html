@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% comment %} The month register, laid out for A4 and a filing cabinet.
+
+   It extends base.html rather than the staff layout on purpose: the register a school
+   files is a grid and a signature line, and the console's nav, badges and sign-out
+   button are all furniture that would print. A print stylesheet hiding them would be
+   the same page with more rules to forget.
+
+   Landscape, because 31 day-columns plus a name column does not fit portrait at a
+   legible size. The @page rule is the only thing that makes that automatic; without it
+   the office prints it portrait once, squints, and goes back to paper.
+{% endcomment %}
+
+{% block title %}{{ classroom.name }} — {{ month|date:"F Y" }} — Aaroham{% endblock %}
+
+{% block extra_head %}
+  <style>
+    @page { size: A4 landscape; margin: 12mm; }
+    @media print {
+      .no-print { display: none; }
+      body { background: #fff; }
+    }
+  </style>
+{% endblock %}
+
+{% block main_class %}mx-auto w-full max-w-none px-5 py-8 print:p-0{% endblock %}
+
+{% block content %}
+  <div class="no-print mb-6 flex flex-wrap items-center gap-3">
+    <a href="{% url 'report_index' %}" class="text-2xs text-muted hover:underline">← Registers and exports</a>
+    <button type="button" onclick="window.print()" class="btn btn-sm">Print</button>
+    <a href="{% url 'attendance_csv' classroom.pk %}?month={{ month|date:'Y-m' }}"
+       class="text-leaf text-sm hover:underline">Download the CSV instead</a>
+  </div>
+
+  <header class="flex flex-wrap items-baseline justify-between gap-3">
+    <h1 class="font-display text-ink text-xl font-semibold">
+      {{ classroom.name }} — {{ month|date:"F Y" }}
+    </h1>
+    <p class="text-2xs text-muted">
+      {% for status, mark in marks.items %}{{ mark }} {{ status.label|default:status }}{% if not forloop.last %} · {% endif %}{% endfor %}
+    </p>
+  </header>
+
+  {% if rows %}
+    <table class="mt-4 w-full border-collapse text-[0.6875rem]">
+      <thead>
+        <tr>
+          <th class="border-line border px-2 py-1 text-left font-medium">Name</th>
+          {% for day in days %}
+            <th class="border-line w-6 border px-0 py-1 text-center font-medium tabular-nums">{{ day|date:"j" }}</th>
+          {% endfor %}
+          <th class="border-line border px-2 py-1 text-center font-medium">%</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <td class="border-line border px-2 py-1 whitespace-nowrap">{{ row.student.display_name }}</td>
+            {% for mark in row.marks %}
+              <td class="border-line border px-0 py-1 text-center">{{ mark }}</td>
+            {% endfor %}
+            <td class="border-line border px-2 py-1 text-center tabular-nums">
+              {% if row.rate is not None %}{{ row.rate }}{% else %}—{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% comment %} The signature line is why this is printed at all. A register nobody
+       signed is a spreadsheet. {% endcomment %}
+    <div class="mt-10 flex gap-16 text-[0.6875rem]">
+      <p class="border-ink w-56 border-t pt-1">Class teacher</p>
+      <p class="border-ink w-56 border-t pt-1">Principal</p>
+    </div>
+  {% else %}
+    <p class="text-muted mt-6 text-sm">No children enrolled in this room.</p>
+  {% endif %}
+{% endblock %}

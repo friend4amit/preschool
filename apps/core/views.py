@@ -18,9 +18,14 @@ from apps.core.models import Role
 
 # Which console each role lands in. A dict rather than a chain of ifs, so adding a
 # role is a line here and not a branch — and so the mapping is readable at a glance.
+# Where each role lands after signing in. The two administrative roles go to the
+# dashboard from Phase 7 onward — "the owner opens one screen each morning" is the
+# whole point of that screen, and it is not one if they have to navigate to it.
+# Teachers do NOT: their morning is a room and a register, and a school-wide
+# attendance percentage is not a thing they can act on.
 LANDING_BY_ROLE = {
-    Role.SUPERADMIN: "student_list",
-    Role.BRANCH_ADMIN: "student_list",
+    Role.SUPERADMIN: "dashboard",
+    Role.BRANCH_ADMIN: "dashboard",
     Role.TEACHER: "student_list",
     Role.ACCOUNTANT: "student_list",
     Role.PARENT: "my_children",
